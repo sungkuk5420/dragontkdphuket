@@ -10,9 +10,8 @@ window.DGT = {
   lineUrl: 'https://line.me/ti/p/K2-bgRDOkr',          // LINE 친구추가 (QR 에서 디코드)
   whatsappUrl: 'https://wa.me/qr/YKCJST5QMUUOA1?s=p', // WhatsApp 연락처 (QR 에서 디코드)
   instagramUrl: 'https://www.instagram.com/dragon_gym_taekwondo/',
-  instagramPoomsaeUrl: 'https://www.instagram.com/dragon_tkd_poomsae/',
-  /* 인스타 게시물/릴 shortcode (instagram.com/p/<코드>/). 프로필에서 수집, 최신순. 앞 4개 표시. */
-  instagram: ['B9wOnOaFTgb', 'B9S0It_Feo0', 'B9O6oJoFdt9', 'B9O6i6Llw3y'],
+  /* 인스타 @dragon_gym_taekwondo 게시물/릴 shortcode (instagram.com/p/<코드>/). 프로필에서 수집, 최신순. */
+  instagram: ['Degn-8jAG3B', 'Dd7vcqTlQqh', 'Dd24lNjiJRC'],
   mainPhone: '0869515115',
   timeZone: 'Asia/Bangkok',
 
@@ -170,7 +169,7 @@ window.DGT = {
       call: 'Call', directions: 'Directions', openMaps: 'Open in Google Maps', reviews: 'reviews',
       mainBadge: 'Main gym', 'sched.poster': 'View poster', loadReel: 'Play reel',
       'trial.lineHint': 'Scan the QR code to add our LINE Official Account, then paste the copied message.',
-      'sched.zoom': 'Tap the poster to enlarge', 'ig.title': 'Dragon Poomsae Team',
+      'sched.zoom': 'Tap the poster to enlarge', 'ig.title': 'DRAGON TAEKWONDO',
       'fb.seeMore': 'See more', 'fb.seeLess': 'See less', 'fb.viewPost': 'View on Facebook', 'fb.openPhoto': 'Open photo',
       'fb.updated': 'Updated', 'fb.morePosts': 'See all posts on Facebook',
 
@@ -321,7 +320,7 @@ window.DGT = {
       'branches.lead': 'คลิกที่สาขาหรือหมุดบนแผนที่เพื่อดูที่อยู่ เวลาเปิด และเส้นทาง สาขาหลักคือสวนหลวง',
       'schedule.kicker': 'ตารางเรียน', 'schedule.title': 'ตารางเรียนประจำสัปดาห์',
       'schedule.lead': 'เลือกสาขาและวัน ระบบจะไฮไลต์คลาสที่กำลังเรียนและคลาสถัดไปตามเวลาประเทศไทย',
-      'sched.poster': 'ดูโปสเตอร์', 'sched.zoom': 'แตะเพื่อขยายโปสเตอร์', 'ig.title': 'ทีมพุมเซ่ Dragon',
+      'sched.poster': 'ดูโปสเตอร์', 'sched.zoom': 'แตะเพื่อขยายโปสเตอร์', 'ig.title': 'DRAGON TAEKWONDO',
       'fb.seeMore': 'ดูเพิ่มเติม', 'fb.seeLess': 'ย่อ', 'fb.viewPost': 'ดูบนเฟซบุ๊ก', 'fb.openPhoto': 'เปิดรูป',
       'fb.updated': 'อัปเดต', 'fb.morePosts': 'ดูโพสต์ทั้งหมดบนเฟซบุ๊ก',
       'schedule.note': 'ตารางอาจเปลี่ยนแปลงในช่วงสอบเลื่อนสายหรือการแข่งขัน กรุณาเช็กกับทางยิมทาง LINE หรือเฟซบุ๊กก่อนมา',
@@ -355,7 +354,7 @@ window.DGT = {
       today: '오늘', closed: '이 날은 수업이 없습니다', nowClass: '수업 중', nextClass: '다음 수업',
       nextOn: '다음 수업', noUpcoming: '오늘 남은 수업이 없습니다', openHours: '운영', closedDay: '휴무',
       call: '전화', directions: '길찾기', openMaps: '구글맵에서 열기', reviews: '리뷰',
-      mainBadge: '본관', 'sched.poster': '시간표 포스터', 'sched.zoom': '포스터를 누르면 크게 볼 수 있습니다', 'ig.title': '드래곤 품새팀',
+      mainBadge: '본관', 'sched.poster': '시간표 포스터', 'sched.zoom': '포스터를 누르면 크게 볼 수 있습니다', 'ig.title': 'DRAGON TAEKWONDO',
       'fb.seeMore': '더 보기', 'fb.seeLess': '접기', 'fb.viewPost': '페이스북에서 보기', 'fb.openPhoto': '사진 열기',
       'fb.updated': '업데이트', 'fb.morePosts': '페이스북에서 전체 게시물 보기', loadReel: '릴스 재생',
       copied: '메시지를 복사했습니다', copyFail: '복사에 실패했습니다. 직접 선택해 복사해 주세요',
