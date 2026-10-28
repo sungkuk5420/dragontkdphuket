@@ -294,6 +294,13 @@ html:not([lang="en"]) .tab { font-family: var(--font-display); text-transform: n
 .legend li { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 14px; height: 14px; background: var(--c); display: inline-block; }
 .sched__note { font-size: 13.5px; color: rgba(255,255,255,.6); margin: 16px 0 0; }
+.sched-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+.sched-poster { margin: 0; position: sticky; top: calc(var(--nav-h) + 16px); }
+.sched-poster__btn { display: block; width: 100%; padding: 0; border: 3px solid var(--gold); background: #000; cursor: zoom-in; box-shadow: 8px 8px 0 var(--red); transition: transform .3s var(--ease), box-shadow .3s; }
+.sched-poster__btn:hover { transform: translate(-3px, -3px) rotate(-.6deg); box-shadow: 11px 11px 0 var(--red); }
+.sched-poster__btn img { width: 100%; height: auto; display: block; }
+.sched-poster figcaption { margin-top: 14px; font-size: 13.5px; color: rgba(255,255,255,.6); text-align: center; }
+@media (max-width: 1000px) { .sched-wrap { grid-template-columns: 1fr; } .sched-poster { position: static; max-width: 520px; margin-inline: auto; } }
 @media (max-width: 600px) { .slot { grid-template-columns: 1fr; gap: 4px; } .slot__state { justify-self: start; } }
 
 /* ---------- 페이스북 ---------- */
@@ -302,8 +309,50 @@ html:not([lang="en"]) .tab { font-family: var(--font-display); text-transform: n
 .fb .lead { color: rgba(255,255,255,.72); }
 .fb__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .fb__grid { display: grid; grid-template-columns: 500px 1fr; gap: 32px; align-items: start; }
-.fb__page { min-height: 700px; background: #fff; border: 2px solid var(--line-dark); }
-.fb__page iframe { width: 100%; height: 700px; border: 0; display: block; }
+/* 최신 게시물 피드 (페이스북 카드 스타일, 3열 메이슨리) */
+.feed-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 16px; }
+.feed-head .h3 { margin: 0; }
+.feed-head__updated { color: rgba(255,255,255,.5); font-size: 13px; }
+.feed { columns: 3 320px; column-gap: 16px; }
+.post { break-inside: avoid; margin: 0 0 16px; background: #fff; color: #1c1e21; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.25); display: flex; flex-direction: column; font-family: 'Segoe UI', var(--font-body); }
+.post__head { display: flex; align-items: center; gap: 10px; padding: 12px 14px 8px; }
+.post__head img { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ddd; background: #fff; }
+.post__head div { display: flex; flex-direction: column; line-height: 1.25; flex: 1; min-width: 0; }
+.post__head strong { font-size: 15px; font-family: var(--font-thai); font-weight: 600; }
+.post__head small { color: #65676b; font-size: 13px; }
+.post__fb { color: #1877f2; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; }
+.post__fb:hover { background: #f0f2f5; }
+.post__fb svg { width: 18px; height: 18px; fill: currentColor; }
+.post__text { margin: 0 14px 10px; padding: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; font-family: var(--font-thai), 'Segoe UI', sans-serif; }
+.post__text a { color: #1877f2; }
+.post__text.is-clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.post__toggle { align-self: flex-start; margin: -4px 14px 12px; padding: 0; border: 0; background: none; color: #65676b; font-weight: 600; cursor: pointer; font-size: 14px; }
+.post__toggle:hover { text-decoration: underline; }
+.post__photos { display: grid; gap: 2px; background: #fff; }
+.post__photos--2 { grid-template-columns: 1fr 1fr; }
+.post__photos--3 { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+.post__photos--3 .post__ph:first-child { grid-column: 1 / -1; }
+.post__ph { position: relative; padding: 0; border: 0; background: #e4e6eb; cursor: zoom-in; display: block; overflow: hidden; }
+.post__photos--1 .post__ph img { width: 100%; height: auto; max-height: 520px; object-fit: cover; }
+.post__photos--2 .post__ph, .post__photos--3 .post__ph:not(:first-child) { aspect-ratio: 1; }
+.post__photos--3 .post__ph:first-child { aspect-ratio: 4 / 3; }
+.post__ph img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s var(--ease); }
+.post__ph:hover img { transform: scale(1.04); }
+.post__more { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.45); color: #fff; font-size: clamp(26px, 3vw, 36px); font-weight: 700; font-family: 'Segoe UI', sans-serif; }
+.post__video { position: relative; aspect-ratio: 9 / 16; max-height: 640px; background: #000; margin-inline: auto; width: 100%; }
+.post__video iframe { width: 100%; height: 100%; border: 0; display: block; }
+.post__link { padding: 10px 14px 12px; color: #65676b; font-weight: 600; font-size: 14px; text-decoration: none; border-top: 1px solid #e4e6eb; }
+.post__link:hover { color: #1877f2; }
+.feed-more { margin-top: 8px; }
+.lightbox__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--black); background: var(--gold); font-size: 30px; line-height: 1; cursor: pointer; z-index: 1; }
+.lightbox__nav--prev { left: -18px; } .lightbox__nav--next { right: -18px; }
+.lightbox__caption a { color: var(--gold-2); }
+@media (max-width: 600px) { .lightbox__nav--prev { left: 4px; } .lightbox__nav--next { right: 4px; } }
+.fb__page { min-height: 130px; background: #fff; border: 2px solid var(--line-dark); }
+.fb__page iframe { width: 100%; height: 130px; border: 0; display: block; }
+.fb__posts { display: grid; gap: 14px; margin-top: 14px; }
+.fb__posts .fb-post { background: #fff; border: 2px solid var(--line-dark); min-height: 200px; }
+.fb__posts .fb-post > span, .fb__posts .fb-post iframe { max-width: 100% !important; }
 .reels { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }
 .reel { position: relative; aspect-ratio: 9 / 16; background: var(--ink-2); border: 2px solid var(--line-dark); overflow: hidden; }
 .reel iframe { width: 100%; height: 100%; border: 0; display: block; }
@@ -314,6 +363,18 @@ html:not([lang="en"]) .tab { font-family: var(--font-display); text-transform: n
 .reel__play svg { width: 22px; height: 22px; fill: var(--black); margin-left: 3px; }
 .reel__label { position: absolute; bottom: 10px; left: 10px; right: 10px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
 @media (max-width: 1000px) { .fb__grid { grid-template-columns: 1fr; } .fb__page { max-width: 500px; } }
+.btn--ig { background: linear-gradient(45deg, #f9ce34, #ee2a7b 55%, #6228d7); color: #fff; }
+.btn--ig:hover { filter: brightness(1.08); }
+.ig { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line-dark); }
+.ig__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.ig__head .h3 { margin: 0; display: inline-flex; align-items: center; gap: 10px; }
+.ig__mark svg { width: 26px; height: 26px; fill: none; stroke: #ee2a7b; stroke-width: 2; }
+.ig__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ig__item { background: #fff; border: 2px solid var(--line-dark); height: 560px; overflow: hidden; }
+.ig__item iframe { width: 100%; height: 100%; border: 0; display: block; }
+.ig__item > a { display: grid; place-items: center; height: 100%; color: var(--black); }
+@media (max-width: 1100px) { .ig__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ig__grid { grid-template-columns: 1fr; } }
 
 /* ---------- 체험 문의 ---------- */
 .trial { background: var(--gold); color: var(--black); }
@@ -343,6 +404,21 @@ html:not([lang="en"]) .form label { text-transform: none; }
 .form__send .btn { flex: 1 1 160px; font-size: 17px; }
 .form__toast { margin: 0; min-height: 20px; font-weight: 600; color: #1b8f3a; }
 @media (max-width: 860px) { .trial__grid { grid-template-columns: 1fr; } }
+/* 채팅 문의 패널 */
+.contact { background: var(--white); border: 2px solid var(--black); padding: clamp(20px, 3vw, 32px); box-shadow: 10px 10px 0 var(--black); }
+.contact__hint { color: var(--fg-muted); font-size: 15.5px; }
+.contact__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+.chat { display: flex; flex-direction: column; text-decoration: none; border: 2px solid var(--black); background: #fff; transition: transform .25s var(--ease), box-shadow .25s; box-shadow: 5px 5px 0 var(--c); --c: #06c755; }
+.chat--wa { --c: #25d366; }
+.chat:hover { transform: translate(-3px, -3px); box-shadow: 8px 8px 0 var(--c); }
+.chat img { width: 100%; height: auto; padding: 10px; }
+.chat__btn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 10px; background: var(--c); color: #fff; font-weight: 700; font-size: 17px; border-top: 2px solid var(--black); }
+.chat__btn svg { width: 22px; height: 22px; fill: currentColor; flex: none; }
+.chat-row { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; border: 2px solid var(--black); color: #1877f2; font-weight: 700; text-decoration: none; transition: background .2s, color .2s; }
+.chat-row:hover { background: #1877f2; color: #fff; }
+.chat-row svg { width: 20px; height: 20px; fill: currentColor; }
+/* 휴대폰에서는 QR 대신 큰 버튼만 */
+@media (max-width: 600px) { .contact__grid { grid-template-columns: 1fr; gap: 10px; } .chat img { display: none; } .chat__btn { border-top: 0; min-height: 60px; font-size: 18px; } }
 @media (max-width: 480px) { .form__row--2 { grid-template-columns: 1fr; } }
 
 /* ---------- FAQ ---------- */
@@ -372,9 +448,12 @@ html:not([lang="en"]) .footer__tag { text-transform: none; }
 @media (max-width: 480px) { .footer__grid { grid-template-columns: 1fr; } }
 
 /* ---------- 플로팅 LINE / 라이트박스 ---------- */
-.fab { position: fixed; right: 18px; bottom: 18px; z-index: 40; background: #06c755; color: #fff; border: 2px solid var(--black); box-shadow: 4px 4px 0 var(--black); padding: 10px 16px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: var(--font-display); font-size: 18px; letter-spacing: .08em; transition: transform .25s var(--ease); }
+.fabs { position: fixed; right: 18px; bottom: 18px; z-index: 40; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.fab { background: #06c755; color: #fff; border: 2px solid var(--black); box-shadow: 4px 4px 0 var(--black); padding: 10px 16px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: 'Bebas Neue', var(--font-display); font-size: 18px; letter-spacing: .08em; text-decoration: none; transition: transform .25s var(--ease); }
 .fab:hover { transform: translate(-2px, -2px); }
 .fab svg { width: 22px; height: 22px; fill: currentColor; }
+.fab--wa { background: #25d366; }
+@media (max-width: 560px) { .fab span { display: none; } .fab { padding: 12px; } }
 .lightbox { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .lightbox.is-open { opacity: 1; pointer-events: auto; }
 .lightbox__panel { position: relative; max-width: min(92vw, 720px); max-height: 92vh; display: grid; gap: 10px; }

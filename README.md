@@ -16,10 +16,12 @@ site/
   index.html        원페이지(히어로·소개·프로그램·지점+지도·시간표·페이스북·체험문의·FAQ) + JSON-LD
   styles.css        디자인 토큰(금/검/적), 섹션 스타일, 리빌 애니메이션
   main.js           인터랙션(GSAP·Lenis·커서·틸트·시간표 실시간 하이라이트·지도·폼·언어 전환 ไทย/EN/한국어)
-  data.js           지점·좌표·전화·시간표·릴스 ID·영어/한국어 번역 — 내용 수정은 여기서
+  data.js           지점·좌표·전화·시간표·릴스 ID·인스타 코드·LINE/WhatsApp 링크·영어/한국어 번역
+  feed.json, feed/img/  페이스북 최신 게시물(자동 수집 결과 — 손으로 고치지 않는다)
+scripts/fetch-fb-feed.mjs   공개 페이스북 페이지 → feed.json 수집기 (헤드리스 Chrome, 키 불필요)
   assets/           로고(포스터에서 추출)·LINE QR·시간표 포스터(webp/jpg)·OG 이미지
   robots.txt sitemap.xml site.webmanifest .nojekyll
-.github/workflows/pages.yml   main 에 push 되면 site/ 를 GitHub Pages 로 배포
+.github/workflows/pages.yml   main push·6시간마다: 페이스북 피드 수집 → 커밋 → site/ 를 GitHub Pages 로 배포
 ```
 
 외부 의존: Google Fonts, GSAP 3.13 + ScrollTrigger, Lenis 1.3, Leaflet 1.9(개요 지도, OpenStreetMap 타일),
@@ -44,6 +46,8 @@ python -m http.server 5190     # http://127.0.0.1:5190/
    `siteUrl` 을 함께 바꾼다.
 
 ## 내용 바꾸기
+
+- 페이스북 피드는 자동이다. 바로 갱신하려면 Actions 에서 워크플로를 수동 실행하거나 로컬에서 `node scripts/fetch-fb-feed.mjs` 후 커밋한다.
 
 - 시간표·전화·주소·좌표: `site/data.js` 의 `branches`. 포스터 이미지는 `assets/schedule-*.jpg|webp`.
 - 릴스: 페이스북 페이지 `/reels/` 에서 릴 URL 의 숫자 ID 를 `data.js` 의 `reels` 에 넣는다(앞 6개 표시).

@@ -43,7 +43,7 @@
     });
     $$('[data-set-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.setLang === lang)));
     // 언어 의존 렌더링 재실행
-    renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches();
+    renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches(); renderFeed(); renderFeedUpdated();
   }
   $$('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.setLang === lang) return;
@@ -314,97 +314,159 @@
     } else status.textContent = '';
 
     legend.innerHTML = Object.values(D.programs).map((p) => `<li style="--c: var(--p-${p.color})"><i></i>${p[lang] ?? p.en} <small>(${p.age})</small></li>`).join('');
-    const posterBtn = $('#posterBtn');
-    posterBtn.onclick = () => openLightbox(`${b.poster}.jpg`, `${L(b.name)} — ${t('sched.poster')}`);
+    // 포스터는 항상 보이고, 누르면 라이트박스로 확대
+    const posterImg = $('#schedPoster'), posterWebp = $('#schedPosterWebp');
+    if (posterImg && posterImg.dataset.src !== b.poster) {
+      posterImg.dataset.src = b.poster;
+      posterWebp.srcset = `${b.poster}.webp`; posterImg.src = `${b.poster}.jpg`;
+    }
+    if (posterImg) posterImg.alt = `${L(b.name)} — ${t('sched.poster')}`;
+    $('#posterBtn').onclick = () => openLightbox(`${b.poster}.jpg`, `${L(b.name)} — ${t('sched.poster')}`);
   }
   setInterval(() => { renderSchedule(); renderBranches(); }, 60 * 1000);
 
-  /* ---------- 페이스북 플러그인 / 릴스 ---------- */
-  const fbPage = $('#fbPage');
-  if (fbPage) {
-    const load = () => {
-      if (fbPage.dataset.loaded) return;
-      fbPage.dataset.loaded = '1';
-      const f = document.createElement('iframe');
-      f.src = fbPage.dataset.src; f.title = 'Facebook page — Dragon Gym Taekwondo Phuket'; f.loading = 'lazy';
-      f.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
-      fbPage.appendChild(f);
-    };
-    new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { load(); io.disconnect(); } }, { rootMargin: '400px' }).observe(fbPage);
+  /* ---------- 페이스북 최신 게시물 피드 ----------
+   * feed.json 은 scripts/fetch-fb-feed.mjs 가 공개 페이지에서 수집한다(GitHub Actions 주기 실행).
+   * 사진 게시물: 대표 1장 + 썸네일, 남은 장수는 "+n". 영상(릴): 화면 근처에서 플레이어 자동 로드.
+   * feed.json 을 못 읽으면 data.js 의 릴스 ID 로 영상 카드만 보여준다. */
+  const feedEl = $('#feed');
+  const FEED_MAX = 9;
+  let feedPosts = [];
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtText = (s) => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>');
+  const ICON_FB = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-2.8 0-4 1.8-4 4v2H7v4h3v6h4v-6h3l1-4h-4V8.5c0-.3.2-.5.5-.5z"/></svg>';
+  const PLAY = '<span class="reel__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>';
+  // 페이스북 날짜("October 18 at 8:23 PM" / "September 28")를 현재 언어로
+  function fmtFbTime(raw) {
+    const m = String(raw || '').match(/^(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2})(?:, (\d{4}))?/);
+    if (!m) return raw || '';
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const d = new Date(Number(m[3] || new Date().getFullYear()), months.indexOf(m[1]), Number(m[2]));
+    const loc = { th: 'th-TH', en: 'en-US', ko: 'ko-KR' }[lang];
+    return d.toLocaleDateString(loc, { month: 'long', day: 'numeric', ...(m[3] ? { year: 'numeric' } : {}) });
   }
-  const reels = $('#reels');
-  if (reels) {
-    reels.innerHTML = D.reels.slice(0, 6).map((id, i) => `<div class="reel" data-id="${id}">
-      <button class="reel__facade" type="button" aria-label="${t('loadReel')} ${i + 1}">
-        <span class="reel__play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-        <span class="reel__label">Reel ${i + 1}</span>
-      </button>
-    </div>`).join('');
-    const loadReel = (box) => {
-      if (box.dataset.loaded) return; box.dataset.loaded = '1';
-      const f = document.createElement('iframe');
-      f.src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(`https://www.facebook.com/reel/${box.dataset.id}/`)}&show_text=false&autoplay=true&mute=1`;
-      f.title = 'Facebook reel'; f.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share'); f.allowFullscreen = true;
-      box.innerHTML = ''; box.appendChild(f);
-    };
-    $$('.reel__facade', reels).forEach((btn) => btn.addEventListener('click', () => loadReel(btn.parentElement)));
+  function photoGrid(p, pi) {
+    const imgs = p.images, total = imgs.length + (p.more || 0);
+    const shown = imgs.slice(0, imgs.length >= 3 ? 3 : imgs.length);
+    const rest = total - shown.length;
+    return `<div class="post__photos post__photos--${shown.length}">${shown.map((im, k) => `
+      <button type="button" class="post__ph" data-post="${pi}" data-idx="${k}" aria-label="${esc(t('fb.openPhoto'))} ${k + 1}/${total}">
+        <img src="${im.src}" alt="${esc(im.alt || '')}" loading="lazy" decoding="async"${k === 0 && im.w ? ` width="${im.w}" height="${im.h}"` : ''}>
+        ${k === shown.length - 1 && rest > 0 ? `<span class="post__more">+${rest}</span>` : ''}
+      </button>`).join('')}</div>`;
+  }
+  function postCard(p, pi) {
+    const media = p.type === 'video' && p.videoId
+      ? `<div class="post__video" data-video="${p.videoId}"><button type="button" class="reel__facade" aria-label="${esc(t('loadReel'))}">${PLAY}</button></div>`
+      : p.type === 'photo' && p.images.length ? photoGrid(p, pi) : '';
+    const long = (p.text || '').length > 160 || (p.text || '').split('\n').length > 4;
+    return `<article class="post">
+      <header class="post__head">
+        <img src="assets/logo.png" alt="" width="40" height="40" loading="lazy">
+        <div><strong>ดราก้อนยิม เทควันโด ภูเก็ต</strong><small>${esc(fmtFbTime(p.time))}</small></div>
+        <a class="post__fb" href="${esc(p.url)}" target="_blank" rel="noopener" aria-label="Facebook">${ICON_FB}</a>
+      </header>
+      ${p.text ? `<div class="post__text${long ? ' is-clamped' : ''}">${fmtText(p.text)}</div>${long ? `<button type="button" class="post__toggle">${esc(t('fb.seeMore'))}</button>` : ''}` : ''}
+      ${media}
+      <a class="post__link" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(t('fb.viewPost'))} →</a>
+    </article>`;
+  }
+  const loadVideo = (box) => {
+    if (box.dataset.loaded) return; box.dataset.loaded = '1';
+    const f = document.createElement('iframe');
+    f.src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(`https://www.facebook.com/reel/${box.dataset.video}/`)}&show_text=false&mute=1`;
+    f.title = 'Facebook video'; f.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share'); f.allowFullscreen = true;
+    box.innerHTML = ''; box.appendChild(f);
+  };
+  function renderFeed() {
+    if (!feedEl || !feedPosts.length) return;
+    feedEl.innerHTML = feedPosts.slice(0, FEED_MAX).map(postCard).join('');
+    $$('.post__toggle', feedEl).forEach((b) => b.addEventListener('click', () => {
+      const txt = b.previousElementSibling; const open = txt.classList.toggle('is-clamped') === false;
+      b.textContent = open ? t('fb.seeLess') : t('fb.seeMore');
+    }));
+    $$('.post__ph', feedEl).forEach((b) => b.addEventListener('click', () => {
+      const p = feedPosts[Number(b.dataset.post)];
+      openGallery(p.images.map((im) => im.src), Number(b.dataset.idx), p.url);
+    }));
+    const vIO = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { loadVideo(e.target); vIO.unobserve(e.target); } }), { rootMargin: '400px' });
+    $$('.post__video', feedEl).forEach((v) => { vIO.observe(v); v.querySelector('button')?.addEventListener('click', () => loadVideo(v)); });
+  }
+  if (feedEl) {
+    fetch('feed.json', { cache: 'no-cache' })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((data) => {
+        feedPosts = Array.isArray(data.posts) ? data.posts : [];
+        const up = $('#feedUpdated');
+        if (up && data.updated) up.dataset.updated = data.updated;
+        renderFeed(); renderFeedUpdated();
+      })
+      .catch((err) => {
+        console.warn('[feed] feed.json 을 읽지 못해 릴스 목록으로 대체합니다', err);
+        feedPosts = D.reels.slice(0, 6).map((id) => ({ type: 'video', videoId: id, url: `https://www.facebook.com/reel/${id}/`, text: '', time: '', images: [] }));
+        renderFeed();
+      });
+  }
+  function renderFeedUpdated() {
+    const up = $('#feedUpdated');
+    if (!up || !up.dataset.updated) return;
+    const d = new Date(up.dataset.updated);
+    up.textContent = `${t('fb.updated')} ${d.toLocaleString({ th: 'th-TH', en: 'en-US', ko: 'ko-KR' }[lang], { dateStyle: 'medium', timeStyle: 'short', timeZone: D.timeZone })}`;
   }
 
-  /* ---------- 체험 문의 폼 ---------- */
-  const form = $('#trialForm');
+  /* ---------- 인스타그램 임베드 (iframe, 키 불필요). 섹션 근처에서 로드 ---------- */
+  const igGrid = $('#igGrid');
+  if (igGrid && Array.isArray(D.instagram)) {
+    igGrid.innerHTML = D.instagram.slice(0, 4).map((code) => `<div class="ig__item" data-code="${code}"><a href="https://www.instagram.com/p/${code}/" target="_blank" rel="noopener">Instagram</a></div>`).join('');
+    const igIO = new IntersectionObserver((es) => es.forEach((e) => {
+      if (!e.isIntersecting) return;
+      igIO.unobserve(e.target);
+      const f = document.createElement('iframe');
+      f.src = `https://www.instagram.com/p/${e.target.dataset.code}/embed/`;
+      f.title = 'Instagram post — dragon_tkd_poomsae'; f.loading = 'lazy'; f.setAttribute('scrolling', 'no'); f.allowTransparency = true;
+      e.target.innerHTML = ''; e.target.appendChild(f);
+    }), { rootMargin: '500px' });
+    $$('.ig__item', igGrid).forEach((el) => igIO.observe(el));
+  }
+
+  /* ---------- 체험 문의: 전화번호 목록 (채팅은 HTML 의 LINE/WhatsApp 링크) ---------- */
   function renderTrialOptions() {
-    const bs = $('#fBranch'), ds = $('#fDay');
-    if (!bs) return;
-    const prevB = bs.value, prevD = ds.value;
-    bs.innerHTML = D.branches.map((b) => `<option value="${b.id}">${L(b.name)}</option>`).join('');
-    bs.value = prevB || activeBranch;
-    const any = ds.querySelector('option[value=""]');
-    ds.innerHTML = ''; ds.appendChild(any);
-    DAYS.forEach((d) => { const o = document.createElement('option'); o.value = d; o.textContent = t('daysLong')[d]; ds.appendChild(o); });
-    ds.value = prevD;
     const ph = $('#trialPhones');
+    if (!ph) return;
     ph.innerHTML = D.branches.flatMap((b) => b.phones.filter((p, i) => i > 0 || b.main)).filter((p, i, a) => a.findIndex((x) => x.number === p.number) === i)
       .map((p) => `<a href="${telHref(p.number)}"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1l-2.25 2.2z"/></svg>${fmtPhone(p.number)} <small>${L(p.label)}</small></a>`).join('');
   }
-  // 프로그램 카드 → 폼 메모 채우기
-  $$('[data-program]').forEach((a) => a.addEventListener('click', () => { const n = $('#fNote'); const p = D.programs[a.dataset.program]; if (n && p) n.value = `${p[lang] ?? p.en} (${p.en})`; }));
-  let lastMsg = '';
-  form?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = $('#fName').value.trim(), age = $('#fAge').value.trim();
-    const err = $('#formError');
-    $('#fName').setAttribute('aria-invalid', String(!name)); $('#fAge').setAttribute('aria-invalid', String(!age));
-    if (!name || !age) { err.textContent = t('formNeed'); err.hidden = false; (!name ? $('#fName') : $('#fAge')).focus(); return; }
-    err.hidden = true;
-    const b = branchById($('#fBranch').value), day = $('#fDay').value, note = $('#fNote').value.trim();
-    lastMsg = [t('msgIntro'), `${t('msgName')}: ${name}`, `${t('msgAge')}: ${age}`, `${t('msgBranch')}: ${L(b.name)}`, day ? `${t('msgDay')}: ${t('daysLong')[day]}` : null, note ? `${t('msgNote')}: ${note}` : null].filter(Boolean).join('\n');
-    $('#outMsg').value = lastMsg;
-    $('#btnMessenger').href = `${D.messengerUrl}?text=${encodeURIComponent(lastMsg)}`;
-    const out = $('#formOut'); out.hidden = false; out.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
-  });
-  const toast = (msg) => { const el = $('#formToast'); el.textContent = msg; setTimeout(() => { el.textContent = ''; }, 3000); };
-  const copyMsg = async () => {
-    try { await navigator.clipboard.writeText(lastMsg); toast(t('copied')); }
-    catch { const ta = $('#outMsg'); ta.focus(); ta.select(); toast(t('copyFail')); }
-  };
-  $('#btnCopy')?.addEventListener('click', copyMsg);
-  $('#btnLine')?.addEventListener('click', async () => { await copyMsg(); openLightbox('assets/line-qr.png', t('trial.lineHint')); });
 
-  /* ---------- 라이트박스 / LINE ---------- */
+  /* ---------- 라이트박스 (포스터 확대) ---------- */
   const lb = $('#lightbox'), lbImg = $('#lbImg'), lbCap = $('#lbCaption');
   let lastFocus = null;
+  // 갤러리 상태: 피드 사진은 좌우로 넘겨 본다
+  let gallery = null; // { list, idx, url }
   function openLightbox(src, caption) {
-    lastFocus = document.activeElement;
+    if (!lb.classList.contains('is-open')) lastFocus = document.activeElement;
     lbImg.src = src; lbImg.alt = caption; lbCap.textContent = caption;
+    const multi = !!(gallery && gallery.list.length > 1);
+    $('#lbPrev').hidden = !multi; $('#lbNext').hidden = !multi;
     lb.classList.add('is-open'); lb.setAttribute('aria-hidden', 'false'); $('#lbClose').focus();
   }
-  function closeLightbox() { lb.classList.remove('is-open'); lb.setAttribute('aria-hidden', 'true'); lastFocus?.focus?.(); }
+  function showGallery() {
+    const { list, idx } = gallery;
+    openLightbox(list[idx], `${idx + 1} / ${list.length}`);
+    lbCap.innerHTML = `${idx + 1} / ${list.length} · <a href="${esc(gallery.url)}" target="_blank" rel="noopener">${esc(t('fb.viewPost'))}</a>`;
+  }
+  function openGallery(list, idx, url) { gallery = { list, idx, url }; showGallery(); }
+  const stepGallery = (d) => { if (!gallery) return; gallery.idx = (gallery.idx + d + gallery.list.length) % gallery.list.length; showGallery(); };
+  $('#lbPrev').addEventListener('click', () => stepGallery(-1));
+  $('#lbNext').addEventListener('click', () => stepGallery(1));
+  function closeLightbox() { lastFocus?.focus?.(); if (lb.contains(document.activeElement)) document.activeElement.blur(); lb.classList.remove('is-open'); lb.setAttribute('aria-hidden', 'true'); gallery = null; }
   $('#lbClose').addEventListener('click', closeLightbox);
   lb.addEventListener('click', (e) => { if (e.target === lb) closeLightbox(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lb.classList.contains('is-open')) closeLightbox(); });
-  const showLine = () => openLightbox('assets/line-qr.png', t('trial.lineHint'));
-  $('#fab')?.addEventListener('click', showLine);
-  $('#footerLine')?.addEventListener('click', showLine);
+  document.addEventListener('keydown', (e) => {
+    if (!lb.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowLeft') stepGallery(-1);
+    else if (e.key === 'ArrowRight') stepGallery(1);
+  });
 
   /* ---------- 푸터 ---------- */
   function renderFooterBranches() {

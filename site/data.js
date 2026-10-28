@@ -7,7 +7,12 @@ window.DGT = {
   facebookUrl: 'https://www.facebook.com/dragongymtaekwondo',
   facebookReelsUrl: 'https://www.facebook.com/dragongymtaekwondo/reels/',
   messengerUrl: 'https://m.me/dragongymtaekwondo',
+  lineUrl: 'https://line.me/ti/p/K2-bgRDOkr',          // LINE 친구추가 (QR 에서 디코드)
+  whatsappUrl: 'https://wa.me/qr/YKCJST5QMUUOA1?s=p', // WhatsApp 연락처 (QR 에서 디코드)
   instagramUrl: 'https://www.instagram.com/dragon_gym_taekwondo/',
+  instagramPoomsaeUrl: 'https://www.instagram.com/dragon_tkd_poomsae/',
+  /* 인스타 게시물/릴 shortcode (instagram.com/p/<코드>/). 프로필에서 수집, 최신순. 앞 4개 표시. */
+  instagram: ['B9wOnOaFTgb', 'B9S0It_Feo0', 'B9O6oJoFdt9', 'B9O6i6Llw3y'],
   mainPhone: '0869515115',
   timeZone: 'Asia/Bangkok',
 
@@ -139,6 +144,12 @@ window.DGT = {
     },
   ],
 
+  /* 페이스북 게시물 permalink (페이지 플러그인의 타임라인 탭은 게시물을 그리지 않아 개별 임베드로 보여준다).
+   * 추가하려면 게시물의 "..." → 링크 복사 로 얻은 URL 을 맨 앞에 넣는다. 앞 3개만 표시. */
+  posts: [
+    'https://www.facebook.com/dragongymtaekwondo/posts/pfbid0QDSRhsKLGaekZC2xJXUrUW87UFdU1Nxv4uPVKxQ2b4WmG78LBzu1Fr5BosWy9ncWl',
+  ],
+
   /* 페이스북 릴스 ID (페이지 /reels/ 에서 수집, 최신순). 바꾸려면 ID 만 교체. */
   reels: [
     '1583927846235395', '869744646128158', '2663812344034060',
@@ -156,6 +167,9 @@ window.DGT = {
       call: 'Call', directions: 'Directions', openMaps: 'Open in Google Maps', reviews: 'reviews',
       mainBadge: 'Main gym', 'sched.poster': 'View poster', loadReel: 'Play reel',
       'trial.lineHint': 'Scan the QR code to add our LINE Official Account, then paste the copied message.',
+      'sched.zoom': 'Tap the poster to enlarge', 'ig.title': 'Dragon Poomsae Team',
+      'fb.seeMore': 'See more', 'fb.seeLess': 'See less', 'fb.viewPost': 'View on Facebook', 'fb.openPhoto': 'Open photo',
+      'fb.updated': 'Updated', 'fb.morePosts': 'See all posts on Facebook',
 
       /* ---- data-i18n 키 (HTML 원문은 태국어, 영어는 여기) ---- */
       'nav.about': 'About',
@@ -220,7 +234,9 @@ window.DGT = {
       'fb.moreReels': 'All reels on Facebook',
       'trial.kicker': 'Free trial',
       'trial.title': 'Book a free trial class',
-      'trial.lead': 'Fill in a few details and send them to us on LINE or Messenger — no sign-up, and we reply the same day.',
+      'trial.lead': 'Message us on LINE or WhatsApp — no sign-up needed, and we reply the same day.',
+      'contact.title': 'Chat with us', 'contact.hint': "Tell us the child's name, age and preferred branch and we'll book a trial day. On mobile, tap a button to open the app. On a computer, scan the QR code with your phone.",
+      'contact.line': 'Chat on LINE', 'contact.wa': 'Chat on WhatsApp', 'contact.fb': 'Or message us on Facebook Messenger',
       'trial.bring': 'What to bring',
       'trial.bring1': 'Comfortable sportswear and a water bottle',
       'trial.bring2': 'Arrive 10 minutes early',
@@ -299,7 +315,9 @@ window.DGT = {
       'branches.lead': 'คลิกที่สาขาหรือหมุดบนแผนที่เพื่อดูที่อยู่ เวลาเปิด และเส้นทาง สาขาหลักคือสวนหลวง',
       'schedule.kicker': 'ตารางเรียน', 'schedule.title': 'ตารางเรียนประจำสัปดาห์',
       'schedule.lead': 'เลือกสาขาและวัน ระบบจะไฮไลต์คลาสที่กำลังเรียนและคลาสถัดไปตามเวลาประเทศไทย',
-      'sched.poster': 'ดูโปสเตอร์',
+      'sched.poster': 'ดูโปสเตอร์', 'sched.zoom': 'แตะเพื่อขยายโปสเตอร์', 'ig.title': 'ทีมพุมเซ่ Dragon',
+      'fb.seeMore': 'ดูเพิ่มเติม', 'fb.seeLess': 'ย่อ', 'fb.viewPost': 'ดูบนเฟซบุ๊ก', 'fb.openPhoto': 'เปิดรูป',
+      'fb.updated': 'อัปเดต', 'fb.morePosts': 'ดูโพสต์ทั้งหมดบนเฟซบุ๊ก',
       'schedule.note': 'ตารางอาจเปลี่ยนแปลงในช่วงสอบเลื่อนสายหรือการแข่งขัน กรุณาเช็กกับทางยิมทาง LINE หรือเฟซบุ๊กก่อนมา',
       'fb.kicker': 'เฟซบุ๊ก', 'fb.title': 'ติดตามเราบนเฟซบุ๊ก',
       'fb.lead': 'ข่าวสาร ผลการแข่งขัน วันสอบสาย และคลิปจากคลาสเรียน อัปเดตทุกสัปดาห์ที่เพจ ดราก้อนยิม เทควันโด ภูเก็ต',
@@ -331,7 +349,9 @@ window.DGT = {
       today: '오늘', closed: '이 날은 수업이 없습니다', nowClass: '수업 중', nextClass: '다음 수업',
       nextOn: '다음 수업', noUpcoming: '오늘 남은 수업이 없습니다', openHours: '운영', closedDay: '휴무',
       call: '전화', directions: '길찾기', openMaps: '구글맵에서 열기', reviews: '리뷰',
-      mainBadge: '본관', 'sched.poster': '포스터 보기', loadReel: '릴스 재생',
+      mainBadge: '본관', 'sched.poster': '시간표 포스터', 'sched.zoom': '포스터를 누르면 크게 볼 수 있습니다', 'ig.title': '드래곤 품새팀',
+      'fb.seeMore': '더 보기', 'fb.seeLess': '접기', 'fb.viewPost': '페이스북에서 보기', 'fb.openPhoto': '사진 열기',
+      'fb.updated': '업데이트', 'fb.morePosts': '페이스북에서 전체 게시물 보기', loadReel: '릴스 재생',
       copied: '메시지를 복사했습니다', copyFail: '복사에 실패했습니다. 직접 선택해 복사해 주세요',
       formNeed: '아이 이름과 나이를 입력해 주세요.',
       msgIntro: '안녕하세요 Dragon Gym! 무료 체험 수업을 예약하고 싶습니다.',
@@ -370,7 +390,9 @@ window.DGT = {
       'fb.follow': '페이지 팔로우', 'fb.message': '메시지 보내기', 'fb.reels': '최신 릴스', 'fb.moreReels': '페이스북에서 릴스 전체 보기',
       'fb.timeline': '최신 게시물',
       'trial.kicker': '무료 체험', 'trial.title': '무료 체험 수업 신청',
-      'trial.lead': '간단히 적어서 LINE 이나 Messenger 로 보내 주세요. 회원가입 없이 당일 답변드립니다.',
+      'trial.lead': 'LINE 이나 WhatsApp 으로 바로 문의하세요. 회원가입 없이 당일 답변드립니다.',
+      'contact.title': '채팅으로 문의하기', 'contact.hint': '아이 이름·나이·희망 지점을 알려 주시면 체험 날짜를 잡아 드립니다. 휴대폰에서는 버튼을 누르면 앱이 바로 열리고, PC 에서는 휴대폰으로 QR 을 스캔하세요.',
+      'contact.line': 'LINE 으로 채팅', 'contact.wa': 'WhatsApp 으로 채팅', 'contact.fb': '또는 Facebook Messenger 로 문의',
       'trial.name': '아이 이름', 'trial.age': '나이', 'trial.branch': '지점', 'trial.day': '희망 요일',
       'trial.note': '메모 (선택)', 'trial.notePh': '예: 이전 경험 / 궁금한 점',
       'trial.anyDay': '아무 요일', 'trial.build': '메시지 만들기',

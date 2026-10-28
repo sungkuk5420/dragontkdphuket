@@ -1,21 +1,24 @@
 # GitHub Pages 배포 — site/ 폴더를 그대로 올린다 (빌드 없음, 무료).
-# 1회 설정: 레포 Settings → Pages → Source 를 "GitHub Actions" 로. 무료 플랜은 레포가 public 이어야 한다.
+# 페이스북 최신 게시물(site/feed.json + site/feed/img)은 6시간마다 공개 페이지에서 다시 수집한다.
+# 수집이 실패해도(로그인 장벽 등) 레포에 커밋된 마지막 피드로 배포는 계속된다.
 name: Deploy site to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    paths: ['site/**', 'scripts/**', '.github/workflows/pages.yml']
+  schedule:
+    - cron: '17 */6 * * *'   # UTC 기준 6시간마다 (방콕 시간 00:17, 06:17, 12:17, 18:17)
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # 수집한 피드를 main 에 커밋
   pages: write
   id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -25,10 +28,31 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: JS 문법 검사
         run: |
           node --check site/main.js
           node --check site/data.js
+      - name: Chrome 준비
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+      - name: 페이스북 최신 게시물 수집
+        id: feed
+        continue-on-error: true
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node scripts/fetch-fb-feed.mjs
+      - name: 바뀐 피드 커밋
+        if: steps.feed.outcome == 'success'
+        run: |
+          git add site/feed.json site/feed
+          if git diff --cached --quiet; then echo "피드 변경 없음"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(feed): 페이스북 최신 게시물 갱신"
+          git push
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

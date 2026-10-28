@@ -20,3 +20,9 @@
 
 4. chore(deploy): feat/site 푸시 → 원격 main 생성(API, 5d6bdca) → 사용자가 레포 public 전환 → Pages(Actions) 활성화·첫 배포 성공 (run 40712525136)
    - 운영 URL https://sungkuk5420.github.io/dragontkdphuket/ 응답 확인. 레포 공개 전환 명령은 자동 모드가 막아 사용자가 직접 실행.
+
+## 2026-10-29 (목)
+
+1. feat(site): 페이스북 최신 게시물 피드·인스타 임베드·포스터 상시 노출·LINE/WhatsApp 직접 연결, 이메일 없는 문의폼 제거
+   - 페이지 플러그인 타임라인은 비로그인에도 게시물을 안 그려서 버림. 대신 scripts/fetch-fb-feed.mjs(헤드리스 Chrome+CDP, 의존성 없음)가 공개 페이지를 읽어 site/feed.json+site/feed/img 저장, pages.yml 이 6시간마다 수집·커밋·배포. CI IP 가 로그인 장벽에 막히면 마지막 커밋 피드로 배포(실패 허용).
+   - LINE(line.me/ti/p/K2-bgRDOkr)·WhatsApp(wa.me/qr/YKCJST5QMUUOA1) 링크는 사용자가 준 QR 을 OpenCV 로 디코드. 인스타 dragon_tkd_poomsae 게시물은 2020년 것 4개뿐(프로필 최신분). String.replace 치환문자열의 $$→$ 변환으로 main.js 가 깨졌던 사고 있음 — 치환은 함수로 넘길 것.

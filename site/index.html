@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Kanit:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=7">
 
   <!-- 구조화 데이터: 조직 + 지점 3곳 + FAQ -->
   <script type="application/ld+json">
@@ -53,7 +53,8 @@
         "telephone": "+66869515115",
         "sameAs": [
           "https://www.facebook.com/dragongymtaekwondo",
-          "https://www.instagram.com/dragon_gym_taekwondo/"
+          "https://www.instagram.com/dragon_gym_taekwondo/",
+          "https://www.instagram.com/dragon_tkd_poomsae/"
         ],
         "location": [
           { "@id": "https://sungkuk5420.github.io/dragontkdphuket/#suanluang" },
@@ -123,6 +124,7 @@
 </head>
 <body>
   <a class="skip" href="#about">Skip to content</a>
+  <div id="fb-root"></div>
   <div class="cursor" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
   <div class="progress" aria-hidden="true"><span></span></div>
 
@@ -292,6 +294,7 @@
           <h2 class="h2" data-i18n="schedule.title">ตารางเรียนประจำสัปดาห์</h2>
           <p class="lead" data-i18n="schedule.lead">เลือกสาขาและวัน ระบบจะไฮไลต์คลาสที่กำลังเรียนและคลาสถัดไปตามเวลาประเทศไทย</p>
         </div>
+        <div class="sched-wrap">
         <div class="sched" data-reveal>
           <div class="sched__branches" id="schedBranches" role="tablist" aria-label="Schedule by branch"></div>
           <div class="sched__days" id="schedDays" role="tablist" aria-label="Day of week"></div>
@@ -299,9 +302,19 @@
           <ol class="sched__list" id="schedList"></ol>
           <div class="sched__foot">
             <ul class="legend" id="legend" aria-label="Class colours"></ul>
-            <button class="btn btn--line" id="posterBtn" type="button"><span data-i18n="sched.poster">ดูโปสเตอร์</span></button>
           </div>
           <p class="sched__note" data-i18n="schedule.note">ตารางอาจเปลี่ยนแปลงในช่วงสอบเลื่อนสายหรือการแข่งขัน กรุณาเช็กกับทางยิมทาง LINE หรือเฟซบุ๊กก่อนมา</p>
+        </div>
+        <!-- 선택 지점의 시간표 포스터를 항상 보여준다. 누르면 확대 -->
+        <figure class="sched-poster" data-reveal>
+          <button type="button" class="sched-poster__btn" id="posterBtn">
+            <picture>
+              <source id="schedPosterWebp" type="image/webp" srcset="assets/schedule-suanluang.webp">
+              <img id="schedPoster" src="assets/schedule-suanluang.jpg" alt="ตารางเรียน สาขาสวนหลวง" width="900" height="1272" loading="lazy">
+            </picture>
+          </button>
+          <figcaption data-i18n="sched.zoom">แตะเพื่อขยายโปสเตอร์</figcaption>
+        </figure>
         </div>
       </div>
     </section>
@@ -324,18 +337,23 @@
             </a>
           </div>
         </div>
-        <div class="fb__grid">
-          <div class="fb__timeline" data-reveal>
-            <h3 class="h3" data-i18n="fb.timeline">โพสต์ล่าสุด</h3>
-            <div class="fb__page" id="fbPage" data-src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fdragongymtaekwondo&tabs=timeline&width=500&height=700&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true">
-              <noscript><a href="https://www.facebook.com/dragongymtaekwondo">facebook.com/dragongymtaekwondo</a></noscript>
-            </div>
+        <!-- 최신 게시물 피드: feed.json (GitHub Actions 가 공개 페이지에서 주기 수집) 을 페이스북 카드처럼 그린다 -->
+        <div class="feed-head" data-reveal>
+          <h3 class="h3" data-i18n="fb.timeline">โพสต์ล่าสุด</h3>
+          <small class="feed-head__updated" id="feedUpdated"></small>
+        </div>
+        <div class="feed" id="feed" aria-live="polite">
+          <noscript><a href="https://www.facebook.com/dragongymtaekwondo">facebook.com/dragongymtaekwondo</a></noscript>
+        </div>
+        <div class="feed-more">
+          <a class="btn btn--fb btn--sm" href="https://www.facebook.com/dragongymtaekwondo" target="_blank" rel="noopener" data-i18n="fb.morePosts">ดูโพสต์ทั้งหมดบนเฟซบุ๊ก</a>
+        </div>
+        <div class="ig" id="instagram" data-reveal>
+          <div class="ig__head">
+            <h3 class="h3"><span class="ig__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></span>Instagram · <span data-i18n="ig.title">ทีมพุมเซ่ Dragon</span></h3>
+            <a class="btn btn--ig btn--sm" href="https://www.instagram.com/dragon_tkd_poomsae/" target="_blank" rel="noopener">@dragon_tkd_poomsae</a>
           </div>
-          <div class="fb__reels" data-reveal>
-            <h3 class="h3" data-i18n="fb.reels">รีลล่าสุด</h3>
-            <div class="reels" id="reels"></div>
-            <a class="btn btn--ghost-dark btn--sm" href="https://www.facebook.com/dragongymtaekwondo/reels/" target="_blank" rel="noopener" data-i18n="fb.moreReels">ดูรีลทั้งหมดบนเฟซบุ๊ก</a>
-          </div>
+          <div class="ig__grid" id="igGrid"></div>
         </div>
       </div>
     </section>
@@ -346,7 +364,7 @@
         <div class="trial__text" data-reveal>
           <p class="kicker" data-i18n="trial.kicker">ทดลองเรียนฟรี</p>
           <h2 class="h2" data-i18n="trial.title">จองคลาสทดลองเรียนฟรี</h2>
-          <p class="lead" data-i18n="trial.lead">กรอกข้อมูลสั้น ๆ แล้วส่งหาเราทาง LINE หรือ Messenger — ไม่ต้องสมัครสมาชิก ตอบกลับภายในวันเดียวกัน</p>
+          <p class="lead" data-i18n="trial.lead">ทักหาเราทาง LINE หรือ WhatsApp ได้เลย ไม่ต้องสมัครสมาชิก ตอบกลับภายในวันเดียวกัน</p>
           <div class="bring">
             <h3 class="h3" data-i18n="trial.bring">สิ่งที่ต้องเตรียม</h3>
             <ul>
@@ -357,43 +375,22 @@
           </div>
           <div class="trial__phones" id="trialPhones"></div>
         </div>
-        <form class="form" id="trialForm" novalidate data-reveal>
-          <div class="form__row">
-            <label for="fName" data-i18n="trial.name">ชื่อเด็ก</label>
-            <input id="fName" name="name" type="text" autocomplete="off" required>
+        <!-- 문의는 채팅 앱으로 바로 연결 (모바일: 버튼이 앱을 연다 / PC: QR 을 휴대폰으로 스캔) -->
+        <div class="contact" data-reveal>
+          <h3 class="h3" data-i18n="contact.title">ทักแชทหาเราได้เลย</h3>
+          <p class="contact__hint" data-i18n="contact.hint">แจ้งชื่อ อายุของเด็ก และสาขาที่สะดวก แล้วเราจะนัดวันทดลองเรียนให้ บนมือถือกดปุ่มเพื่อเปิดแอปได้ทันที บนคอมพิวเตอร์ให้สแกน QR ด้วยมือถือ</p>
+          <div class="contact__grid">
+            <a class="chat chat--line" href="https://line.me/ti/p/K2-bgRDOkr" target="_blank" rel="noopener">
+              <img src="assets/line-qr.png" alt="LINE QR code" width="360" height="360" loading="lazy">
+              <span class="chat__btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.2 7.9.3.1.8.2.9.5.1.3 0 .7 0 1l-.2 1c0 .3-.2 1.1 1 .6 1.2-.5 6.3-3.7 8.6-6.4C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg><span data-i18n="contact.line">แชททาง LINE</span></span>
+            </a>
+            <a class="chat chat--wa" href="https://wa.me/qr/YKCJST5QMUUOA1?s=p" target="_blank" rel="noopener">
+              <img src="assets/whatsapp-qr.png" alt="WhatsApp QR code" width="360" height="360" loading="lazy">
+              <span class="chat__btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg><span data-i18n="contact.wa">แชททาง WhatsApp</span></span>
+            </a>
           </div>
-          <div class="form__row form__row--2">
-            <div>
-              <label for="fAge" data-i18n="trial.age">อายุ</label>
-              <input id="fAge" name="age" type="number" min="2" max="60" inputmode="numeric" required>
-            </div>
-            <div>
-              <label for="fBranch" data-i18n="trial.branch">สาขา</label>
-              <select id="fBranch" name="branch"></select>
-            </div>
-          </div>
-          <div class="form__row">
-            <label for="fDay" data-i18n="trial.day">วันที่สะดวก</label>
-            <select id="fDay" name="day"><option value="" data-i18n="trial.anyDay">วันไหนก็ได้</option></select>
-          </div>
-          <div class="form__row">
-            <label for="fNote" data-i18n="trial.note">หมายเหตุ (ไม่บังคับ)</label>
-            <textarea id="fNote" name="note" rows="3" data-i18n-ph="trial.notePh" placeholder="เช่น เคยเรียนมาก่อน / มีคำถาม"></textarea>
-          </div>
-          <p class="form__error" id="formError" role="alert" hidden></p>
-          <button class="btn btn--gold btn--block" type="submit" data-magnetic data-i18n="trial.build">สร้างข้อความ</button>
-
-          <div class="form__out" id="formOut" hidden>
-            <h3 class="h3" data-i18n="trial.step2">ส่งข้อความนี้ให้เรา</h3>
-            <textarea id="outMsg" rows="6" readonly aria-label="Generated message"></textarea>
-            <div class="form__send">
-              <button class="btn btn--line" type="button" id="btnLine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.2 7.9.3.1.8.2.9.5.1.3 0 .7 0 1l-.2 1c0 .3-.2 1.1 1 .6 1.2-.5 6.3-3.7 8.6-6.4C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg><span data-i18n="trial.line">ส่งทาง LINE</span></button>
-              <a class="btn btn--fb" id="btnMessenger" href="https://m.me/dragongymtaekwondo" target="_blank" rel="noopener"><span data-i18n="trial.messenger">ส่งทาง Messenger</span></a>
-              <button class="btn btn--ghost-dark" type="button" id="btnCopy"><span data-i18n="trial.copy">คัดลอกข้อความ</span></button>
-            </div>
-            <p class="form__toast" id="formToast" aria-live="polite"></p>
-          </div>
-        </form>
+          <a class="chat-row" href="https://m.me/dragongymtaekwondo" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.5 2 2 6.1 2 11.3c0 3 1.5 5.6 3.8 7.3V22l3.5-1.9c.9.2 1.8.4 2.7.4 5.5 0 10-4.1 10-9.2S17.5 2 12 2zm1 12.4-2.6-2.7-5 2.7 5.5-5.8 2.6 2.7 4.9-2.7-5.4 5.8z"/></svg><span data-i18n="contact.fb">หรือส่งข้อความทาง Facebook Messenger</span></a>
+        </div>
       </div>
     </section>
 
@@ -432,6 +429,7 @@
           <li><a href="#trial" data-i18n="nav.trial">ทดลองเรียนฟรี</a></li>
           <li><a href="https://www.facebook.com/dragongymtaekwondo" target="_blank" rel="noopener">Facebook</a></li>
           <li><a href="https://www.instagram.com/dragon_gym_taekwondo/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.instagram.com/dragon_tkd_poomsae/" target="_blank" rel="noopener">Instagram · Poomsae</a></li>
         </ul>
       </div>
       <div>
@@ -443,7 +441,8 @@
         <ul>
           <li><a href="tel:+66869515115">086 951 5115</a></li>
           <li><a href="https://m.me/dragongymtaekwondo" target="_blank" rel="noopener">Messenger</a></li>
-          <li><button class="linklike" type="button" id="footerLine">LINE Official Account</button></li>
+          <li><a href="https://line.me/ti/p/K2-bgRDOkr" target="_blank" rel="noopener">LINE</a></li>
+          <li><a href="https://wa.me/qr/YKCJST5QMUUOA1?s=p" target="_blank" rel="noopener">WhatsApp</a></li>
         </ul>
       </div>
     </div>
@@ -453,17 +452,19 @@
     </div>
   </footer>
 
-  <!-- 플로팅 LINE 버튼 -->
-  <button class="fab" id="fab" type="button" aria-label="LINE Official Account">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.2 7.9.3.1.8.2.9.5.1.3 0 .7 0 1l-.2 1c0 .3-.2 1.1 1 .6 1.2-.5 6.3-3.7 8.6-6.4C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg>
-    <span>LINE</span>
-  </button>
+  <!-- 플로팅 채팅 버튼: 누르면 앱으로 바로 연결 -->
+  <div class="fabs">
+    <a class="fab fab--wa" href="https://wa.me/qr/YKCJST5QMUUOA1?s=p" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.6 2 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.1.1.7-.1 1.3z"/></svg><span>WhatsApp</span></a>
+    <a class="fab" id="fab" href="https://line.me/ti/p/K2-bgRDOkr" target="_blank" rel="noopener" aria-label="LINE"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.2 7.9.3.1.8.2.9.5.1.3 0 .7 0 1l-.2 1c0 .3-.2 1.1 1 .6 1.2-.5 6.3-3.7 8.6-6.4C21.6 14 22 12.6 22 11c0-4.4-4.5-8-10-8z"/></svg><span>LINE</span></a>
+  </div>
 
   <!-- 라이트박스 (포스터 / LINE QR) -->
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="lightbox__panel">
       <button class="lightbox__close" id="lbClose" type="button" aria-label="Close" data-i18n-aria="lb.close">×</button>
       <img id="lbImg" src="" alt="">
+      <button class="lightbox__nav lightbox__nav--prev" id="lbPrev" type="button" aria-label="Previous" hidden>‹</button>
+      <button class="lightbox__nav lightbox__nav--next" id="lbNext" type="button" aria-label="Next" hidden>›</button>
       <p class="lightbox__caption" id="lbCaption"></p>
     </div>
   </div>
@@ -472,7 +473,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" referrerpolicy="no-referrer" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js" defer></script>
-  <script src="data.js?v=2" defer></script>
-  <script src="main.js?v=2" defer></script>
+  <script src="data.js?v=7" defer></script>
+  <script src="main.js?v=7" defer></script>
 </body>
 </html>
