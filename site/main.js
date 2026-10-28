@@ -442,8 +442,9 @@
 
   /* ---------- 코치진·대표선수 (data.js team) ---------- */
   function renderTeam() {
-    const tl = $('#coachTimeline'), list = $('#athleteList');
+    const tl = $('#coachTimeline'), list = $('#athleteList'), mi = $('#mentorItems');
     if (!tl || !list || !D.team) return;
+    if (mi && D.team.mentor) mi.innerHTML = D.team.mentor.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('');
     tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
       <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
       <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');

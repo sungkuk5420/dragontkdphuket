@@ -229,9 +229,18 @@ html:not([lang="en"]) .value h3 { text-transform: none; }
 .coach__photo { position: relative; margin: 0; overflow: hidden; aspect-ratio: 448 / 288; background: #222; }
 .coach__photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease); }
 .coach:hover .coach__photo img { transform: scale(1.04); }
-.coach__badge { position: absolute; left: 14px; bottom: 14px; width: 64px; height: 64px; border-radius: 50%; background: var(--gold); color: var(--black); border: 2px solid var(--black); display: grid; place-content: center; text-align: center; line-height: .9; box-shadow: 3px 3px 0 var(--black); }
+.coach__badge { position: absolute; right: 14px; top: 14px; width: 64px; height: 64px; border-radius: 50%; background: var(--gold); color: var(--black); border: 2px solid var(--black); display: grid; place-content: center; text-align: center; line-height: .9; box-shadow: 3px 3px 0 var(--black); }
 .coach__badge b { font-family: 'Bebas Neue', var(--font-display); font-size: 30px; }
 .coach__badge small { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.coach__who { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line-dark); }
+.coach__person { margin: 0; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; line-height: 1.3; }
+.coach__person strong { font-size: 15.5px; color: #fff; }
+.coach__person span { font-size: 12.5px; color: rgba(255,255,255,.65); }
+.coach__person--left { border-right: 1px solid var(--line-dark); }
+.coach__person--left strong::before { content: '◀ '; color: var(--gold); font-size: 11px; }
+.coach__person--right { text-align: right; background: rgba(244,180,0,.08); }
+.coach__person--right strong { color: var(--gold-2); }
+.coach__person--right strong::after { content: ' ▶'; color: var(--gold); font-size: 11px; }
 .coach__body { padding: clamp(18px, 3vw, 28px); }
 .coach__role { color: var(--gold); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; margin: 0 0 4px; }
 .coach__name { font-family: var(--font-display); font-size: clamp(28px, 3vw, 36px); margin-bottom: 18px; }
@@ -244,6 +253,15 @@ html:not([lang="en"]) .value h3 { text-transform: none; }
 .timeline__year small { display: inline-block; margin-left: 6px; font-family: var(--font-body); font-size: 11px; font-weight: 700; color: var(--red-2); letter-spacing: .06em; }
 .timeline__text { font-size: 15.5px; color: rgba(255,255,255,.88); min-width: 0; overflow-wrap: anywhere; }
 .athletes__title { color: #fff; margin-bottom: 16px; }
+.mentor { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: start; background: linear-gradient(120deg, #1d1d22, #121215); border: 2px solid var(--gold); box-shadow: 8px 8px 0 var(--red); padding: 18px; margin-bottom: 32px; position: relative; }
+.mentor::before { content: 'THAILAND NATIONAL TEAM'; position: absolute; top: -12px; right: 14px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .14em; padding: 3px 8px; border: 2px solid var(--black); }
+.mentor__photo img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--gold); box-shadow: 0 0 0 3px var(--black); display: block; }
+.mentor__role { margin: 0 0 4px; color: var(--gold); font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+.mentor__name { margin: 0 0 10px; font-size: clamp(22px, 2.4vw, 28px); font-family: var(--font-display); color: #fff; }
+.mentor__items { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mentor__items li { position: relative; padding-left: 16px; font-size: 14.5px; color: rgba(255,255,255,.88); line-height: 1.5; }
+.mentor__items li::before { content: ''; position: absolute; left: 0; top: .6em; width: 7px; height: 7px; background: var(--red); transform: rotate(45deg); }
+@media (max-width: 600px) { .mentor { grid-template-columns: 1fr; justify-items: start; } .mentor__photo img { width: 96px; height: 96px; } }
 .athletes__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .athlete { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; background: #1636a0; background: linear-gradient(110deg, #1739a8, #0f2a80); border: 2px solid var(--gold); padding: 12px 16px 12px 12px; transition: transform .3s var(--ease), box-shadow .3s; box-shadow: 5px 5px 0 rgba(244,180,0,.35); }
 .athlete:hover { transform: translate(-3px, -3px); box-shadow: 8px 8px 0 var(--gold); }
