@@ -29,7 +29,7 @@
    - CI 첫 수집은 로그인 장벽으로 1건만 읽혀 12건 피드를 덮어씀 → 교체 대신 병합(새 글 앞, 기존 글 유지, 최대 12건)으로 수정하고 로컬 수집으로 12건 복구.
 
 2. feat(about): 소개 섹션 오른쪽에 SEA Games 2022 금메달리스트 타나끄릿 욧락 하이라이트 카드(경기 사진+GOLD 배지) 추가
-   - 사진은 Bangkok Insight 2022-05-17 기사(thebangkokinsight.com/news/lifestyle/870091) 첫 장, 캡션상 파란 호구가 ธนกฤต. OCA 프로필 증명사진은 하이라이트용으로 약해서 버림. 보도사진이라 저작권은 미확인 — 선수/도장 보유 사진으로 교체 권장.
+   - 사진: Bangkok Post 2022-05-18 기사 이미지 4309642(Reuters, 캡션 "Thanakrit Yodrak celebrates winning the men's 58kg title"), OCA 프로필(소속 Dragon Gym 명시) 증명사진과 얼굴 대조. 처음 넣은 Bangkok Insight 경기 사진은 사용자 확인 결과 다른 선수였음 — 기사 본문 서술만 믿고 사진 캡션 없이 고른 게 원인. 보도사진 저작권 미확인.
    - 태국어 닉네임 표기("함만")는 확인 불가라 태국어 카드에선 이름만 표기.
 
 2. fix(branches): 보트라군 지점 제거(도장 확인: 탈랑으로 이전), Srisoonthorn→탈랑 이름 변경, 본관 주소 4/1 ถ.วิรัชหงษ์หยก 로 갱신
