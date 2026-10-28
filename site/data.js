@@ -245,7 +245,7 @@ window.DGT = {
       'team.kicker': 'Coaches & athletes', 'team.title': 'Coached directly by Korean masters',
       'team.lead': 'Our training programme is led by coaches from South Korea, and Dragon Gym has produced several Thai national-team athletes.',
       'team.coachRole': 'Head coach', 'team.coachName': 'Yong Taek Yoo',
-      'team.leftName': 'Chatchai Choi', 'team.staffTitle': 'Head coach & coaching staff (3)', 'team.judgesTitle': 'Belt-test examiners', 'team.judgesLead': 'Dragon Gym belt tests are judged by Thailand national-team coaches.', 'team.mentorRole': 'Thailand national team head coach · Dragon Gym belt-test examiner', 'team.leftRole': 'Thailand national team head coach · Dragon Gym belt-test examiner',
+      'team.leftName': 'Chatchai Choi', 'team.staffTitle': 'Head coach & coaching staff', 'team.judgesTitle': 'Belt-test examiners', 'team.judgesLead': 'Dragon Gym belt tests are judged by Thailand national-team coaches.', 'team.mentorRole': 'Thailand national team head coach · Dragon Gym belt-test examiner', 'team.leftRole': 'Thailand national team head coach · Dragon Gym belt-test examiner',
       'team.rightName': 'Yong Taek Yoo', 'team.rightRole': 'Dragon Gym head coach', 'team.athletesTitle': 'Thai national-team athletes from Dragon Gym', 'team.now': 'Present',
       'nav.programs': 'Programs',
       'nav.branches': 'Branches & Map',
@@ -365,7 +365,7 @@ window.DGT = {
       msgName: 'ชื่อ', msgAge: 'อายุ', msgBranch: 'สาขา', msgDay: 'วันที่สะดวก', msgNote: 'หมายเหตุ',
 
       /* ---- data-i18n 키 (HTML 텍스트 치환) ---- */
-      'nav.team': 'โค้ช & นักกีฬา', 'team.now': 'ปัจจุบัน', 'team.staffTitle': 'หัวหน้าผู้ฝึกสอนและทีมโค้ช (3 ท่าน)', 'team.judgesTitle': 'คณะกรรมการสอบเลื่อนสาย',
+      'nav.team': 'โค้ช & นักกีฬา', 'team.now': 'ปัจจุบัน', 'team.staffTitle': 'หัวหน้าผู้ฝึกสอนและทีมโค้ช', 'team.judgesTitle': 'คณะกรรมการสอบเลื่อนสาย',
       'nav.about': 'เกี่ยวกับเรา', 'nav.programs': 'คลาสเรียน', 'nav.branches': 'สาขา & แผนที่',
       'nav.schedule': 'ตารางเรียน', 'nav.facebook': 'เฟซบุ๊ก', 'nav.trial': 'ทดลองเรียนฟรี',
       'nav.cta': 'จองทดลองเรียน',
@@ -438,7 +438,7 @@ window.DGT = {
       'nav.team': '코치진 & 선수', 'team.kicker': '코치진 & 대표선수', 'team.title': '대한민국 출신 코치진이 직접 지도합니다',
       'team.lead': '드래곤 태권도의 훈련 프로그램은 대한민국 출신 코치진이 직접 지도하며, 지금까지 여러 명의 태국 국가대표 선수를 배출했습니다.',
       'team.coachRole': '수석 코치', 'team.coachName': '유영택 코치',
-      'team.leftName': '최영석 감독', 'team.staffTitle': '감독 · 코치진 (3명)', 'team.judgesTitle': '승단 심사위원진', 'team.judgesLead': '드래곤짐의 승단 심사는 태국 국가대표팀 지도자들이 직접 맡습니다.', 'team.mentorRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원', 'team.leftRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원',
+      'team.leftName': '최영석 감독', 'team.staffTitle': '감독 · 코치진', 'team.judgesTitle': '승단 심사위원진', 'team.judgesLead': '드래곤짐의 승단 심사는 태국 국가대표팀 지도자들이 직접 맡습니다.', 'team.mentorRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원', 'team.leftRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원',
       'team.rightName': '유영택 코치', 'team.rightRole': '드래곤짐 수석 코치', 'team.athletesTitle': '드래곤짐 출신 태국 국가대표 선수들', 'team.now': '현재',
       'nav.about': '도장 소개', 'nav.programs': '프로그램', 'nav.branches': '지점 & 지도',
       'nav.schedule': '시간표', 'nav.facebook': '페이스북', 'nav.trial': '무료 체험',
