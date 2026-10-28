@@ -446,17 +446,17 @@
     if (!tl || !list || !D.team) return;
     const jl = $('#judgeList');
     if (jl && D.team.judges) jl.innerHTML = D.team.judges.map((j) => `<li class="judge">
-      <picture class="judge__photo"><source srcset="assets/team/${j.img}.webp?v=2" type="image/webp"><img src="assets/team/${j.img}.jpg?v=2" alt="${esc(j.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="judge__photo"><source srcset="assets/team/${j.img}.webp?v=4" type="image/webp"><img src="assets/team/${j.img}.jpg?v=4" alt="${esc(j.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <h4 class="judge__name">${esc(L(j.name))}</h4><p class="judge__role">${esc(L(j.role))}</p><p class="judge__note">${esc(L(j.note))}</p></li>`).join('');
     if (staff && D.team.staff) staff.innerHTML = D.team.staff.map((s) => `<article class="mentor" data-tag="${esc(s.tag || '')}">
-      <picture class="mentor__photo"><source srcset="assets/team/${s.img}.webp?v=2" type="image/webp"><img src="assets/team/${s.img}.jpg?v=2" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="mentor__photo"><source srcset="assets/team/${s.img}.webp?v=4" type="image/webp"><img src="assets/team/${s.img}.jpg?v=4" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <div class="mentor__body"><p class="mentor__role">${esc(L(s.role))}</p><h4 class="mentor__name">${esc(L(s.name))}</h4>
         <ul class="mentor__items">${s.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('')}</ul></div></article>`).join('');
     tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
       <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
       <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');
     list.innerHTML = D.team.athletes.map((a) => `<li class="athlete${a.gold ? ' athlete--gold' : ''}">
-      <picture class="athlete__photo"><source srcset="assets/team/${a.img}.webp?v=2" type="image/webp"><img src="assets/team/${a.img}.jpg?v=2" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="athlete__photo"><source srcset="assets/team/${a.img}.webp?v=4" type="image/webp"><img src="assets/team/${a.img}.jpg?v=4" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <div class="athlete__body"><h4 class="athlete__name">${esc(a.name[lang] ?? a.name.en)}</h4>
         <ul class="athlete__items">${(a.items[lang] ?? a.items.en).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></li>`).join('');
     if (list.dataset.revealed) $$('.athlete', list).forEach((el) => el.classList.add('is-revealed'));
