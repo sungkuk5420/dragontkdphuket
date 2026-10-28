@@ -151,16 +151,43 @@ window.DGT = {
 
   /* 코치진·대표선수 (도장 제공 자료 2026-10-29). 사진: assets/team/*. 경력은 연도순. */
   team: {
-    // 최영석 감독: 사용자 제공 자료(위키백과·조선일보·YTN 요약) 기준
-    mentor: {
-      items: [
+    // 승단 심사위원진 (도장 확인 2026-10-29)
+    judges: [
+      { img: 'park', name: { en: 'Park Hee-gang', th: 'ปาร์ค ฮีคัง', ko: '박희강 코치' },
+        role: { en: 'Thailand national team coach', th: 'โค้ชทีมชาติไทย', ko: '태국 태권도 국가대표팀 코치' },
+        note: { en: 'Thailand team at the 2022 World Cadet Championships, Sofia', th: 'ทีมชาติไทย ชิงแชมป์โลกรุ่นคาเดต 2022 โซเฟีย', ko: '2022 소피아 세계 카데트 선수권대회 태국 대표팀' } },
+      { img: 'choi', name: { en: 'Chatchai Choi (Choi Young-seok)', th: 'ชัชชัย ชเว', ko: '최영석 총감독' },
+        role: { en: 'Thailand national team head coach', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย', ko: '태국 태권도 국가대표팀 총감독' },
+        note: { en: 'Head coach since 2002', th: 'หัวหน้าผู้ฝึกสอนตั้งแต่ปี 2002', ko: '2002년부터 국가대표팀 총감독' } },
+      { img: 'yoo', name: { en: 'Yong Taek Yoo', th: 'ยู ยงแท็ก', ko: '유영택 코치' },
+        role: { en: 'Dragon Gym head coach · 7th Dan', th: 'หัวหน้าโค้ชดราก้อนยิม · ดั้ง 7', ko: '드래곤짐 수석 코치 · 공인 7단' },
+        note: { en: 'Former Thailand national team coach (2019)', th: 'อดีตโค้ชทีมชาติไทย (2019)', ko: '태국 국가대표팀 코치 역임 (2019)' } },
+    ],
+    // 감독·코치진 카드 (유영택 수석코치는 coach 타임라인 카드로 따로 표시)
+    staff: [
+      { // 최영석 감독: 사용자 제공 자료(위키백과·조선일보·YTN 요약) 기준
+        img: 'choi', tag: 'THAILAND NATIONAL TEAM',
+        name: { en: 'Chatchai Choi (Choi Young-seok)', th: 'ชัชชัย ชเว (ชเว ยองซอก)', ko: '최영석 감독 (찻차이 최)' },
+        role: { en: 'Thailand national team head coach · Dragon Gym belt-test examiner', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย · กรรมการสอบเลื่อนสายดราก้อนยิม', ko: '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원' },
+        items: [
         { en: 'Head coach of the Thailand national taekwondo team since 2002 (20+ years)', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทยตั้งแต่ปี 2002 มากว่า 20 ปี', ko: '2002년부터 태국 태권도 국가대표팀 총감독 (20년 이상)' },
         { en: "Led Thailand to its first Asian Games and Olympic medals, including gold", th: 'พาทีมชาติไทยคว้าเหรียญเอเชียนเกมส์และโอลิมปิกครั้งแรก รวมถึงเหรียญทอง', ko: '아시안게임·올림픽에서 태국 사상 첫 메달과 금메달을 이끎' },
         { en: 'Thai citizen since 2022 — Thai name "Chatchai", the warrior who wins', th: 'ได้รับสัญชาติไทยปี 2022 ชื่อ "ชัชชัย" แปลว่านักรบผู้ชนะ', ko: '2022년 태국 국적 취득 — 태국 이름 "찻차이"는 \'승리를 이끄는 전사\'' },
         { en: 'Received a top-class royal decoration from the Thai Royal Family', th: 'ได้รับพระราชทานเครื่องราชอิสริยาภรณ์ชั้นสูงสุด', ko: '태국 왕실로부터 최고 등급 훈장 수훈' },
         { en: 'Belt-test examiner at Dragon Gym', th: 'กรรมการสอบเลื่อนสายของดราก้อนยิม', ko: '드래곤짐 승단심사위원' },
       ],
-    },
+      },
+      { // 타나크릿 요드락: 드래곤짐 출신 국가대표, 현재 드래곤짐 코치 (도장 확인 2026-10-29)
+        img: 'thanakrit', tag: 'SEA GAMES GOLD ×2',
+        name: { en: 'Coach Thanakrit Yodrak', th: 'โค้ชธนกฤต ยอดรัก', ko: '타나크릿 요드락 코치' },
+        role: { en: 'Coach · Dragon Gym alumnus & Thai national-team athlete', th: 'โค้ช · ศิษย์เก่าดราก้อนยิมและนักกีฬาทีมชาติไทย', ko: '코치 · 드래곤짐 출신 태국 국가대표' },
+        items: [
+          { en: 'SEA Games gold medallist, 2021 and 2023', th: 'เหรียญทองซีเกมส์ 2021 และ 2023', ko: 'SEA Games 금메달 2회 (2021, 2023)' },
+          { en: 'Asian Junior Championships 2017 — bronze', th: 'ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง', ko: '아시안 주니어 태권도 선수권대회 2017 동메달' },
+          { en: 'Trained at Dragon Gym, now coaching the next generation here', th: 'เติบโตจากดราก้อนยิม และกลับมาสอนรุ่นน้องที่นี่', ko: '드래곤짐에서 성장해 지금은 후배들을 지도' },
+        ],
+      },
+    ],
     coach: {
       timeline: [
         { y: '2005', en: 'Coach, Zhejiang Province (China) taekwondo team', th: 'โค้ชทีมเทควันโดมณฑลเจ้อเจียง ประเทศจีน', ko: '중국 저장성 태권도 대표팀 코치' },
@@ -218,7 +245,7 @@ window.DGT = {
       'team.kicker': 'Coaches & athletes', 'team.title': 'Coached directly by Korean masters',
       'team.lead': 'Our training programme is led by coaches from South Korea, and Dragon Gym has produced several Thai national-team athletes.',
       'team.coachRole': 'Head coach', 'team.coachName': 'Yong Taek Yoo',
-      'team.leftName': 'Chatchai Choi', 'team.mentorName': 'Chatchai Choi (Choi Young-seok)', 'team.mentorRole': 'Thailand national team head coach · Dragon Gym belt-test examiner', 'team.leftRole': 'Thailand national team head coach · Dragon Gym belt-test examiner',
+      'team.leftName': 'Chatchai Choi', 'team.staffTitle': 'Head coach & coaching staff (3)', 'team.judgesTitle': 'Belt-test examiners', 'team.judgesLead': 'Dragon Gym belt tests are judged by Thailand national-team coaches.', 'team.mentorRole': 'Thailand national team head coach · Dragon Gym belt-test examiner', 'team.leftRole': 'Thailand national team head coach · Dragon Gym belt-test examiner',
       'team.rightName': 'Yong Taek Yoo', 'team.rightRole': 'Dragon Gym head coach', 'team.athletesTitle': 'Thai national-team athletes from Dragon Gym', 'team.now': 'Present',
       'nav.programs': 'Programs',
       'nav.branches': 'Branches & Map',
@@ -338,7 +365,7 @@ window.DGT = {
       msgName: 'ชื่อ', msgAge: 'อายุ', msgBranch: 'สาขา', msgDay: 'วันที่สะดวก', msgNote: 'หมายเหตุ',
 
       /* ---- data-i18n 키 (HTML 텍스트 치환) ---- */
-      'nav.team': 'โค้ช & นักกีฬา', 'team.now': 'ปัจจุบัน',
+      'nav.team': 'โค้ช & นักกีฬา', 'team.now': 'ปัจจุบัน', 'team.staffTitle': 'หัวหน้าผู้ฝึกสอนและทีมโค้ช (3 ท่าน)', 'team.judgesTitle': 'คณะกรรมการสอบเลื่อนสาย',
       'nav.about': 'เกี่ยวกับเรา', 'nav.programs': 'คลาสเรียน', 'nav.branches': 'สาขา & แผนที่',
       'nav.schedule': 'ตารางเรียน', 'nav.facebook': 'เฟซบุ๊ก', 'nav.trial': 'ทดลองเรียนฟรี',
       'nav.cta': 'จองทดลองเรียน',
@@ -411,7 +438,7 @@ window.DGT = {
       'nav.team': '코치진 & 선수', 'team.kicker': '코치진 & 대표선수', 'team.title': '대한민국 출신 코치진이 직접 지도합니다',
       'team.lead': '드래곤 태권도의 훈련 프로그램은 대한민국 출신 코치진이 직접 지도하며, 지금까지 여러 명의 태국 국가대표 선수를 배출했습니다.',
       'team.coachRole': '수석 코치', 'team.coachName': '유영택 코치',
-      'team.leftName': '최영석 감독', 'team.mentorName': '최영석 감독 (찻차이 최)', 'team.mentorRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원', 'team.leftRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원',
+      'team.leftName': '최영석 감독', 'team.staffTitle': '감독 · 코치진 (3명)', 'team.judgesTitle': '승단 심사위원진', 'team.judgesLead': '드래곤짐의 승단 심사는 태국 국가대표팀 지도자들이 직접 맡습니다.', 'team.mentorRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원', 'team.leftRole': '태국 태권도 국가대표팀 총감독 · 드래곤짐 승단심사위원',
       'team.rightName': '유영택 코치', 'team.rightRole': '드래곤짐 수석 코치', 'team.athletesTitle': '드래곤짐 출신 태국 국가대표 선수들', 'team.now': '현재',
       'nav.about': '도장 소개', 'nav.programs': '프로그램', 'nav.branches': '지점 & 지도',
       'nav.schedule': '시간표', 'nav.facebook': '페이스북', 'nav.trial': '무료 체험',

@@ -253,8 +253,9 @@ html:not([lang="en"]) .value h3 { text-transform: none; }
 .timeline__year small { display: inline-block; margin-left: 6px; font-family: var(--font-body); font-size: 11px; font-weight: 700; color: var(--red-2); letter-spacing: .06em; }
 .timeline__text { font-size: 15.5px; color: rgba(255,255,255,.88); min-width: 0; overflow-wrap: anywhere; }
 .athletes__title { color: #fff; margin-bottom: 16px; }
-.mentor { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: start; background: linear-gradient(120deg, #1d1d22, #121215); border: 2px solid var(--gold); box-shadow: 8px 8px 0 var(--red); padding: 18px; margin-bottom: 32px; position: relative; }
-.mentor::before { content: 'THAILAND NATIONAL TEAM'; position: absolute; top: -12px; right: 14px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .14em; padding: 3px 8px; border: 2px solid var(--black); }
+.mentor { display: grid; grid-template-columns: 120px 1fr; gap: 18px; align-items: start; background: linear-gradient(120deg, #1d1d22, #121215); border: 2px solid var(--gold); box-shadow: 8px 8px 0 var(--red); padding: 18px; position: relative; }
+.staff { display: grid; gap: 22px; margin-bottom: 34px; }
+.mentor::before { content: attr(data-tag); position: absolute; top: -12px; right: 14px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .14em; padding: 3px 8px; border: 2px solid var(--black); }
 .mentor__photo img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--gold); box-shadow: 0 0 0 3px var(--black); display: block; }
 .mentor__role { margin: 0 0 4px; color: var(--gold); font-size: 13px; font-weight: 700; letter-spacing: .04em; }
 .mentor__name { margin: 0 0 10px; font-size: clamp(22px, 2.4vw, 28px); font-family: var(--font-display); color: #fff; }
@@ -272,6 +273,21 @@ html:not([lang="en"]) .value h3 { text-transform: none; }
 .athlete__items li { font-size: 14.5px; color: #fff; padding-left: 14px; position: relative; line-height: 1.45; }
 .athlete__items li::before { content: ''; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
 @media (max-width: 960px) { .team__grid { grid-template-columns: 1fr; } }
+/* 승단 심사위원진 */
+.judges { margin-top: clamp(40px, 6vw, 64px); padding: clamp(20px, 3vw, 32px); background: linear-gradient(135deg, rgba(244,180,0,.12), rgba(215,38,43,.10)); border: 2px solid var(--gold); position: relative; }
+.judges__head { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+.judges__seal { flex: none; width: 56px; height: 56px; border-radius: 50%; background: var(--gold); display: grid; place-items: center; border: 2px solid var(--black); box-shadow: 3px 3px 0 var(--black); }
+.judges__seal svg { width: 30px; height: 30px; fill: var(--black); }
+.judges__title { margin: 0 0 4px; color: #fff; }
+.judges__lead { margin: 0; color: rgba(255,255,255,.7); font-size: 15px; }
+.judges__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.judge { text-align: center; background: var(--ink); border: 2px solid var(--line-dark); padding: 22px 16px 18px; transition: transform .3s var(--ease), border-color .3s, box-shadow .3s; }
+.judge:hover { transform: translateY(-6px); border-color: var(--gold); box-shadow: 0 10px 0 -4px var(--gold); }
+.judge__photo img { width: 128px; height: 128px; margin: 0 auto 14px; border-radius: 50%; object-fit: cover; border: 4px solid var(--gold); box-shadow: 0 0 0 3px var(--black), 0 0 0 6px rgba(244,180,0,.35); display: block; }
+.judge__name { margin: 0 0 4px; font-size: 19px; color: #fff; font-weight: 700; }
+.judge__role { margin: 0 0 6px; color: var(--gold); font-size: 14px; font-weight: 600; }
+.judge__note { margin: 0; color: rgba(255,255,255,.6); font-size: 13px; }
+@media (max-width: 720px) { .judges__list { grid-template-columns: 1fr; } .judge { display: grid; grid-template-columns: 88px 1fr; text-align: left; align-items: center; gap: 0 14px; padding: 14px; } .judge__photo { grid-row: span 3; } .judge__photo img { width: 88px; height: 88px; margin: 0; } }
 @media (max-width: 600px) { .timeline__item { grid-template-columns: 1fr; gap: 0; } .athlete { grid-template-columns: 72px 1fr; } .athlete__photo img { width: 72px; height: 72px; } }
 
 /* ---------- 프로그램 ---------- */

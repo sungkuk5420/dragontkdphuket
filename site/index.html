@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Kanit:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=17">
 
   <!-- 구조화 데이터: 조직 + 지점 3곳 + FAQ -->
   <script type="application/ld+json">
@@ -393,18 +393,23 @@
             </div>
           </article>
           <div class="athletes" data-reveal>
-            <!-- 최영석(찻차이 최) 태국 국가대표팀 총감독 · 드래곤짐 승단심사위원 -->
-            <article class="mentor">
-              <picture class="mentor__photo"><source srcset="assets/team/choi.webp" type="image/webp"><img src="assets/team/choi.jpg" alt="Chatchai Choi (Choi Young-seok)" width="300" height="300" loading="lazy" decoding="async"></picture>
-              <div class="mentor__body">
-                <p class="mentor__role" data-i18n="team.mentorRole">หัวหน้าผู้ฝึกสอนทีมชาติไทย · กรรมการสอบเลื่อนสายดราก้อนยิม</p>
-                <h3 class="mentor__name" data-i18n="team.mentorName">ชัชชัย ชเว (ชเว ยองซอก)</h3>
-                <ul class="mentor__items" id="mentorItems"></ul>
-              </div>
-            </article>
+            <!-- 감독·코치진: 최영석 총감독, 타나크릿 요드락 코치 (유영택 수석코치는 왼쪽 카드) -->
+            <h3 class="h3 athletes__title" data-i18n="team.staffTitle">หัวหน้าผู้ฝึกสอนและทีมโค้ช (3 ท่าน)</h3>
+            <div class="staff" id="staffCards"></div>
             <h3 class="h3 athletes__title" data-i18n="team.athletesTitle">นักกีฬาทีมชาติจากดราก้อนยิม</h3>
             <ul class="athletes__list" id="athleteList"></ul>
           </div>
+        </div>
+        <!-- 승단 심사위원진 (도장 확인 2026-10-29) -->
+        <div class="judges" data-reveal>
+          <div class="judges__head">
+            <span class="judges__seal" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1.2 13.6-3.4-3.4 1.4-1.4 2 2 4.6-4.6 1.4 1.4-6 6z"/></svg></span>
+            <div>
+              <h3 class="h3 judges__title" data-i18n="team.judgesTitle">คณะกรรมการสอบเลื่อนสาย</h3>
+              <p class="judges__lead" data-i18n="team.judgesLead">การสอบเลื่อนสายของดราก้อนยิมประเมินโดยโค้ชทีมชาติไทย</p>
+            </div>
+          </div>
+          <ul class="judges__list" id="judgeList"></ul>
         </div>
       </div>
     </section>
@@ -653,7 +658,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" referrerpolicy="no-referrer" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js" defer></script>
-  <script src="data.js?v=15" defer></script>
-  <script src="main.js?v=15" defer></script>
+  <script src="data.js?v=17" defer></script>
+  <script src="main.js?v=17" defer></script>
 </body>
 </html>

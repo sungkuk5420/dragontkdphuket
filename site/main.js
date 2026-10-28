@@ -442,9 +442,16 @@
 
   /* ---------- 코치진·대표선수 (data.js team) ---------- */
   function renderTeam() {
-    const tl = $('#coachTimeline'), list = $('#athleteList'), mi = $('#mentorItems');
+    const tl = $('#coachTimeline'), list = $('#athleteList'), staff = $('#staffCards');
     if (!tl || !list || !D.team) return;
-    if (mi && D.team.mentor) mi.innerHTML = D.team.mentor.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('');
+    const jl = $('#judgeList');
+    if (jl && D.team.judges) jl.innerHTML = D.team.judges.map((j) => `<li class="judge">
+      <picture class="judge__photo"><source srcset="assets/team/${j.img}.webp" type="image/webp"><img src="assets/team/${j.img}.jpg" alt="${esc(j.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <h4 class="judge__name">${esc(L(j.name))}</h4><p class="judge__role">${esc(L(j.role))}</p><p class="judge__note">${esc(L(j.note))}</p></li>`).join('');
+    if (staff && D.team.staff) staff.innerHTML = D.team.staff.map((s) => `<article class="mentor" data-tag="${esc(s.tag || '')}">
+      <picture class="mentor__photo"><source srcset="assets/team/${s.img}.webp" type="image/webp"><img src="assets/team/${s.img}.jpg" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <div class="mentor__body"><p class="mentor__role">${esc(L(s.role))}</p><h4 class="mentor__name">${esc(L(s.name))}</h4>
+        <ul class="mentor__items">${s.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('')}</ul></div></article>`).join('');
     tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
       <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
       <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');
