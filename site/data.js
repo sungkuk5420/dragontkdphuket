@@ -176,6 +176,16 @@ window.DGT = {
           { en: 'Head coach, Thailand para-taekwondo national team (2023–)', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด (2023–)', ko: '태국 장애인 태권도 국가대표팀 총감독 (2023~)' },
         ],
       },
+      { // 박희강 코치: 태국 국가대표팀 코치, 드래곤짐 승단심사위원 (도장 확인 2026-10-29)
+        img: 'park', tag: 'ASIAN GAMES GOLD',
+        name: { en: 'Coach Park Hee-gang', th: 'โค้ชปาร์ค ฮีคัง', ko: '박희강 코치' },
+        role: { en: 'Thailand national team coach · Dragon Gym belt-test examiner', th: 'โค้ชทีมชาติไทย · กรรมการสอบเลื่อนสายดราก้อนยิม', ko: '태국 태권도 국가대표팀 코치 · 드래곤짐 승단심사위원' },
+        items: [
+          { en: 'Gold medallist, 1998 Bangkok Asian Games', th: 'เหรียญทองเอเชียนเกมส์ 1998 กรุงเทพฯ', ko: '1998 방콕 아시안게임 금메달' },
+          { en: 'Coach, Thailand national taekwondo team', th: 'โค้ชทีมชาติไทย เทควันโด', ko: '태국 태권도 국가대표팀 코치' },
+          { en: 'Thailand team at the 2022 World Cadet Championships, Sofia', th: 'ทีมชาติไทย ชิงแชมป์โลกรุ่นคาเดต 2022 โซเฟีย', ko: '2022 소피아 세계 카데트 선수권대회 태국 대표팀' },
+        ],
+      },
       { // 타나크릿 요드락: 드래곤짐 출신 국가대표, 현재 드래곤짐 코치 (도장 확인 2026-10-29)
         img: 'thanakrit', tag: 'SEA GAMES GOLD ×2',
         name: { en: 'Coach Thanakrit Yodrak', th: 'โค้ชธนกฤต ยอดรัก', ko: '타나크릿 요드락 코치' },
