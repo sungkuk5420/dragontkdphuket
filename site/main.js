@@ -222,7 +222,7 @@
   let overview = null, markers = {};
   const branchById = (id) => D.branches.find((b) => b.id === id);
   // placeId 가 없는 지점(몰 안 도장 등)은 장소 검색어로 연다
-  const mapsOpenUrl = (b) => (b.placeId
+  const mapsOpenUrl = (b) => b.mapsUrl || (b.placeId
     ? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}&query_place_id=${b.placeId}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.mapsQuery || `${b.lat},${b.lng}`)}`);
   const mapsDirUrl = (b) => `https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}${b.placeId ? `&destination_place_id=${b.placeId}` : ''}`;

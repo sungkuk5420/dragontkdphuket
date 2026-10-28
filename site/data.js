@@ -79,6 +79,8 @@ window.DGT = {
       lat: 7.8862402, lng: 98.3919712,
       placeId: null,
       mapsQuery: 'Limelight Phuket, 2/23 Dibuk Rd, Phuket',
+      // 사용자가 준 구글맵 링크의 장소 ID(ftid) — 이 링크로 열면 정확히 Limelight Phuket 이 열린다
+      mapsUrl: 'https://www.google.com/maps?q=Limelight+Phuket,+2/23+Dibuk+Rd,+Tambon+Talat+Yai,+Mueang+Phuket+District,+Phuket+83000&ftid=0x305031f75a6dec53:0x2fee43914d396841',
       phones: [
         { number: '0869515115', label: { en: 'Main line', th: 'เบอร์หลัก', ko: '대표번호' } },
         { number: '0993652365', label: { en: 'Kru Fai', th: 'ครูฝ้าย', ko: '파이 코치' } },
