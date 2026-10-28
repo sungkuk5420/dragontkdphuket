@@ -153,13 +153,13 @@ window.DGT = {
   team: {
     // 승단 심사위원진 (도장 확인 2026-10-29)
     judges: [
+      { img: 'choi', name: { en: 'Chatchai Choi (Choi Young-seok)', th: 'ชัชชัย ชเว', ko: '최영석 총감독' },
+        role: { en: 'Thailand national team head coach', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย', ko: '태국 태권도 국가대표팀 총감독' },
+        note: { en: 'Head coach since 2002', th: 'หัวหน้าผู้ฝึกสอนตั้งแต่ปี 2002', ko: '2002년부터 국가대표팀 총감독' } },
       { img: 'park', name: { en: 'Park Hee-gang', th: 'ปาร์ค ฮีคัง', ko: '박희강 코치' },
         role: { en: 'Thailand national team coach', th: 'โค้ชทีมชาติไทย', ko: '태국 태권도 국가대표팀 코치' },
         // 사용자는 '1988 방콕 아시안게임'이라 했으나 1988년 아시안게임은 없고 방콕 대회는 1998년 — 1998 로 표기, 도장 확인 필요
         note: { en: 'Gold medallist, 1998 Bangkok Asian Games', th: 'เหรียญทองเอเชียนเกมส์ 1998 กรุงเทพฯ', ko: '1998 방콕 아시안게임 금메달' } },
-      { img: 'choi', name: { en: 'Chatchai Choi (Choi Young-seok)', th: 'ชัชชัย ชเว', ko: '최영석 총감독' },
-        role: { en: 'Thailand national team head coach', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย', ko: '태국 태권도 국가대표팀 총감독' },
-        note: { en: 'Head coach since 2002', th: 'หัวหน้าผู้ฝึกสอนตั้งแต่ปี 2002', ko: '2002년부터 국가대표팀 총감독' } },
       { img: 'yoo', name: { en: 'Yong Taek Yoo', th: 'ยู ยงแท็ก', ko: '유영택 코치' },
         role: { en: 'Dragon Gym head coach · 7th Dan', th: 'หัวหน้าโค้ชดราก้อนยิม · ดั้ง 7', ko: '드래곤짐 수석 코치 · 공인 7단' },
         note: { en: 'Former Thailand national team coach (2019)', th: 'อดีตโค้ชทีมชาติไทย (2019)', ko: '태국 국가대표팀 코치 역임 (2019)' } },
