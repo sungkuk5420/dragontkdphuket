@@ -45,11 +45,19 @@
     // 언어 의존 렌더링 재실행
     renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches(); renderFeed(); renderFeedUpdated();
   }
+  // 주소창을 현재 언어와 맞춘다: 태국어(기본)는 파라미터 없이, en/ko 는 ?lang= 을 붙여 그대로 공유 가능하게
+  function syncLangUrl() {
+    const url = new URL(location.href);
+    if (lang === BASE) url.searchParams.delete('lang');
+    else url.searchParams.set('lang', lang);
+    if (url.href !== location.href) history.replaceState(history.state, '', url);
+  }
   $$('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
     if (b.dataset.setLang === lang) return;
     lang = b.dataset.setLang;
     try { localStorage.setItem('dgt-lang', lang); } catch { /* 무시 */ }
     applyLang();
+    syncLangUrl();
   }));
 
   /* ---------- 태국 시간 ---------- */
@@ -420,13 +428,13 @@
   /* ---------- 인스타그램 임베드 (iframe, 키 불필요). 섹션 근처에서 로드 ---------- */
   const igGrid = $('#igGrid');
   if (igGrid && Array.isArray(D.instagram)) {
-    igGrid.innerHTML = D.instagram.slice(0, 4).map((code) => `<div class="ig__item" data-code="${code}"><a href="https://www.instagram.com/p/${code}/" target="_blank" rel="noopener">Instagram</a></div>`).join('');
+    igGrid.innerHTML = D.instagram.slice(0, 3).map((code) => `<div class="ig__item" data-code="${code}"><a href="https://www.instagram.com/p/${code}/" target="_blank" rel="noopener">Instagram</a></div>`).join('');
     const igIO = new IntersectionObserver((es) => es.forEach((e) => {
       if (!e.isIntersecting) return;
       igIO.unobserve(e.target);
       const f = document.createElement('iframe');
       f.src = `https://www.instagram.com/p/${e.target.dataset.code}/embed/`;
-      f.title = 'Instagram post — dragon_tkd_poomsae'; f.loading = 'lazy'; f.setAttribute('scrolling', 'no'); f.allowTransparency = true;
+      f.title = 'Instagram post — dragon_gym_taekwondo'; f.loading = 'lazy'; f.setAttribute('scrolling', 'no'); f.allowTransparency = true;
       e.target.innerHTML = ''; e.target.appendChild(f);
     }), { rootMargin: '500px' });
     $$('.ig__item', igGrid).forEach((el) => igIO.observe(el));
@@ -494,5 +502,6 @@
 
   /* ---------- 초기화 ---------- */
   applyLang();
+  syncLangUrl(); // 저장된 언어로 열렸을 때도 주소에 반영
   initOverview();
 })();

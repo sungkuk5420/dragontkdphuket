@@ -38,3 +38,7 @@
 3. chore(domain): GitHub Pages 커스텀 도메인 dragongymphuket.com 연결 (고대디 DNS, 사용자 설정)
    - 고대디 기본 `A @ Parked` 레코드가 남아 주차 페이지가 떴음 → 삭제 후 즉시 반영, http→https 301·https 200 확인.
    - site/ 의 canonical·OG·구조화데이터·sitemap·robots·data.js 주소를 새 도메인으로 치환. 다른 작업의 미커밋 변경과 섞여 있어 커밋 미실행.
+
+3. feat(i18n): 언어 버튼 클릭 시 주소창에 ?lang= 동기화 (태국어는 파라미터 제거, history.replaceState)
+   - ?lang= 로 열기는 원래 운영에서 동작했음(재현 확인). 빠진 건 버튼→URL 방향이라 보이는 언어 그대로 링크 공유가 안 됐던 것. 저장된 언어로 열릴 때도 주소에 반영.
+   - 다른 세션이 나머지 변경을 먼저 커밋해 이 변경만 분리 커밋. 푸시 미실행.
