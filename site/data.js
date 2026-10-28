@@ -3,7 +3,7 @@
  * 출처: 구글맵 등록 정보(2026-10-28 확인), 도장 포스터 3종, 페이스북 페이지.
  */
 window.DGT = {
-  siteUrl: 'https://sungkuk5420.github.io/dragontkdphuket/',
+  siteUrl: 'https://dragongymphuket.com/',
   facebookUrl: 'https://www.facebook.com/dragongymtaekwondo',
   facebookReelsUrl: 'https://www.facebook.com/dragongymtaekwondo/reels/',
   messengerUrl: 'https://m.me/dragongymtaekwondo',
@@ -25,7 +25,7 @@ window.DGT = {
   },
 
   /* 지점. 첫 항목이 메인(Suan Luang). 좌표·place_id 는 구글맵에서 확인한 값.
-   * schedule 은 포스터에서 옮겨 적음. Boat Lagoon / Srisoonthorn 의 포스터 배정은 추정이므로
+   * schedule 은 포스터에서 옮겨 적음. 보트라군 지점은 탈랑으로 이전(2026-10-29 도장 확인)해 제거했다. 라임라이트·탈랑의 포스터 배정은 추정이므로
    * 도장 확인 후 poster/schedule 만 바꾸면 된다. */
   branches: [
     {
@@ -34,9 +34,9 @@ window.DGT = {
       name: { en: 'Suan Luang (HQ)', th: 'สาขาสวนหลวง (สำนักงานใหญ่)', ko: '수안루앙 (본관)' },
       area: { en: 'Phuket Town', th: 'ตัวเมืองภูเก็ต', ko: '푸켓 타운' },
       address: {
-        en: 'Suan Luang Market Plaza (rear zone), Virat Hongyok Rd, Talat Nuea, Mueang Phuket 83000',
-        th: 'ตลาดสวนหลวง (โซนด้านหลัง) ถ.วิรัชหงษ์หยก ต.ตลาดเหนือ อ.เมือง จ.ภูเก็ต 83000',
-        ko: 'Suan Luang Market Plaza (rear zone), Virat Hongyok Rd, Talat Nuea, Mueang Phuket 83000',
+        en: '4/1 Virat Hongyok Rd (Suan Luang), Talat Nuea, Mueang Phuket 83000',
+        th: '4/1 ถ.วิรัชหงษ์หยก (สวนหลวง) ต.ตลาดเหนือ อ.เมือง จ.ภูเก็ต 83000',
+        ko: '4/1 Virat Hongyok Rd (Suan Luang), Talat Nuea, Mueang Phuket 83000',
       },
       lat: 7.881482, lng: 98.3751723,
       placeId: 'ChIJRR0aUOcxUDARZ1M5sZDEtws',
@@ -68,21 +68,24 @@ window.DGT = {
       ],
     },
     {
-      id: 'boatlagoon',
-      name: { en: 'Boat Lagoon', th: 'สาขาโบ๊ทลากูน', ko: '보트라군' },
-      area: { en: 'Ko Kaeo', th: 'เกาะแก้ว', ko: '꼬깨우' },
+      id: 'limelight',
+      name: { en: 'Limelight', th: 'สาขาไลม์ไลท์', ko: '라임라이트' },
+      area: { en: 'Phuket Old Town', th: 'เมืองเก่าภูเก็ต', ko: '푸켓 올드타운' },
       address: {
-        en: '20/164-165 Boat Arcade Bldg, 2nd Fl., Thepkasattri Rd, Ko Kaeo, Mueang Phuket 83000',
-        th: '20/164-165 อาคารโบ๊ทอาเขต ชั้น 2 ถ.เทพกระษัตรี ต.เกาะแก้ว อ.เมือง จ.ภูเก็ต 83000',
-        ko: '20/164-165 Boat Arcade Bldg, 2nd Fl., Thepkasattri Rd, Ko Kaeo, Mueang Phuket 83000',
+        en: 'Limelight Phuket, 2/23 Dibuk Rd, Talat Yai, Mueang Phuket 83000',
+        th: 'ไลม์ไลท์ ภูเก็ต 2/23 ถ.ดีบุก ต.ตลาดใหญ่ อ.เมือง จ.ภูเก็ต 83000',
+        ko: 'Limelight Phuket, 2/23 Dibuk Rd, Talat Yai, Mueang Phuket 83000',
       },
-      lat: 7.9598945, lng: 98.3856098,
-      placeId: 'ChIJrQJTelYxUDARmLW1YyiJUjU',
+      // 도장 단독 구글맵 등록이 없어 Limelight Phuket 몰 위치를 쓴다 (사용자 제공 링크, 2026-10-29)
+      lat: 7.8862402, lng: 98.3919712,
+      placeId: null,
+      mapsQuery: 'Limelight Phuket, 2/23 Dibuk Rd, Phuket',
       phones: [
         { number: '0869515115', label: { en: 'Main line', th: 'เบอร์หลัก', ko: '대표번호' } },
         { number: '0993652365', label: { en: 'Kru Fai', th: 'ครูฝ้าย', ko: '파이 코치' } },
       ],
-      rating: { score: 5.0, count: 2 },
+      rating: null,
+      // 시간표: 지점명 없는 빨간 포스터를 임시 배정 (도장 확인 필요)
       poster: 'assets/schedule-red',
       schedule: [
         { d: 'fri', s: '15:15', e: '15:45', p: 'kids', note: '2–4 y' },
@@ -105,8 +108,8 @@ window.DGT = {
       ],
     },
     {
-      id: 'srisoonthorn',
-      name: { en: 'Srisoonthorn (Thalang)', th: 'สาขาศรีสุนทร (ถลาง)', ko: '씨순톤 (탈랑)' },
+      id: 'thalang',
+      name: { en: 'Thalang', th: 'สาขาถลาง', ko: '탈랑' },
       area: { en: 'Thalang', th: 'ถลาง', ko: '탈랑' },
       address: {
         en: 'Srisoonthorn Rd (X9J3+JQ2), Si Sunthon, Thalang, Phuket 83110',
@@ -183,7 +186,7 @@ window.DGT = {
       'hero.title1': 'Dragon Gym',
       'hero.title2': 'Taekwondo',
       'hero.title3': 'Phuket',
-      'hero.lead': 'Train today, be strong tomorrow. Taekwondo classes from 2-year-olds to national-team athletes at our main gym in Suan Luang, plus Boat Lagoon and Thalang.',
+      'hero.lead': 'Train today, be strong tomorrow. Taekwondo classes from 2-year-olds to national-team athletes at our main gym in Suan Luang, plus Limelight in Old Town and Thalang.',
       'hero.cta1': 'Book a free trial',
       'hero.cta2': 'See the schedule',
       'stat.years': 'years teaching',
@@ -195,7 +198,7 @@ window.DGT = {
       'about.title': 'We don\'t just teach. We build champions.',
       'about.p1': 'Dragon Gym Taekwondo Phuket has been teaching on the island for more than ten years under Korean head coach Yong Taek Yoo and a team of professional instructors. We are a Ministry of Education licensed private school.',
       'about.p2': 'Our alumni include the 2022 SEA Games gold medallist Thanakrit "Hammann" Yodrak (men\'s −58 kg), youth world and Asian medallists, and several Thai national-team members. What we are proudest of, though, is every child who grows up with confidence, discipline and respect.',
-      'about.p3': 'Our main gym is in Suan Luang in the heart of Phuket Town, with two more branches at Boat Lagoon (Ko Kaeo) and Srisoonthorn (Thalang) so families across the island can train close to home.',
+      'about.p3': 'Our main gym is in Suan Luang in the heart of Phuket Town, with branches at Limelight (Phuket Old Town) and Thalang in the north of the island, so families across Phuket can train close to home.',
       'value.respect': 'Respect',
       'value.respect.d': 'For coaches, teammates and yourself.',
       'value.discipline': 'Discipline',
@@ -296,13 +299,13 @@ window.DGT = {
       'nav.cta': 'จองทดลองเรียน',
       'hero.kicker': 'โรงเรียนเทควันโด ภูเก็ต · ก่อตั้งมากว่า 10 ปี',
       'hero.title1': 'ดราก้อนยิม', 'hero.title2': 'เทควันโด', 'hero.title3': 'ภูเก็ต',
-      'hero.lead': 'ฝึกวันนี้ แข็งแกร่งในวันพรุ่งนี้ — คลาสเทควันโดสำหรับเด็กอายุ 2 ปีขึ้นไปจนถึงนักกีฬาระดับทีมชาติ ที่สาขาหลักสวนหลวง โบ๊ทลากูน และถลาง',
+      'hero.lead': 'ฝึกวันนี้ แข็งแกร่งในวันพรุ่งนี้ — คลาสเทควันโดสำหรับเด็กอายุ 2 ปีขึ้นไปจนถึงนักกีฬาระดับทีมชาติ ที่สาขาหลักสวนหลวง สาขาไลม์ไลท์ และสาขาถลาง',
       'hero.cta1': 'จองทดลองเรียนฟรี', 'hero.cta2': 'ดูตารางเรียน', 'hero.scroll': 'เลื่อนลง',
       'stat.years': 'ปีที่เปิดสอน', 'stat.branches': 'สาขาในภูเก็ต', 'stat.seagames': 'เหรียญทองซีเกมส์ (ศิษย์เก่า)', 'stat.age': 'อายุเริ่มเรียน',
       'about.kicker': 'เกี่ยวกับเรา', 'about.title': 'เราไม่ได้แค่สอน เราสร้างแชมป์',
       'about.p1': 'Dragon Gym Taekwondo Phuket เปิดสอนในภูเก็ตมานานกว่า 10 ปี โดยโค้ชชาวเกาหลี ยู ยงแท็ก (Yong Taek Yoo) และทีมครูผู้ฝึกสอนมืออาชีพ เป็นโรงเรียนเอกชนที่ได้รับใบอนุญาตจากกระทรวงศึกษาธิการ',
       'about.p2': 'ศิษย์เก่าของเราคว้าเหรียญทองซีเกมส์ 2022 (ธนกฤต ยอดรัก รุ่น 58 กก. ชาย) เหรียญระดับเยาวชนโลกและเอเชีย และหลายคนติดทีมชาติไทย แต่สิ่งที่เราภูมิใจที่สุดคือเด็กทุกคนที่เติบโตขึ้นด้วยความมั่นใจ วินัย และความเคารพ',
-      'about.p3': 'สาขาหลักของเราอยู่ที่สวนหลวง ใจกลางเมืองภูเก็ต พร้อมอีก 2 สาขาที่โบ๊ทลากูน (เกาะแก้ว) และศรีสุนทร (ถลาง) เพื่อให้ครอบครัวทั่วเกาะเข้าถึงได้สะดวก',
+      'about.p3': 'สาขาหลักของเราอยู่ที่สวนหลวง ใจกลางเมืองภูเก็ต พร้อมสาขาไลม์ไลท์ (เมืองเก่าภูเก็ต) และสาขาถลาง ทางตอนเหนือของเกาะ เพื่อให้ครอบครัวทั่วภูเก็ตเข้าถึงได้สะดวก',
       'value.respect': 'เคารพ', 'value.respect.d': 'ต่อครู เพื่อน และตัวเอง',
       'value.discipline': 'มีวินัย', 'value.discipline.d': 'มาซ้อมสม่ำเสมอ ฝึกอย่างตั้งใจ',
       'value.never': 'ไม่ยอมแพ้', 'value.never.d': 'ลุกขึ้นใหม่ทุกครั้งที่ล้ม',
@@ -365,13 +368,13 @@ window.DGT = {
       'nav.cta': '체험 신청',
       'hero.kicker': '푸켓 태권도장 · 10년 이상의 역사',
       'hero.title1': '드래곤짐', 'hero.title2': '태권도', 'hero.title3': '푸켓',
-      'hero.lead': '오늘 훈련하면 내일은 더 강해집니다. 2세 유아부터 국가대표 선수까지, 수안루앙 본관과 보트라군·탈랑 지점에서 함께 성장합니다.',
+      'hero.lead': '오늘 훈련하면 내일은 더 강해집니다. 2세 유아부터 국가대표 선수까지, 수안루앙 본관과 라임라이트·탈랑 지점에서 함께 성장합니다.',
       'hero.cta1': '무료 체험 신청', 'hero.cta2': '시간표 보기', 'hero.scroll': '스크롤',
       'stat.years': '년 지도 경력', 'stat.branches': '푸켓 내 지점', 'stat.seagames': 'SEA Games 금메달 (졸업생)', 'stat.age': '시작 가능 연령',
       'about.kicker': '도장 소개', 'about.title': '가르치는 것을 넘어, 챔피언을 키웁니다',
       'about.p1': 'Dragon Gym Taekwondo Phuket 은 한국인 수석 코치 유용택 사범과 전문 지도자 팀이 10년 넘게 푸켓에서 운영해 온 태권도장입니다. 태국 교육부 인가를 받은 사립 교육기관입니다.',
       'about.p2': '졸업생 중에는 2022 SEA Games 남자 58kg 금메달리스트 타나끄릿 "함만" 욧락을 비롯해 세계·아시아 유소년 대회 메달리스트와 태국 국가대표가 여럿 있습니다. 하지만 가장 자랑스러운 것은 자신감·규율·존중을 배우며 자라는 모든 아이들입니다.',
-      'about.p3': '본관은 푸켓 타운 중심의 수안루앙에 있고, 보트라군(꼬깨우)과 씨순톤(탈랑)에 지점이 있어 섬 어디서든 가까운 곳에서 훈련할 수 있습니다.',
+      'about.p3': '본관은 푸켓 타운 중심의 수안루앙에 있고, 올드타운 라임라이트와 섬 북쪽 탈랑에 지점이 있어 푸켓 어디서든 가까운 곳에서 훈련할 수 있습니다.',
       'value.respect': '존중', 'value.respect.d': '코치와 동료, 그리고 자신에게.',
       'value.discipline': '규율', 'value.discipline.d': '꾸준히 나와서 집중하고 반복합니다.',
       'value.never': '불굴', 'value.never.d': '넘어져도 다시 일어납니다.',

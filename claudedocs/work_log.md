@@ -31,3 +31,10 @@
 2. feat(about): 소개 섹션 오른쪽에 SEA Games 2022 금메달리스트 타나끄릿 욧락 하이라이트 카드(경기 사진+GOLD 배지) 추가
    - 사진은 Bangkok Insight 2022-05-17 기사(thebangkokinsight.com/news/lifestyle/870091) 첫 장, 캡션상 파란 호구가 ธนกฤต. OCA 프로필 증명사진은 하이라이트용으로 약해서 버림. 보도사진이라 저작권은 미확인 — 선수/도장 보유 사진으로 교체 권장.
    - 태국어 닉네임 표기("함만")는 확인 불가라 태국어 카드에선 이름만 표기.
+
+2. fix(branches): 보트라군 지점 제거(도장 확인: 탈랑으로 이전), Srisoonthorn→탈랑 이름 변경, 본관 주소 4/1 ถ.วิรัชหงษ์หยก 로 갱신
+   - 사용자가 준 구글맵 링크 ftid 가 기존 등록(본관 0x305031e7501a1d45, 탈랑 0x30503700427ab0bf)과 일치. 구글맵의 보트라군 등록은 아직 영업 중 표시라 도장 측 정보를 우선. 이어서 라임라이트 지점(Limelight Phuket 몰 2/23 Dibuk Rd, 단독 구글 등록 없어 몰 좌표) 추가 → 3개 지점. 포스터 배정은 추정: 라임라이트=빨강, 탈랑=노랑(도장 확인 필요).
+
+3. chore(domain): GitHub Pages 커스텀 도메인 dragongymphuket.com 연결 (고대디 DNS, 사용자 설정)
+   - 고대디 기본 `A @ Parked` 레코드가 남아 주차 페이지가 떴음 → 삭제 후 즉시 반영, http→https 301·https 200 확인.
+   - site/ 의 canonical·OG·구조화데이터·sitemap·robots·data.js 주소를 새 도메인으로 치환. 다른 작업의 미커밋 변경과 섞여 있어 커밋 미실행.

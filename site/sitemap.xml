@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://sungkuk5420.github.io/dragontkdphuket/</loc>
+    <loc>https://dragongymphuket.com/</loc>
     <lastmod>2026-10-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://sungkuk5420.github.io/dragontkdphuket/assets/og-image.jpg</image:loc>
+      <image:loc>https://dragongymphuket.com/assets/og-image.jpg</image:loc>
       <image:title>Dragon Gym Taekwondo Phuket</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://sungkuk5420.github.io/dragontkdphuket/assets/schedule-suanluang.jpg</image:loc>
+      <image:loc>https://dragongymphuket.com/assets/schedule-suanluang.jpg</image:loc>
       <image:title>Class schedule — Suan Luang branch</image:title>
     </image:image>
   </url>

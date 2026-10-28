@@ -5,9 +5,9 @@ https://www.facebook.com/dragongymtaekwondo/reels/
 푸켓 태권도장 **Dragon Gym Taekwondo**(ดราก้อนยิม เทควันโด ภูเก็ต) 의 원페이지 사이트.
 빌드 없는 정적 HTML/CSS/JS 이고 GitHub Pages 에 무료로 배포한다. DB·서버 없음.
 
-- 운영 URL(예정): https://sungkuk5420.github.io/dragontkdphuket/
+- 운영 URL: https://dragongymphuket.com/ (GitHub Pages 커스텀 도메인, 기존 sungkuk5420.github.io/dragontkdphuket 은 자동 이동)
 - 페이스북: https://www.facebook.com/dragongymtaekwondo · 인스타: https://www.instagram.com/dragon_gym_taekwondo/
-- 본점: Suan Luang(사이트의 메인 체육관). 지점: Boat Lagoon(Ko Kaeo), Srisoonthorn(Thalang)
+- 본점: Suan Luang(사이트의 메인 체육관). 지점: Limelight(올드타운 Limelight 몰), Thalang(Srisoonthorn Rd). 보트라군은 탈랑으로 이전
 
 ## 구성
 

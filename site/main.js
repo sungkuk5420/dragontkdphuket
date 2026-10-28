@@ -213,8 +213,11 @@
   let activeBranch = D.branches[0].id;
   let overview = null, markers = {};
   const branchById = (id) => D.branches.find((b) => b.id === id);
-  const mapsOpenUrl = (b) => `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}&query_place_id=${b.placeId}`;
-  const mapsDirUrl = (b) => `https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&destination_place_id=${b.placeId}`;
+  // placeId 가 없는 지점(몰 안 도장 등)은 장소 검색어로 연다
+  const mapsOpenUrl = (b) => (b.placeId
+    ? `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}&query_place_id=${b.placeId}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.mapsQuery || `${b.lat},${b.lng}`)}`);
+  const mapsDirUrl = (b) => `https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}${b.placeId ? `&destination_place_id=${b.placeId}` : ''}`;
   const embedUrl = (b) => `https://maps.google.com/maps?q=${b.lat},${b.lng}&z=16&hl=${lang}&output=embed`; // hl 은 th/en/ko 모두 지원
 
   function renderBranches() {
@@ -231,7 +234,7 @@
         <p class="branch__addr">${L(b.address)}</p>
         <div class="branch__meta">
           <span class="${isOpen ? 'open' : 'closed'}">${t('today')}: ${hoursTxt}</span>
-          <span class="branch__rating">★ ${b.rating.score.toFixed(1)} <small>(${b.rating.count} ${t('reviews')})</small></span>
+          ${b.rating ? `<span class="branch__rating">★ ${b.rating.score.toFixed(1)} <small>(${b.rating.count} ${t('reviews')})</small></span>` : ''}
         </div>
         <div class="branch__actions">
           <a href="${telHref(b.phones[0].number)}">${t('call')} ${fmtPhone(b.phones[0].number)}</a>
