@@ -1,0 +1,13 @@
+{
+  "name": "Dragon Gym Taekwondo Phuket",
+  "short_name": "Dragon Gym TKD",
+  "description": "Taekwondo classes for kids and athletes in Phuket — Suan Luang (HQ), Boat Lagoon, Srisoonthorn.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0b0c",
+  "theme_color": "#f4b400",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

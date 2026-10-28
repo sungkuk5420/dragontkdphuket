@@ -1,0 +1,10 @@
+# 화면 검증 캡처·루프 계약은 커밋하지 않는다
+.claude/verify/
+.claude/loop-contract.md
+# 비밀
+.env
+.env.*
+!.env.example
+# OS
+Thumbs.db
+.DS_Store

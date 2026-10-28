@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sungkuk5420.github.io/dragontkdphuket/sitemap.xml
