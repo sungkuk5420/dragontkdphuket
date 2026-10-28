@@ -31,6 +31,10 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 html[lang="th"] { --font-display: 'Kanit', 'Bebas Neue', sans-serif; --font-body: 'Noto Sans Thai', 'Source Sans 3', sans-serif; }
+/* 한국어: 큰 제목만 Black Han Sans, 버튼·탭 같은 작은 표시 텍스트는 Noto Sans KR 굵게 */
+html[lang="ko"] { --font-display: 'Noto Sans KR', 'Source Sans 3', sans-serif; --font-body: 'Noto Sans KR', 'Source Sans 3', sans-serif; }
+html[lang="ko"] .hero__title, html[lang="ko"] .h2, html[lang="ko"] .h3 { font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; }
+html[lang="ko"] .btn, html[lang="ko"] .tab, html[lang="ko"] .kicker, html[lang="ko"] .card h3, html[lang="ko"] .value h3, html[lang="ko"] .branch__name, html[lang="ko"] .footer h4, html[lang="ko"] .footer__tag { font-weight: 700; }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -62,9 +66,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .kicker::before { content: ''; width: 28px; height: 3px; background: var(--gold); }
 .h2 { font-family: var(--font-display); font-size: clamp(40px, 6.4vw, 76px); letter-spacing: 0.01em; text-transform: uppercase; }
-html[lang="th"] .h2 { text-transform: none; font-size: clamp(32px, 5vw, 56px); line-height: 1.2; }
+html:not([lang="en"]) .h2 { text-transform: none; font-size: clamp(32px, 5vw, 56px); line-height: 1.2; }
 .h3 { font-family: var(--font-display); font-size: clamp(22px, 2.6vw, 30px); letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 14px; }
-html[lang="th"] .h3 { text-transform: none; }
+html:not([lang="en"]) .h3 { text-transform: none; }
 .lead { font-size: clamp(17px, 1.6vw, 20px); color: var(--fg-muted); max-width: 640px; }
 
 /* ---------- 버튼 ---------- */
@@ -75,7 +79,7 @@ html[lang="th"] .h3 { text-transform: none; }
   text-decoration: none; transition: transform .25s var(--ease), background .2s, color .2s, box-shadow .25s;
   will-change: transform; position: relative;
 }
-html[lang="th"] .btn { font-family: 'Kanit', sans-serif; font-size: 17px; letter-spacing: 0; text-transform: none; }
+html:not([lang="en"]) .btn { font-family: var(--font-display); font-size: 17px; letter-spacing: 0; text-transform: none; }
 .btn svg { width: 20px; height: 20px; fill: currentColor; }
 .btn--sm { min-height: 42px; padding: 8px 18px; font-size: 17px; }
 .btn--block { width: 100%; }
@@ -123,10 +127,11 @@ html[lang="th"] .btn { font-family: 'Kanit', sans-serif; font-size: 17px; letter
 .nav__links a:hover, .nav__links a.is-active { opacity: 1; }
 .nav__links a:hover::after, .nav__links a.is-active::after { transform: scaleX(1); }
 .nav__actions { display: flex; align-items: center; gap: 12px; }
-.lang { background: transparent; border: 1px solid var(--line-dark); color: #fff; padding: 6px 10px; cursor: pointer; display: inline-flex; gap: 6px; font-weight: 600; font-size: 14px; }
-.lang [data-lang] { opacity: .5; }
-.lang [data-lang].is-on { opacity: 1; color: var(--gold); }
-.lang__sep { opacity: .4; }
+.lang { display: inline-flex; border: 1px solid var(--line-dark); }
+.lang button { background: transparent; border: 0; color: #fff; padding: 6px 10px; min-height: 36px; cursor: pointer; font-weight: 600; font-size: 13px; opacity: .55; transition: opacity .2s, background .2s; font-family: var(--font-body); }
+.lang button + button { border-left: 1px solid var(--line-dark); }
+.lang button:hover { opacity: .9; }
+.lang button[aria-pressed="true"] { opacity: 1; color: var(--black); background: var(--gold); }
 .burger { display: none; width: 44px; height: 44px; background: transparent; border: 0; cursor: pointer; flex-direction: column; justify-content: center; gap: 5px; align-items: center; }
 .burger span { width: 24px; height: 2px; background: #fff; transition: transform .3s, opacity .3s; }
 .burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -154,9 +159,9 @@ html[lang="th"] .btn { font-family: 'Kanit', sans-serif; font-size: 17px; letter
 .hero__dragon { position: absolute; right: -6vw; top: 10%; width: clamp(360px, 48vw, 760px); opacity: .14; z-index: 0; filter: grayscale(1) contrast(1.2); pointer-events: none; }
 .hero__inner { position: relative; z-index: 1; width: min(var(--container), 100% - var(--gutter) * 2); margin-inline: auto; }
 .hero__kicker { font-family: var(--font-display); letter-spacing: .2em; text-transform: uppercase; color: var(--gold); font-size: clamp(14px, 1.4vw, 18px); margin-bottom: 18px; }
-html[lang="th"] .hero__kicker { letter-spacing: 0; text-transform: none; font-family: 'Kanit', sans-serif; }
+html:not([lang="en"]) .hero__kicker { letter-spacing: 0; text-transform: none; font-family: var(--font-display); }
 .hero__title { font-family: var(--font-display); font-size: clamp(64px, 12.5vw, 176px); line-height: .88; text-transform: uppercase; letter-spacing: .01em; }
-html[lang="th"] .hero__title { font-size: clamp(48px, 9vw, 128px); line-height: 1.05; }
+html:not([lang="en"]) .hero__title { font-size: clamp(48px, 9vw, 128px); line-height: 1.05; }
 .hero__line { display: block; overflow: hidden; }
 .hero__line > span { display: inline-block; }
 .hero__line--gold { color: var(--gold); }
@@ -167,7 +172,7 @@ html[lang="th"] .hero__thai { display: none; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 48px; }
 .stats { display: grid; grid-template-columns: repeat(4, auto); gap: 32px; width: fit-content; }
 .stats li { display: flex; flex-direction: column; border-left: 2px solid var(--gold); padding-left: 14px; }
-.stats strong { font-family: var(--font-display); font-size: clamp(36px, 4.5vw, 56px); line-height: 1; }
+.stats strong { font-family: 'Bebas Neue', var(--font-display); font-size: clamp(36px, 4.5vw, 56px); line-height: 1; }
 .stats span { font-size: 14px; color: rgba(255,255,255,.72); }
 .hero__scroll { position: absolute; left: var(--gutter); bottom: 24px; z-index: 1; color: #fff; text-decoration: none; font-size: 12px; letter-spacing: .25em; text-transform: uppercase; display: flex; align-items: center; gap: 12px; opacity: .7; }
 .hero__scroll i { width: 48px; height: 1px; background: #fff; position: relative; overflow: hidden; display: block; }
@@ -198,7 +203,7 @@ html[lang="th"] .hero__thai { display: none; }
 .value:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--gold); }
 .value svg { width: 36px; height: 36px; fill: none; stroke: var(--red); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 14px; }
 .value h3 { font-family: var(--font-display); font-size: 24px; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; }
-html[lang="th"] .value h3 { text-transform: none; }
+html:not([lang="en"]) .value h3 { text-transform: none; }
 .value p { margin: 0; color: var(--fg-muted); font-size: 15px; }
 @media (max-width: 860px) { .about__grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .values { grid-template-columns: 1fr; } }
@@ -211,7 +216,7 @@ html[lang="th"] .value h3 { text-transform: none; }
 .card--kids { --c: var(--p-kids); } .card--basic { --c: var(--p-basic); } .card--acro { --c: var(--p-acro); } .card--athlete { --c: var(--p-athlete); }
 .card__tag { align-self: flex-start; background: var(--black); color: var(--gold); font-family: var(--font-display); letter-spacing: .1em; padding: 4px 10px; font-size: 15px; }
 .card h3 { font-family: var(--font-display); font-size: 28px; letter-spacing: .03em; text-transform: uppercase; }
-html[lang="th"] .card h3 { text-transform: none; font-size: 24px; }
+html:not([lang="en"]) .card h3 { text-transform: none; font-size: 24px; }
 .card p { color: var(--fg-muted); font-size: 15.5px; flex: 1; margin: 0; }
 .card__link { font-weight: 700; text-decoration: none; color: var(--red); display: inline-flex; align-items: center; gap: 6px; }
 .card__link::after { content: '→'; transition: transform .25s; }
@@ -228,7 +233,7 @@ html[lang="th"] .card h3 { text-transform: none; font-size: 24px; }
 .branch.is-active { background: var(--black); color: #fff; box-shadow: 5px 5px 0 var(--gold); }
 .branch__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .branch__name { font-family: var(--font-display); font-size: 24px; letter-spacing: .04em; text-transform: uppercase; }
-html[lang="th"] .branch__name { text-transform: none; font-size: 20px; }
+html:not([lang="en"]) .branch__name { text-transform: none; font-size: 20px; }
 .branch__badge { background: var(--gold); color: var(--black); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; }
 .branch__addr { font-size: 14px; margin: 0 0 8px; opacity: .8; }
 .branch__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; }
@@ -261,7 +266,7 @@ html[lang="th"] .branch__name { text-transform: none; font-size: 20px; }
 .sched { background: var(--ink); border: 2px solid var(--line-dark); padding: clamp(16px, 3vw, 32px); }
 .sched__branches, .sched__days { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .tab { background: transparent; border: 2px solid var(--line-dark); color: #fff; padding: 8px 14px; cursor: pointer; font-family: var(--font-display); font-size: 18px; letter-spacing: .06em; text-transform: uppercase; transition: background .2s, color .2s, border-color .2s; min-height: 44px; }
-html[lang="th"] .tab { font-family: 'Kanit', sans-serif; text-transform: none; font-size: 16px; letter-spacing: 0; }
+html:not([lang="en"]) .tab { font-family: var(--font-display); text-transform: none; font-size: 16px; letter-spacing: 0; }
 .tab:hover { border-color: var(--gold); }
 .tab[aria-selected="true"] { background: var(--gold); color: var(--black); border-color: var(--gold); }
 .tab--day { min-width: 58px; position: relative; }
@@ -275,7 +280,7 @@ html[lang="th"] .tab { font-family: 'Kanit', sans-serif; text-transform: none; f
 .slot { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 14px; padding: 12px 14px; background: var(--ink-2); border-left: 6px solid var(--c, var(--gold)); transition: transform .25s var(--ease), background .25s; }
 .slot:hover { transform: translateX(4px); background: #26262b; }
 .slot--kids { --c: var(--p-kids); } .slot--basic { --c: var(--p-basic); } .slot--acro { --c: var(--p-acro); } .slot--athlete { --c: var(--p-athlete); }
-.slot__time { font-family: var(--font-display); font-size: 22px; letter-spacing: .05em; }
+.slot__time { font-family: 'Bebas Neue', var(--font-display); font-size: 22px; letter-spacing: .05em; white-space: nowrap; }
 .slot__name { font-weight: 700; font-size: 17px; }
 .slot__note { color: rgba(255,255,255,.6); font-size: 13.5px; margin-left: 8px; font-weight: 500; }
 .slot__state { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 4px 8px; }
@@ -327,7 +332,7 @@ html[lang="th"] .tab { font-family: 'Kanit', sans-serif; text-transform: none; f
 .form__row--2 { grid-template-columns: 1fr 1fr; gap: 14px; }
 .form__row--2 > div { display: grid; gap: 6px; }
 .form label { font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; }
-html[lang="th"] .form label { text-transform: none; }
+html:not([lang="en"]) .form label { text-transform: none; }
 .form input, .form select, .form textarea { font: inherit; padding: 12px 14px; border: 2px solid var(--black); background: var(--paper); min-height: 48px; width: 100%; border-radius: 0; }
 .form input:focus, .form select:focus, .form textarea:focus { outline: 3px solid var(--gold); outline-offset: 0; background: #fff; }
 .form input[aria-invalid="true"] { border-color: var(--red); }
@@ -356,7 +361,7 @@ html[lang="th"] .form label { text-transform: none; }
 .footer__brand img { width: 72px; margin-bottom: 14px; }
 .footer__brand strong { color: #fff; font-size: 18px; }
 .footer__tag { color: var(--gold); font-family: var(--font-display); letter-spacing: .08em; text-transform: uppercase; font-size: 18px; }
-html[lang="th"] .footer__tag { text-transform: none; }
+html:not([lang="en"]) .footer__tag { text-transform: none; }
 .footer h4 { font-family: var(--font-display); color: var(--gold); letter-spacing: .12em; text-transform: uppercase; font-size: 18px; margin-bottom: 14px; }
 .footer ul { display: grid; gap: 8px; }
 .footer a, .footer .linklike { color: rgba(255,255,255,.8); text-decoration: none; font-size: 15px; }

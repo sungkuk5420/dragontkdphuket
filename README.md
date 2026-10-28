@@ -15,8 +15,8 @@ https://www.facebook.com/dragongymtaekwondo/reels/
 site/
   index.html        원페이지(히어로·소개·프로그램·지점+지도·시간표·페이스북·체험문의·FAQ) + JSON-LD
   styles.css        디자인 토큰(금/검/적), 섹션 스타일, 리빌 애니메이션
-  main.js           인터랙션(GSAP·Lenis·커서·틸트·시간표 실시간 하이라이트·지도·폼·EN/TH 토글)
-  data.js           지점·좌표·전화·시간표·릴스 ID·태국어 번역 — 내용 수정은 여기서
+  main.js           인터랙션(GSAP·Lenis·커서·틸트·시간표 실시간 하이라이트·지도·폼·언어 전환 ไทย/EN/한국어)
+  data.js           지점·좌표·전화·시간표·릴스 ID·영어/한국어 번역 — 내용 수정은 여기서
   assets/           로고(포스터에서 추출)·LINE QR·시간표 포스터(webp/jpg)·OG 이미지
   robots.txt sitemap.xml site.webmanifest .nojekyll
 .github/workflows/pages.yml   main 에 push 되면 site/ 를 GitHub Pages 로 배포
@@ -29,8 +29,11 @@ Google Maps `output=embed` iframe(키 불필요), Facebook page/video 플러그�
 
 ```bash
 cd site
-python -m http.server 5190     # http://127.0.0.1:5190/  (태국어: ?lang=th)
+python -m http.server 5190     # http://127.0.0.1:5190/
 ```
+
+언어: 기본 태국어. 상단 버튼(ไทย / EN / 한국어)으로 전환하며 선택은 브라우저에 저장된다.
+공유 링크는 `?lang=en`, `?lang=ko` 로 언어를 지정할 수 있다.
 
 ## 배포 (GitHub Pages, 무료)
 
@@ -44,7 +47,8 @@ python -m http.server 5190     # http://127.0.0.1:5190/  (태국어: ?lang=th)
 
 - 시간표·전화·주소·좌표: `site/data.js` 의 `branches`. 포스터 이미지는 `assets/schedule-*.jpg|webp`.
 - 릴스: 페이스북 페이지 `/reels/` 에서 릴 URL 의 숫자 ID 를 `data.js` 의 `reels` 에 넣는다(앞 6개 표시).
-- 태국어 문구: `data.js` 의 `i18n.th` (키는 HTML 의 `data-i18n`).
+- 문구: HTML 원문이 태국어(기본). 영어·한국어는 `data.js` 의 `i18n.en` / `i18n.ko` (키는 HTML 의 `data-i18n`).
+  태국어 문구를 고치면 `index.html` 을, 영어·한국어는 `data.js` 를 고친다.
 - CSS/JS 를 고치면 `index.html` 의 `?v=` 캐시버스팅 숫자를 올린다.
 
 ## 확인 필요 (도장 측)

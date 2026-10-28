@@ -17,38 +17,40 @@
   if (hasST) gsap.registerPlugin(ScrollTrigger);
   if (reduceMotion || !hasGsap) document.documentElement.classList.add('no-motion');
 
-  /* ---------- 언어 ---------- */
-  let lang = 'en';
-  try { lang = localStorage.getItem('dgt-lang') === 'th' ? 'th' : 'en'; } catch { /* 저장소 차단 환경 */ }
-  const qLang = new URLSearchParams(location.search).get('lang'); // ?lang=th 공유 링크용
-  if (qLang === 'th' || qLang === 'en') lang = qLang;
-  const t = (key) => (D.i18n[lang] && D.i18n[lang][key]) ?? D.i18n.en[key] ?? key;
-  const L = (obj) => (obj && typeof obj === 'object' ? (obj[lang] ?? obj.en) : obj);
+  /* ---------- 언어: 기본 태국어, 버튼·?lang= 으로 en/ko ---------- */
+  const LANGS = ['th', 'en', 'ko'];
+  const BASE = 'th'; // HTML 원문 언어. 다른 언어는 data.js 사전으로 치환
+  let lang = BASE;
+  try { const s = localStorage.getItem('dgt-lang'); if (LANGS.includes(s)) lang = s; } catch { /* 저장소 차단 환경 */ }
+  const qLang = new URLSearchParams(location.search).get('lang'); // ?lang=ko 공유 링크용
+  if (LANGS.includes(qLang)) lang = qLang;
+  const t = (key) => (D.i18n[lang] && D.i18n[lang][key]) ?? D.i18n[BASE][key] ?? key;
+  const L = (obj) => (obj && typeof obj === 'object' ? (obj[lang] ?? obj[BASE] ?? obj.en) : obj);
 
   function applyLang() {
     document.documentElement.lang = lang;
+    const dict = D.i18n[lang] || {};
     $$('[data-i18n]').forEach((el) => {
       const key = el.dataset.i18n;
       if (el.dataset.i18nOrig === undefined) el.dataset.i18nOrig = el.innerHTML;
-      if (lang === 'en') el.innerHTML = el.dataset.i18nOrig;
-      else if (D.i18n.th[key] !== undefined) el.textContent = D.i18n.th[key];
+      if (lang === BASE || dict[key] === undefined) el.innerHTML = el.dataset.i18nOrig;
+      else el.textContent = dict[key];
     });
     $$('[data-i18n-ph]').forEach((el) => {
       const key = el.dataset.i18nPh;
       if (el.dataset.i18nOrig === undefined) el.dataset.i18nOrig = el.placeholder;
-      el.placeholder = lang === 'en' ? el.dataset.i18nOrig : (D.i18n.th[key] ?? el.dataset.i18nOrig);
+      el.placeholder = (lang !== BASE && dict[key]) || el.dataset.i18nOrig;
     });
-    $$('[data-lang]').forEach((el) => el.classList.toggle('is-on', el.dataset.lang === lang));
-    const tg = $('#langToggle');
-    if (tg) tg.setAttribute('aria-pressed', String(lang === 'th'));
+    $$('[data-set-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.setLang === lang)));
     // 언어 의존 렌더링 재실행
     renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches();
   }
-  $('#langToggle')?.addEventListener('click', () => {
-    lang = lang === 'en' ? 'th' : 'en';
+  $$('[data-set-lang]').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.setLang === lang) return;
+    lang = b.dataset.setLang;
     try { localStorage.setItem('dgt-lang', lang); } catch { /* 무시 */ }
     applyLang();
-  });
+  }));
 
   /* ---------- 태국 시간 ---------- */
   function bangkokNow() {
@@ -213,7 +215,7 @@
   const branchById = (id) => D.branches.find((b) => b.id === id);
   const mapsOpenUrl = (b) => `https://www.google.com/maps/search/?api=1&query=${b.lat},${b.lng}&query_place_id=${b.placeId}`;
   const mapsDirUrl = (b) => `https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&destination_place_id=${b.placeId}`;
-  const embedUrl = (b) => `https://maps.google.com/maps?q=${b.lat},${b.lng}&z=16&hl=${lang}&output=embed`;
+  const embedUrl = (b) => `https://maps.google.com/maps?q=${b.lat},${b.lng}&z=16&hl=${lang}&output=embed`; // hl 은 th/en/ko 모두 지원
 
   function renderBranches() {
     const list = $('#branchList');
@@ -365,7 +367,7 @@
       .map((p) => `<a href="${telHref(p.number)}"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1l-2.25 2.2z"/></svg>${fmtPhone(p.number)} <small>${L(p.label)}</small></a>`).join('');
   }
   // 프로그램 카드 → 폼 메모 채우기
-  $$('[data-program]').forEach((a) => a.addEventListener('click', () => { const n = $('#fNote'); const p = D.programs[a.dataset.program]; if (n && p) n.value = `${p.en} class`; }));
+  $$('[data-program]').forEach((a) => a.addEventListener('click', () => { const n = $('#fNote'); const p = D.programs[a.dataset.program]; if (n && p) n.value = `${p[lang] ?? p.en} (${p.en})`; }));
   let lastMsg = '';
   form?.addEventListener('submit', (e) => {
     e.preventDefault();
