@@ -43,6 +43,7 @@ jobs:
         continue-on-error: true
         env:
           CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+          TZ: Asia/Bangkok   # 페이스북 날짜를 태국 시간 기준으로 받는다
         run: node scripts/fetch-fb-feed.mjs
       - name: 바뀐 피드 커밋
         if: steps.feed.outcome == 'success'
