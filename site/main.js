@@ -43,7 +43,7 @@
     });
     $$('[data-set-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.setLang === lang)));
     // 언어 의존 렌더링 재실행
-    renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches(); renderFeed(); renderFeedUpdated();
+    renderBranches(); renderSchedule(); renderTrialOptions(); renderFooterBranches(); renderFeed(); renderFeedUpdated(); renderTeam();
   }
   // 주소창을 현재 언어와 맞춘다: 태국어(기본)는 파라미터 없이, en/ko 는 ?lang= 을 붙여 그대로 공유 가능하게
   function syncLangUrl() {
@@ -438,6 +438,20 @@
       e.target.innerHTML = ''; e.target.appendChild(f);
     }), { rootMargin: '500px' });
     $$('.ig__item', igGrid).forEach((el) => igIO.observe(el));
+  }
+
+  /* ---------- 코치진·대표선수 (data.js team) ---------- */
+  function renderTeam() {
+    const tl = $('#coachTimeline'), list = $('#athleteList');
+    if (!tl || !list || !D.team) return;
+    tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
+      <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
+      <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');
+    list.innerHTML = D.team.athletes.map((a) => `<li class="athlete${a.gold ? ' athlete--gold' : ''}">
+      <picture class="athlete__photo"><source srcset="assets/team/${a.img}.webp" type="image/webp"><img src="assets/team/${a.img}.jpg" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <div class="athlete__body"><h4 class="athlete__name">${esc(a.name[lang] ?? a.name.en)}</h4>
+        <ul class="athlete__items">${(a.items[lang] ?? a.items.en).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></li>`).join('');
+    if (list.dataset.revealed) $$('.athlete', list).forEach((el) => el.classList.add('is-revealed'));
   }
 
   /* ---------- 체험 문의: 전화번호 목록 (채팅은 HTML 의 LINE/WhatsApp 링크) ---------- */

@@ -148,6 +148,34 @@ window.DGT = {
     },
   ],
 
+
+  /* 코치진·대표선수 (도장 제공 자료 2026-10-29). 사진: assets/team/*. 경력은 연도순. */
+  team: {
+    coach: {
+      timeline: [
+        { y: '2005', en: 'Coach, Zhejiang Province (China) taekwondo team', th: 'โค้ชทีมเทควันโดมณฑลเจ้อเจียง ประเทศจีน', ko: '중국 저장성 태권도 대표팀 코치' },
+        { y: '2006', en: 'Coach, Hanyang University taekwondo team · Kukkiwon 3rd-degree master licence', th: 'โค้ชทีมเทควันโดมหาวิทยาลัยฮันยาง · ใบอนุญาตครูฝึกระดับ 3 คุกกิวอน', ko: '한양대학교 태권도팀 코치 · 국기원 태권도 3단 사범 자격 취득' },
+        { y: '2008–2010', en: 'Coach, Poongsaeng High School taekwondo team', th: 'โค้ชทีมเทควันโดโรงเรียนมัธยมพุงแซง', ko: '풍생고등학교 태권도팀 코치' },
+        { y: '2011–', en: 'Head coach, Phuket taekwondo team (Dragon Taekwondo)', th: 'หัวหน้าโค้ชทีมเทควันโดภูเก็ต (ดราก้อนเทควันโด)', ko: '푸켓 태권도팀 코치 (드래곤 태권도)', now: true },
+        { y: '2019', en: 'Coach, Thailand national taekwondo team', th: 'โค้ชทีมชาติไทย เทควันโด', ko: '태국 태권도 국가대표팀 코치' },
+        { y: '2021', en: 'Promoted to 7th Dan', th: 'เลื่อนเป็นสายดำดั้ง 7', ko: '태권도 공인 7단 승단' },
+        { y: '2023–', en: 'Head coach, Thailand para-taekwondo national team', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด', ko: '태국 장애인 태권도 국가대표팀 총감독', now: true },
+      ],
+    },
+    athletes: [
+      { img: 'thanakrit', name: { en: 'Thanakrit Yodrak', th: 'ธนกฤต ยอดรัก', ko: '타나크릿 요드락' }, gold: true,
+        items: { en: ['Asian Junior Championships 2017 — bronze', '2017 gold medal', 'SEA Games 2021 & 2023 — gold'], th: ['ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง', 'เหรียญทอง 2017', 'ซีเกมส์ 2021 และ 2023 — เหรียญทอง'], ko: ['아시안 주니어 태권도 선수권대회 2017 동메달', '2017 금메달', '2021, 2023 SEA 게임 금메달'] } },
+      { img: 'weerapat', name: { en: 'Weerapat Krairiksh', th: 'วีรภัทร ไกรฤกษ์', ko: '위라팟 크라이릭쉬' },
+        items: { en: ['2018 Youth Olympic Games', '2018 Jeju Korea Open'], th: ['ยูธโอลิมปิกเกมส์ 2018', 'เจจู โคเรียโอเพ่น 2018'], ko: ['2018 유스 올림픽 게임', '2018 제주 코리아 오픈 국제대회'] } },
+      { img: 'chayarin', name: { en: 'Chayarin Hokcharasri', th: 'ชยรินทร์ หอกจรัสศรี', ko: '치야린 혹차라시' },
+        items: { en: ['2018 Jeju Korea Open', '2018 Belgian Open'], th: ['เจจู โคเรียโอเพ่น 2018', 'เบลเยียมโอเพ่น 2018'], ko: ['2018 제주 코리아 오픈 국제대회', '2018 벨기에 오픈'] } },
+      { img: 'saito', name: { en: 'Shin Saito', th: 'ชิน ไซโตะ', ko: '신 사이토' },
+        items: { en: ['Japan national team', 'Asian Junior Championships 2017'], th: ['ทีมชาติญี่ปุ่น', 'ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017'], ko: ['일본 국가대표팀', '아시안 주니어 태권도 선수권대회 2017'] } },
+      { img: 'nutnicha', name: { en: 'Nutnicha Saimuang', th: 'ณัฐณิชา สายเมือง', ko: '누트니차 사이무엥' },
+        items: { en: ['2022 World Taekwondo Championships, Sofia'], th: ['ชิงแชมป์โลก 2022 โซเฟีย'], ko: ['2022 소피아 세계 태권도 선수권대회'] } },
+    ],
+  },
+
   /* 페이스북 게시물 permalink (페이지 플러그인의 타임라인 탭은 게시물을 그리지 않아 개별 임베드로 보여준다).
    * 추가하려면 게시물의 "..." → 링크 복사 로 얻은 URL 을 맨 앞에 넣는다. 앞 3개만 표시. */
   posts: [
@@ -176,7 +204,10 @@ window.DGT = {
       'fb.updated': 'Updated', 'fb.morePosts': 'See all posts on Facebook',
 
       /* ---- data-i18n 키 (HTML 원문은 태국어, 영어는 여기) ---- */
-      'nav.about': 'About',
+      'nav.about': 'About', 'nav.team': 'Coaches & Athletes',
+      'team.kicker': 'Coaches & athletes', 'team.title': 'Coached directly by Korean masters',
+      'team.lead': 'Our training programme is led by coaches from South Korea, and Dragon Gym has produced several Thai national-team athletes.',
+      'team.coachRole': 'Head coach', 'team.coachName': 'Yong Taek Yoo', 'team.athletesTitle': 'Thai national-team athletes from Dragon Gym', 'team.now': 'Present',
       'nav.programs': 'Programs',
       'nav.branches': 'Branches & Map',
       'nav.schedule': 'Schedule',
@@ -198,7 +229,7 @@ window.DGT = {
       'about.kicker': 'About the gym',
       'about.title': 'We don\'t just teach. We build champions.',
       'about.p1': 'Dragon Gym Taekwondo Phuket has been teaching on the island for more than ten years under Korean head coach Yong Taek Yoo and a team of professional instructors. We are a Ministry of Education licensed private school.',
-      'about.p2': 'Our alumni include the 2022 SEA Games gold medallist Thanakrit "Hammann" Yodrak (men\'s −58 kg), youth world and Asian medallists, and several Thai national-team members. What we are proudest of, though, is every child who grows up with confidence, discipline and respect.',
+      'about.p2': 'Our alumni include two-time SEA Games gold medallist Thanakrit "Hammann" Yodrak (2021, 2023), youth world and Asian medallists, and several Thai national-team members. What we are proudest of, though, is every child who grows up with confidence, discipline and respect.',
       'about.p3': 'Our main gym is in Suan Luang in the heart of Phuket Town, with branches at Limelight (Phuket Old Town) and Thalang in the north of the island, so families across Phuket can train close to home.',
       'value.respect': 'Respect',
       'value.respect.d': 'For coaches, teammates and yourself.',
@@ -210,7 +241,7 @@ window.DGT = {
       'value.team.d': 'Grow together as a team.',
       'champ.label': 'Champion alumnus',
       'champ.name': 'Thanakrit "Hammann" Yodrak',
-      'champ.desc': 'SEA Games 2022 gold · men\'s −58 kg · Thai national team',
+      'champ.desc': 'Two-time SEA Games gold medallist (2021, 2023) · Thai national team',
       'programs.kicker': 'Programs',
       'programs.title': 'From first kick to national team',
       'programs.lead': 'Pick the class that fits your child\'s age and goals. Monthly fees include unlimited classes at your branch.',
@@ -295,6 +326,7 @@ window.DGT = {
       msgName: 'ชื่อ', msgAge: 'อายุ', msgBranch: 'สาขา', msgDay: 'วันที่สะดวก', msgNote: 'หมายเหตุ',
 
       /* ---- data-i18n 키 (HTML 텍스트 치환) ---- */
+      'nav.team': 'โค้ช & นักกีฬา', 'team.now': 'ปัจจุบัน',
       'nav.about': 'เกี่ยวกับเรา', 'nav.programs': 'คลาสเรียน', 'nav.branches': 'สาขา & แผนที่',
       'nav.schedule': 'ตารางเรียน', 'nav.facebook': 'เฟซบุ๊ก', 'nav.trial': 'ทดลองเรียนฟรี',
       'nav.cta': 'จองทดลองเรียน',
@@ -364,6 +396,9 @@ window.DGT = {
       msgIntro: '안녕하세요 Dragon Gym! 무료 체험 수업을 예약하고 싶습니다.',
       msgName: '이름', msgAge: '나이', msgBranch: '지점', msgDay: '희망 요일', msgNote: '메모',
 
+      'nav.team': '코치진 & 선수', 'team.kicker': '코치진 & 대표선수', 'team.title': '대한민국 출신 코치진이 직접 지도합니다',
+      'team.lead': '드래곤 태권도의 훈련 프로그램은 대한민국 출신 코치진이 직접 지도하며, 지금까지 여러 명의 태국 국가대표 선수를 배출했습니다.',
+      'team.coachRole': '수석 코치', 'team.coachName': '유영택 코치', 'team.athletesTitle': '드래곤짐 출신 태국 국가대표 선수들', 'team.now': '현재',
       'nav.about': '도장 소개', 'nav.programs': '프로그램', 'nav.branches': '지점 & 지도',
       'nav.schedule': '시간표', 'nav.facebook': '페이스북', 'nav.trial': '무료 체험',
       'nav.cta': '체험 신청',
@@ -374,7 +409,7 @@ window.DGT = {
       'stat.years': '년 지도 경력', 'stat.branches': '푸켓 내 지점', 'stat.seagames': 'SEA Games 금메달 (졸업생)', 'stat.age': '시작 가능 연령',
       'about.kicker': '도장 소개', 'about.title': '가르치는 것을 넘어, 챔피언을 키웁니다',
       'about.p1': 'Dragon Gym Taekwondo Phuket 은 한국인 수석 코치 유용택 사범과 전문 지도자 팀이 10년 넘게 푸켓에서 운영해 온 태권도장입니다. 태국 교육부 인가를 받은 사립 교육기관입니다.',
-      'about.p2': '졸업생 중에는 2022 SEA Games 남자 58kg 금메달리스트 타나끄릿 "함만" 욧락을 비롯해 세계·아시아 유소년 대회 메달리스트와 태국 국가대표가 여럿 있습니다. 하지만 가장 자랑스러운 것은 자신감·규율·존중을 배우며 자라는 모든 아이들입니다.',
+      'about.p2': '졸업생 중에는 SEA Games 금메달 2회(2021, 2023)의 타나끄릿 "함만" 욧락을 비롯해 세계·아시아 유소년 대회 메달리스트와 태국 국가대표가 여럿 있습니다. 하지만 가장 자랑스러운 것은 자신감·규율·존중을 배우며 자라는 모든 아이들입니다.',
       'about.p3': '본관은 푸켓 타운 중심의 수안루앙에 있고, 올드타운 라임라이트와 섬 북쪽 탈랑에 지점이 있어 푸켓 어디서든 가까운 곳에서 훈련할 수 있습니다.',
       'value.respect': '존중', 'value.respect.d': '코치와 동료, 그리고 자신에게.',
       'value.discipline': '규율', 'value.discipline.d': '꾸준히 나와서 집중하고 반복합니다.',
@@ -382,7 +417,7 @@ window.DGT = {
       'value.team': '팀워크', 'value.team.d': '팀과 함께 성장합니다.',
       'champ.label': '챔피언 졸업생',
       'champ.name': '타나끄릿 "함만" 욧락',
-      'champ.desc': '2022 SEA Games 남자 58kg 금메달 · 태국 국가대표',
+      'champ.desc': 'SEA Games 금메달 2회 (2021, 2023) · 태국 국가대표',
       'programs.kicker': '프로그램', 'programs.title': '첫 발차기에서 국가대표까지',
       'programs.lead': '아이의 나이와 목표에 맞는 반을 고르세요. 월 수강료로 해당 지점의 수업을 횟수 제한 없이 들을 수 있습니다.',
       'prog.kids.t': '키즈 스포츠 (2–5세)', 'prog.kids.d': '놀이를 통해 움직임·균형·듣기 능력을 키우는 30–60분 수업. 보호자 참관 가능.',

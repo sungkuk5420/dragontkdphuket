@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Kanit:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600&family=Source+Sans+3:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=13">
 
   <!-- 구조화 데이터: 조직 + 지점 3곳 + FAQ -->
   <script type="application/ld+json">
@@ -258,6 +258,7 @@
       </a>
       <nav class="nav__links" id="navLinks" aria-label="Primary">
         <a href="#about" data-i18n="nav.about">เกี่ยวกับเรา</a>
+        <a href="#team" data-i18n="nav.team">โค้ช &amp; นักกีฬา</a>
         <a href="#programs" data-i18n="nav.programs">คลาสเรียน</a>
         <a href="#branches" data-i18n="nav.branches">สาขา &amp; แผนที่</a>
         <a href="#schedule" data-i18n="nav.schedule">ตารางเรียน</a>
@@ -326,19 +327,19 @@
           <p class="kicker" data-i18n="about.kicker">เกี่ยวกับเรา</p>
           <h2 class="h2" data-i18n="about.title">เราไม่ได้แค่สอน เราสร้างแชมป์</h2>
           <p data-i18n="about.p1">Dragon Gym Taekwondo Phuket เปิดสอนในภูเก็ตมานานกว่า 10 ปี โดยโค้ชชาวเกาหลี ยู ยงแท็ก (Yong Taek Yoo) และทีมครูผู้ฝึกสอนมืออาชีพ เป็นโรงเรียนเอกชนที่ได้รับใบอนุญาตจากกระทรวงศึกษาธิการ</p>
-          <p data-i18n="about.p2">ศิษย์เก่าของเราคว้าเหรียญทองซีเกมส์ 2022 (ธนกฤต ยอดรัก รุ่น 58 กก. ชาย) เหรียญระดับเยาวชนโลกและเอเชีย และหลายคนติดทีมชาติไทย แต่สิ่งที่เราภูมิใจที่สุดคือเด็กทุกคนที่เติบโตขึ้นด้วยความมั่นใจ วินัย และความเคารพ</p>
+          <p data-i18n="about.p2">ศิษย์เก่าของเราคว้าเหรียญทองซีเกมส์ 2 สมัย (ธนกฤต ยอดรัก ปี 2021 และ 2023) เหรียญระดับเยาวชนโลกและเอเชีย และหลายคนติดทีมชาติไทย แต่สิ่งที่เราภูมิใจที่สุดคือเด็กทุกคนที่เติบโตขึ้นด้วยความมั่นใจ วินัย และความเคารพ</p>
           <p data-i18n="about.p3">สาขาหลักของเราอยู่ที่สวนหลวง ใจกลางเมืองภูเก็ต พร้อมสาขาไลม์ไลท์ (เมืองเก่าภูเก็ต) และสาขาถลาง ทางตอนเหนือของเกาะ เพื่อให้ครอบครัวทั่วภูเก็ตเข้าถึงได้สะดวก</p>
         </div>
         <div class="about__side">
         <figure class="champion" data-reveal>
           <div class="champion__media">
             <img src="assets/champion-thanakrit.jpg" alt="Thanakrit Yodrak biting his SEA Games 2022 men's −58 kg gold medal" width="1020" height="765" loading="lazy" decoding="async">
-            <span class="champion__badge"><b>GOLD</b><small>SEA Games 2022</small></span>
+            <span class="champion__badge"><b>GOLD</b><small>SEA Games 2021 · 2023</small></span>
           </div>
           <figcaption class="champion__cap">
             <p class="champion__label" data-i18n="champ.label">ศิษย์เก่าแชมป์</p>
             <h3 class="champion__name" data-i18n="champ.name">ธนกฤต ยอดรัก</h3>
-            <p class="champion__desc" data-i18n="champ.desc">เหรียญทองซีเกมส์ 2022 รุ่น 58 กก. ชาย · ทีมชาติไทย</p>
+            <p class="champion__desc" data-i18n="champ.desc">เหรียญทองซีเกมส์ 2 สมัย (2021, 2023) · ทีมชาติไทย</p>
           </figcaption>
         </figure>
         <ul class="values" data-reveal-group>
@@ -359,6 +360,37 @@
             <h3 data-i18n="value.team">สู้ไปด้วยกัน</h3><p data-i18n="value.team.d">เติบโตไปพร้อมกับทีม</p>
           </li>
         </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TEAM (코치진·대표선수) ================= -->
+    <section class="section team" id="team">
+      <div class="container">
+        <div class="section__head" data-reveal>
+          <p class="kicker" data-i18n="team.kicker">โค้ช &amp; นักกีฬา</p>
+          <h2 class="h2" data-i18n="team.title">ฝึกโดยโค้ชชาวเกาหลีโดยตรง</h2>
+          <p class="lead" data-i18n="team.lead">โปรแกรมการฝึกของดราก้อนเทควันโดดูแลโดยทีมโค้ชจากประเทศเกาหลีใต้ และส่งนักกีฬาติดทีมชาติไทยมาแล้วหลายคน</p>
+        </div>
+        <div class="team__grid">
+          <article class="coach" data-reveal>
+            <figure class="coach__photo">
+              <picture>
+                <source srcset="assets/team/coach-yoo.webp" type="image/webp">
+                <img src="assets/team/coach-yoo.jpg" alt="Coach Yong Taek Yoo" width="448" height="288" loading="lazy" decoding="async">
+              </picture>
+              <figcaption class="coach__badge"><b>7</b><small>DAN</small></figcaption>
+            </figure>
+            <div class="coach__body">
+              <p class="coach__role" data-i18n="team.coachRole">หัวหน้าโค้ช</p>
+              <h3 class="coach__name" data-i18n="team.coachName">ยู ยงแท็ก (Yong Taek Yoo)</h3>
+              <ol class="timeline" id="coachTimeline"></ol>
+            </div>
+          </article>
+          <div class="athletes" data-reveal>
+            <h3 class="h3 athletes__title" data-i18n="team.athletesTitle">นักกีฬาทีมชาติจากดราก้อนยิม</h3>
+            <ul class="athletes__list" id="athleteList"></ul>
+          </div>
         </div>
       </div>
     </section>
@@ -558,6 +590,7 @@
         <h4 data-i18n="footer.links">ลิงก์</h4>
         <ul>
           <li><a href="#about" data-i18n="nav.about">เกี่ยวกับเรา</a></li>
+          <li><a href="#team" data-i18n="nav.team">โค้ช &amp; นักกีฬา</a></li>
           <li><a href="#programs" data-i18n="nav.programs">คลาสเรียน</a></li>
           <li><a href="#schedule" data-i18n="nav.schedule">ตารางเรียน</a></li>
           <li><a href="#trial" data-i18n="nav.trial">ทดลองเรียนฟรี</a></li>
@@ -606,7 +639,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" referrerpolicy="no-referrer" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js" defer></script>
-  <script src="data.js?v=11" defer></script>
-  <script src="main.js?v=11" defer></script>
+  <script src="data.js?v=13" defer></script>
+  <script src="main.js?v=13" defer></script>
 </body>
 </html>

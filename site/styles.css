@@ -220,6 +220,42 @@ html:not([lang="en"]) .value h3 { text-transform: none; }
 @media (max-width: 860px) { .about__grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .values { grid-template-columns: 1fr; } }
 
+/* ---------- 코치진·대표선수 ---------- */
+.team { background: var(--black); color: #fff; }
+.team .kicker { color: var(--gold); } .team .kicker::before { background: var(--red); }
+.team .lead { color: rgba(255,255,255,.72); }
+.team__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 48px); align-items: start; }
+.coach { background: var(--ink); border: 2px solid var(--gold); box-shadow: 10px 10px 0 var(--red); }
+.coach__photo { position: relative; margin: 0; overflow: hidden; aspect-ratio: 448 / 288; background: #222; }
+.coach__photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s var(--ease); }
+.coach:hover .coach__photo img { transform: scale(1.04); }
+.coach__badge { position: absolute; left: 14px; bottom: 14px; width: 64px; height: 64px; border-radius: 50%; background: var(--gold); color: var(--black); border: 2px solid var(--black); display: grid; place-content: center; text-align: center; line-height: .9; box-shadow: 3px 3px 0 var(--black); }
+.coach__badge b { font-family: 'Bebas Neue', var(--font-display); font-size: 30px; }
+.coach__badge small { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+.coach__body { padding: clamp(18px, 3vw, 28px); }
+.coach__role { color: var(--gold); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; margin: 0 0 4px; }
+.coach__name { font-family: var(--font-display); font-size: clamp(28px, 3vw, 36px); margin-bottom: 18px; }
+.timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(var(--gold), var(--red)); }
+.timeline__item { position: relative; display: grid; grid-template-columns: 112px 1fr; gap: 12px; padding: 9px 0 9px 26px; border-bottom: 1px solid var(--line-dark); }
+.timeline__item::before { content: ''; position: absolute; left: 0; top: 15px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); border: 3px solid var(--gold); }
+.timeline__item.is-now::before { background: var(--red); border-color: var(--red); box-shadow: 0 0 0 4px rgba(215,38,43,.25); }
+.timeline__year { font-family: 'Bebas Neue', var(--font-display); font-size: 21px; letter-spacing: .04em; color: var(--gold); line-height: 1.2; }
+.timeline__year small { display: inline-block; margin-left: 6px; font-family: var(--font-body); font-size: 11px; font-weight: 700; color: var(--red-2); letter-spacing: .06em; }
+.timeline__text { font-size: 15.5px; color: rgba(255,255,255,.88); min-width: 0; overflow-wrap: anywhere; }
+.athletes__title { color: #fff; margin-bottom: 16px; }
+.athletes__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.athlete { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: center; background: #1636a0; background: linear-gradient(110deg, #1739a8, #0f2a80); border: 2px solid var(--gold); padding: 12px 16px 12px 12px; transition: transform .3s var(--ease), box-shadow .3s; box-shadow: 5px 5px 0 rgba(244,180,0,.35); }
+.athlete:hover { transform: translate(-3px, -3px); box-shadow: 8px 8px 0 var(--gold); }
+.athlete__photo img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 4px solid var(--black); background: #fff; display: block; transform: scale(1); }
+.athlete--gold .athlete__photo img { border-color: var(--gold); box-shadow: 0 0 0 3px var(--black); }
+.athlete__name { margin: 0 0 6px; color: var(--gold-2); font-size: 20px; font-weight: 700; font-family: var(--font-body); }
+.athlete__items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.athlete__items li { font-size: 14.5px; color: #fff; padding-left: 14px; position: relative; line-height: 1.45; }
+.athlete__items li::before { content: ''; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
+@media (max-width: 960px) { .team__grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .timeline__item { grid-template-columns: 1fr; gap: 0; } .athlete { grid-template-columns: 72px 1fr; } .athlete__photo img { width: 72px; height: 72px; } }
+
 /* ---------- 프로그램 ---------- */
 .programs { background: var(--paper-2); }
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; perspective: 1200px; }
