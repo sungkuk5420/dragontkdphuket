@@ -15,7 +15,7 @@
  * 의존성 없음 — Node 22+ 전역 WebSocket/fetch 사용.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -144,20 +144,25 @@ async function main() {
     if (!raw.length) throw new Error('게시물을 하나도 찾지 못했습니다 (로그인 장벽 또는 구조 변경)');
 
     mkdirSync(IMG_DIR, { recursive: true });
-    const keep = new Set();
-    const posts = [];
+    const fresh = [];
     for (const p of raw) {
       const images = [];
       for (const img of p.images) {
-        try { const file = await download(img.src); keep.add(file); images.push({ src: `feed/img/${file}`, w: img.w, h: img.h, alt: img.alt }); }
+        try { const file = await download(img.src); images.push({ src: `feed/img/${file}`, w: img.w, h: img.h, alt: img.alt }); }
         catch (e) { log('이미지 실패', e.message); }
       }
-      posts.push({ url: p.url, type: p.type === 'photo' && !images.length ? 'text' : p.type, text: p.text, time: p.time, videoId: p.videoId, images, more: p.more });
+      fresh.push({ url: p.url, type: p.type === 'photo' && !images.length ? 'text' : p.type, text: p.text, time: p.time, videoId: p.videoId, images, more: p.more });
     }
-    // 더 이상 쓰지 않는 사진 정리 (feed/img 는 이 스크립트 전용 폴더)
+    // 병합: 이번에 읽은 글(최신순)을 앞에, 기존 피드의 나머지 글을 뒤에 둔다.
+    // 서버 IP 에서는 로그인 장벽 때문에 일부만 읽히는 일이 잦아, 교체하면 피드가 줄어든다.
+    let previous = [];
+    try { previous = JSON.parse(readFileSync(OUT_JSON, 'utf8')).posts || []; } catch { /* 첫 실행 */ }
+    const posts = [...fresh, ...previous.filter((o) => !fresh.some((n) => n.url === o.url))].slice(0, MAX_POSTS);
+    // 더 이상 어떤 글도 쓰지 않는 사진 정리 (feed/img 는 이 스크립트 전용 폴더)
+    const keep = new Set(posts.flatMap((p) => p.images.map((i) => path.basename(i.src))));
     for (const f of readdirSync(IMG_DIR)) if (!keep.has(f)) rmSync(path.join(IMG_DIR, f));
     writeFileSync(OUT_JSON, JSON.stringify({ page: `https://www.facebook.com/${PAGE}`, updated: new Date().toISOString(), posts }, null, 2) + '\n');
-    log(`저장: ${path.relative(ROOT, OUT_JSON)} (${posts.length}건, 사진 ${keep.size}장)`);
+    log(`저장: ${path.relative(ROOT, OUT_JSON)} (이번 ${fresh.length}건 + 기존 ${posts.length - fresh.length}건 = ${posts.length}건, 사진 ${keep.size}장)`);
   } finally {
     try { cdp?.close(); } catch { /* 무시 */ }
     chrome.kill();

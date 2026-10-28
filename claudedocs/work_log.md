@@ -26,3 +26,4 @@
 1. feat(site): 페이스북 최신 게시물 피드·인스타 임베드·포스터 상시 노출·LINE/WhatsApp 직접 연결, 이메일 없는 문의폼 제거
    - 페이지 플러그인 타임라인은 비로그인에도 게시물을 안 그려서 버림. 대신 scripts/fetch-fb-feed.mjs(헤드리스 Chrome+CDP, 의존성 없음)가 공개 페이지를 읽어 site/feed.json+site/feed/img 저장, pages.yml 이 6시간마다 수집·커밋·배포. CI IP 가 로그인 장벽에 막히면 마지막 커밋 피드로 배포(실패 허용).
    - LINE(line.me/ti/p/K2-bgRDOkr)·WhatsApp(wa.me/qr/YKCJST5QMUUOA1) 링크는 사용자가 준 QR 을 OpenCV 로 디코드. 인스타 dragon_tkd_poomsae 게시물은 2020년 것 4개뿐(프로필 최신분). String.replace 치환문자열의 $$→$ 변환으로 main.js 가 깨졌던 사고 있음 — 치환은 함수로 넘길 것.
+   - CI 첫 수집은 로그인 장벽으로 1건만 읽혀 12건 피드를 덮어씀 → 교체 대신 병합(새 글 앞, 기존 글 유지, 최대 12건)으로 수정하고 로컬 수집으로 12건 복구.
