@@ -169,7 +169,7 @@
   },
   "athletes": [
     {
-      "img": "assets/team/thanakrit.webp",
+      "img": "assets/uploads/athletes-20261029113506-qdnj.webp",
       "name": {
         "en": "Thanakrit Yodrak",
         "th": "ธนกฤต ยอดรัก",
@@ -195,12 +195,13 @@
       }
     },
     {
-      "img": "assets/team/weerapat.webp",
+      "img": "assets/uploads/athletes-20261029113527-7sdf.webp",
       "name": {
         "en": "Weerapat Krairiksh",
         "th": "วีรภัทร ไกรฤกษ์",
         "ko": "위라팟 크라이릭쉬"
       },
+      "gold": false,
       "items": {
         "en": [
           "2018 Youth Olympic Games",
@@ -217,12 +218,13 @@
       }
     },
     {
-      "img": "assets/team/chayarin.webp",
+      "img": "assets/uploads/athletes-20261029113537-bbxw.webp",
       "name": {
         "en": "Chayarin Hokcharasri",
         "th": "ชยรินทร์ หอกจรัสศรี",
         "ko": "치야린 혹차라시"
       },
+      "gold": false,
       "items": {
         "en": [
           "2018 Jeju Korea Open",
@@ -261,12 +263,13 @@
       }
     },
     {
-      "img": "assets/team/nutnicha.webp",
+      "img": "assets/uploads/athletes-20261029113631-aecu.webp",
       "name": {
         "en": "Nutnicha Saimuang",
         "th": "ณัฐณิชา สายเมือง",
         "ko": "누트니차 사이무엥"
       },
+      "gold": false,
       "items": {
         "en": [
           "2022 World Taekwondo Championships, Sofia"
