@@ -17,8 +17,8 @@ site/
   styles.css        디자인 토큰(금/검/적), 섹션 스타일, 리빌 애니메이션
   main.js           인터랙션(GSAP·Lenis·커서·틸트·시간표 실시간 하이라이트·지도·폼·언어 전환 ไทย/EN/한국어)
   data.js           프로그램 정의·영어/한국어 번역 + content/*.json 로더(window.DGT_READY)
-  content/          관리자 페이지가 편집하는 데이터: branches.json(지점·시간표) team.json(코치진·선수) social.json(인스타·릴스)
-  admin/            관리자 페이지(Sveltia CMS) index.html + config.yml
+  content/          관리자 페이지가 편집하는 데이터: branches.json(지점·시간표) team.json(코치진·선수) social.json(인스타·릴스) contact.json(LINE·WhatsApp·Messenger)
+  admin/            자체 관리자 화면(빌드 없음): index.html·admin.css·app.js(화면) auth.js(비밀번호 잠금) repo.js(GitHub API)
   feed.json, feed/img/  페이스북 최신 게시물(자동 수집 결과 — 손으로 고치지 않는다)
 scripts/fetch-fb-feed.mjs   공개 페이스북 페이지 → feed.json 수집기 (헤드리스 Chrome, 키 불필요)
   assets/           로고(포스터에서 추출)·LINE QR·시간표 포스터(webp/jpg)·OG 이미지
@@ -51,16 +51,18 @@ python -m http.server 5190     # http://127.0.0.1:5190/
 
 - 페이스북 피드는 자동이다. 바로 갱신하려면 Actions 에서 워크플로를 수동 실행하거나 로컬에서 `node scripts/fetch-fb-feed.mjs` 후 커밋한다.
 
-- **관리자 페이지 `https://dragongymphuket.com/admin/`** (Sveltia CMS, DB 없음): 지점·시간표·포스터,
-  코치진·심사위원·선수(사진 포함), 인스타 코드·릴스 ID 를 폼으로 고친다. 저장하면 `main` 에 커밋되고
-  `pages.yml` 이 1~2분 뒤 재배포한다. 업로드 이미지는 webp(긴 변 1600px)로 바뀌어 `site/assets/uploads/` 에 들어간다.
+- **관리자 페이지 `https://dragongymphuket.com/admin/`** (자체 화면, DB·서버 없음, tkd.reizwings.jp 관리자와 같은 구성):
+  지점별 주간 시간표·포스터·주소·구글맵 좌표(링크 붙여넣기로 자동 입력)·전화, 심사위원·코치진·선수(사진), 수석 코치 경력,
+  LINE·WhatsApp QR·링크, 인스타·릴스. 편집은 화면 안에만 반영되고 아래 [저장] 한 번에 바뀐 JSON 과 새 이미지가
+  GitHub API(Git Data)로 `main` 에 커밋 하나로 올라간다 → `pages.yml` 이 1~2분 뒤 재배포.
+  이미지는 브라우저에서 webp 로 줄여(인물 600px 정사각, 포스터 1600px, QR 은 PNG) `site/assets/uploads/` 에 저장.
   - 로그인: 관리자 비밀번호. 처음 한 번 "관리자 초기 설정" 화면에서 GitHub 토큰(Fine-grained, 이 레포만 ·
     Contents **Read and write**)과 비밀번호(10자 이상)를 넣으면 토큰을 비밀번호로 암호화(PBKDF2 60만 회 + AES-GCM)해
     `site/admin/auth.json` 으로 커밋한다. 이후에는 비밀번호만 입력. "로그인 유지" 를 켜면 그 브라우저는 다시 묻지 않는다.
     비밀번호 변경·분실 재설정은 로그인 화면 아래 링크. 레포가 공개라 암호문도 공개이므로 비밀번호가 곧 보안이다.
     옛 암호문은 git 기록에 남으니, 비밀번호 유출이 의심되면 비밀번호가 아니라 **토큰을 폐기·재발급**하고 재설정한다.
-  - 로컬에서는 `http://127.0.0.1:5190/admin/` → "로컬 저장소로 작업" → 레포 루트 폴더 선택(Chrome/Edge). 파일만 바뀌고 커밋은 직접.
-  - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json`, `contact.json`(LINE·WhatsApp·Messenger 링크와 QR) (필드 정의는 `site/admin/config.yml`).
+  - 로컬 `http://127.0.0.1:5190/admin/` 도 같은 화면이지만 저장은 GitHub `main` 으로 바로 간다(로컬 파일은 안 바뀜).
+  - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json`, `contact.json`(LINE·WhatsApp·Messenger 링크와 QR) (화면·검증은 `site/admin/app.js`).
     손으로 고쳐도 되지만 JSON 문법이 깨지면 지점·시간표·코치진이 통째로 안 나온다.
 - 관리자 페이지에 없는 것: 문구·번역(`data.js` 의 `i18n`, `index.html`),
   프로그램 정의(`data.js` 의 `programs`), JSON-LD 의 지점 정보(`index.html`).
