@@ -1,0 +1,283 @@
+{
+  "judges": [
+    {
+      "img": "assets/team/choi.webp",
+      "name": {
+        "en": "Chatchai Choi (Choi Young-seok)",
+        "th": "ชัชชัย ชเว",
+        "ko": "최영석 총감독"
+      },
+      "role": {
+        "en": "Thailand national team head coach",
+        "th": "หัวหน้าผู้ฝึกสอนทีมชาติไทย",
+        "ko": "태국 태권도 국가대표팀 총감독"
+      },
+      "note": {
+        "en": "Head coach since 2002",
+        "th": "หัวหน้าผู้ฝึกสอนตั้งแต่ปี 2002",
+        "ko": "2002년부터 국가대표팀 총감독"
+      }
+    },
+    {
+      "img": "assets/team/park.webp",
+      "name": {
+        "en": "Park Hee-gang",
+        "th": "ปาร์ค ฮีคัง",
+        "ko": "박희강 코치"
+      },
+      "role": {
+        "en": "Thailand national team coach",
+        "th": "โค้ชทีมชาติไทย",
+        "ko": "태국 태권도 국가대표팀 코치"
+      },
+      "note": {
+        "en": "Gold medallist, 1998 Bangkok Asian Games",
+        "th": "เหรียญทองเอเชียนเกมส์ 1998 กรุงเทพฯ",
+        "ko": "1998 방콕 아시안게임 금메달"
+      }
+    },
+    {
+      "img": "assets/team/yoo.webp",
+      "name": {
+        "en": "Yong Taek Yoo",
+        "th": "ยู ยงแท็ก",
+        "ko": "유영택 코치"
+      },
+      "role": {
+        "en": "Dragon Gym head coach · 7th Dan",
+        "th": "หัวหน้าโค้ชดราก้อนยิม · ดั้ง 7",
+        "ko": "드래곤짐 수석 코치 · 공인 7단"
+      },
+      "note": {
+        "en": "Former Thailand national team coach (2019)",
+        "th": "อดีตโค้ชทีมชาติไทย (2019)",
+        "ko": "태국 국가대표팀 코치 역임 (2019)"
+      }
+    }
+  ],
+  "staff": [
+    {
+      "img": "assets/team/yoo.webp",
+      "tag": "7th DAN",
+      "name": {
+        "en": "Coach Yong Taek Yoo",
+        "th": "โค้ชยู ยงแท็ก",
+        "ko": "유영택 코치"
+      },
+      "role": {
+        "en": "Head coach · Dragon Gym since 2011",
+        "th": "หัวหน้าโค้ช · ดราก้อนยิมตั้งแต่ปี 2011",
+        "ko": "수석 코치 · 2011년부터 드래곤짐"
+      },
+      "items": [
+        {
+          "en": "Taekwondo 7th Dan (2021)",
+          "th": "สายดำดั้ง 7 (2021)",
+          "ko": "태권도 공인 7단 (2021)"
+        },
+        {
+          "en": "Thailand national team coach (2019)",
+          "th": "โค้ชทีมชาติไทย (2019)",
+          "ko": "태국 태권도 국가대표팀 코치 (2019)"
+        },
+        {
+          "en": "Head coach, Thailand para-taekwondo national team (2023–)",
+          "th": "หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด (2023–)",
+          "ko": "태국 장애인 태권도 국가대표팀 총감독 (2023~)"
+        }
+      ]
+    },
+    {
+      "img": "assets/team/thanakrit.webp",
+      "tag": "SEA GAMES GOLD ×2",
+      "name": {
+        "en": "Coach Thanakrit Yodrak",
+        "th": "โค้ชธนกฤต ยอดรัก",
+        "ko": "타나크릿 요드락 코치"
+      },
+      "role": {
+        "en": "Coach · Dragon Gym alumnus & Thai national-team athlete",
+        "th": "โค้ช · ศิษย์เก่าดราก้อนยิมและนักกีฬาทีมชาติไทย",
+        "ko": "코치 · 드래곤짐 출신 태국 국가대표"
+      },
+      "items": [
+        {
+          "en": "SEA Games gold medallist, 2021 and 2023",
+          "th": "เหรียญทองซีเกมส์ 2021 และ 2023",
+          "ko": "SEA Games 금메달 2회 (2021, 2023)"
+        },
+        {
+          "en": "Asian Junior Championships 2017 — bronze",
+          "th": "ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง",
+          "ko": "아시안 주니어 태권도 선수권대회 2017 동메달"
+        },
+        {
+          "en": "Trained at Dragon Gym, now coaching the next generation here",
+          "th": "เติบโตจากดราก้อนยิม และกลับมาสอนรุ่นน้องที่นี่",
+          "ko": "드래곤짐에서 성장해 지금은 후배들을 지도"
+        }
+      ]
+    }
+  ],
+  "coach": {
+    "timeline": [
+      {
+        "y": "2005",
+        "en": "Coach, Zhejiang Province (China) taekwondo team",
+        "th": "โค้ชทีมเทควันโดมณฑลเจ้อเจียง ประเทศจีน",
+        "ko": "중국 저장성 태권도 대표팀 코치"
+      },
+      {
+        "y": "2006",
+        "en": "Coach, Hanyang University taekwondo team · Kukkiwon 3rd-degree master licence",
+        "th": "โค้ชทีมเทควันโดมหาวิทยาลัยฮันยาง · ใบอนุญาตครูฝึกระดับ 3 คุกกิวอน",
+        "ko": "한양대학교 태권도팀 코치 · 국기원 태권도 3단 사범 자격 취득"
+      },
+      {
+        "y": "2008–2010",
+        "en": "Coach, Poongsaeng High School taekwondo team",
+        "th": "โค้ชทีมเทควันโดโรงเรียนมัธยมพุงแซง",
+        "ko": "풍생고등학교 태권도팀 코치"
+      },
+      {
+        "y": "2011–",
+        "en": "Head coach, Phuket taekwondo team (Dragon Taekwondo)",
+        "th": "หัวหน้าโค้ชทีมเทควันโดภูเก็ต (ดราก้อนเทควันโด)",
+        "ko": "푸켓 태권도팀 코치 (드래곤 태권도)",
+        "now": true
+      },
+      {
+        "y": "2019",
+        "en": "Coach, Thailand national taekwondo team",
+        "th": "โค้ชทีมชาติไทย เทควันโด",
+        "ko": "태국 태권도 국가대표팀 코치"
+      },
+      {
+        "y": "2021",
+        "en": "Promoted to 7th Dan",
+        "th": "เลื่อนเป็นสายดำดั้ง 7",
+        "ko": "태권도 공인 7단 승단"
+      },
+      {
+        "y": "2023–",
+        "en": "Head coach, Thailand para-taekwondo national team",
+        "th": "หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด",
+        "ko": "태국 장애인 태권도 국가대표팀 총감독",
+        "now": true
+      }
+    ]
+  },
+  "athletes": [
+    {
+      "img": "assets/team/thanakrit.webp",
+      "name": {
+        "en": "Thanakrit Yodrak",
+        "th": "ธนกฤต ยอดรัก",
+        "ko": "타나크릿 요드락"
+      },
+      "gold": true,
+      "items": {
+        "en": [
+          "Asian Junior Championships 2017 — bronze",
+          "2017 gold medal",
+          "SEA Games 2021 & 2023 — gold"
+        ],
+        "th": [
+          "ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง",
+          "เหรียญทอง 2017",
+          "ซีเกมส์ 2021 และ 2023 — เหรียญทอง"
+        ],
+        "ko": [
+          "아시안 주니어 태권도 선수권대회 2017 동메달",
+          "2017 금메달",
+          "2021, 2023 SEA 게임 금메달"
+        ]
+      }
+    },
+    {
+      "img": "assets/team/weerapat.webp",
+      "name": {
+        "en": "Weerapat Krairiksh",
+        "th": "วีรภัทร ไกรฤกษ์",
+        "ko": "위라팟 크라이릭쉬"
+      },
+      "items": {
+        "en": [
+          "2018 Youth Olympic Games",
+          "2018 Jeju Korea Open"
+        ],
+        "th": [
+          "ยูธโอลิมปิกเกมส์ 2018",
+          "เจจู โคเรียโอเพ่น 2018"
+        ],
+        "ko": [
+          "2018 유스 올림픽 게임",
+          "2018 제주 코리아 오픈 국제대회"
+        ]
+      }
+    },
+    {
+      "img": "assets/team/chayarin.webp",
+      "name": {
+        "en": "Chayarin Hokcharasri",
+        "th": "ชยรินทร์ หอกจรัสศรี",
+        "ko": "치야린 혹차라시"
+      },
+      "items": {
+        "en": [
+          "2018 Jeju Korea Open",
+          "2018 Belgian Open"
+        ],
+        "th": [
+          "เจจู โคเรียโอเพ่น 2018",
+          "เบลเยียมโอเพ่น 2018"
+        ],
+        "ko": [
+          "2018 제주 코리아 오픈 국제대회",
+          "2018 벨기에 오픈"
+        ]
+      }
+    },
+    {
+      "img": "assets/team/saito.webp",
+      "name": {
+        "en": "Shin Saito",
+        "th": "ชิน ไซโตะ",
+        "ko": "신 사이토"
+      },
+      "items": {
+        "en": [
+          "Japan national team",
+          "Asian Junior Championships 2017"
+        ],
+        "th": [
+          "ทีมชาติญี่ปุ่น",
+          "ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017"
+        ],
+        "ko": [
+          "일본 국가대표팀",
+          "아시안 주니어 태권도 선수권대회 2017"
+        ]
+      }
+    },
+    {
+      "img": "assets/team/nutnicha.webp",
+      "name": {
+        "en": "Nutnicha Saimuang",
+        "th": "ณัฐณิชา สายเมือง",
+        "ko": "누트니차 사이무엥"
+      },
+      "items": {
+        "en": [
+          "2022 World Taekwondo Championships, Sofia"
+        ],
+        "th": [
+          "ชิงแชมป์โลก 2022 โซเฟีย"
+        ],
+        "ko": [
+          "2022 소피아 세계 태권도 선수권대회"
+        ]
+      }
+    }
+  ]
+}

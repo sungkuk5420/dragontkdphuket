@@ -2,10 +2,11 @@
  * 외부 라이브러리(GSAP/ScrollTrigger/Lenis/Leaflet)는 CDN 에서 defer 로 받는다. 하나라도 못 받으면
  * 해당 효과만 빼고 내용은 전부 읽히도록 분기한다. 데이터는 data.js 의 window.DGT.
  */
-(() => {
+(async () => {
   'use strict';
   const D = window.DGT;
   if (!D) { console.error('[DGT] data.js 가 로드되지 않았습니다'); return; }
+  try { await window.DGT_READY; } catch (e) { console.error('[DGT] content/*.json 로드 실패', e); return; }
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -242,7 +243,7 @@
         <p class="branch__addr">${L(b.address)}</p>
         <div class="branch__meta">
           <span class="${isOpen ? 'open' : 'closed'}">${t('today')}: ${hoursTxt}</span>
-          ${b.rating ? `<span class="branch__rating">★ ${b.rating.score.toFixed(1)} <small>(${b.rating.count} ${t('reviews')})</small></span>` : ''}
+          ${b.rating && b.rating.score ? `<span class="branch__rating">★ ${b.rating.score.toFixed(1)} <small>(${b.rating.count} ${t('reviews')})</small></span>` : ''}
         </div>
         <div class="branch__actions">
           <a href="${telHref(b.phones[0].number)}">${t('call')} ${fmtPhone(b.phones[0].number)}</a>
@@ -326,13 +327,14 @@
 
     legend.innerHTML = Object.values(D.programs).map((p) => `<li style="--c: var(--p-${p.color})"><i></i>${p[lang] ?? p.en} <small>(${p.age})</small></li>`).join('');
     // 포스터는 항상 보이고, 누르면 라이트박스로 확대
-    const posterImg = $('#schedPoster'), posterWebp = $('#schedPosterWebp');
+    // 포스터 경로는 관리자 페이지가 저장한 전체 경로(확장자 포함)
+    const posterImg = $('#schedPoster');
     if (posterImg && posterImg.dataset.src !== b.poster) {
       posterImg.dataset.src = b.poster;
-      posterWebp.srcset = `${b.poster}.webp`; posterImg.src = `${b.poster}.jpg`;
+      posterImg.src = b.poster;
     }
     if (posterImg) posterImg.alt = `${L(b.name)} — ${t('sched.poster')}`;
-    $('#posterBtn').onclick = () => openLightbox(`${b.poster}.jpg`, `${L(b.name)} — ${t('sched.poster')}`);
+    $('#posterBtn').onclick = () => openLightbox(b.poster, `${L(b.name)} — ${t('sched.poster')}`);
   }
   setInterval(() => { renderSchedule(); renderBranches(); }, 60 * 1000);
 
@@ -446,17 +448,17 @@
     if (!tl || !list || !D.team) return;
     const jl = $('#judgeList');
     if (jl && D.team.judges) jl.innerHTML = D.team.judges.map((j) => `<li class="judge">
-      <picture class="judge__photo"><source srcset="assets/team/${j.img}.webp?v=4" type="image/webp"><img src="assets/team/${j.img}.jpg?v=4" alt="${esc(j.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="judge__photo"><img src="${esc(j.img)}" alt="${esc(j.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <h4 class="judge__name">${esc(L(j.name))}</h4><p class="judge__role">${esc(L(j.role))}</p><p class="judge__note">${esc(L(j.note))}</p></li>`).join('');
     if (staff && D.team.staff) staff.innerHTML = D.team.staff.map((s) => `<article class="mentor" data-tag="${esc(s.tag || '')}">
-      <picture class="mentor__photo"><source srcset="assets/team/${s.img}.webp?v=4" type="image/webp"><img src="assets/team/${s.img}.jpg?v=4" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="mentor__photo"><img src="${esc(s.img)}" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <div class="mentor__body"><p class="mentor__role">${esc(L(s.role))}</p><h4 class="mentor__name">${esc(L(s.name))}</h4>
         <ul class="mentor__items">${s.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('')}</ul></div></article>`).join('');
     tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
       <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
       <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');
     list.innerHTML = D.team.athletes.map((a) => `<li class="athlete${a.gold ? ' athlete--gold' : ''}">
-      <picture class="athlete__photo"><source srcset="assets/team/${a.img}.webp?v=4" type="image/webp"><img src="assets/team/${a.img}.jpg?v=4" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
+      <picture class="athlete__photo"><img src="${esc(a.img)}" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <div class="athlete__body"><h4 class="athlete__name">${esc(a.name[lang] ?? a.name.en)}</h4>
         <ul class="athlete__items">${(a.items[lang] ?? a.items.en).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></li>`).join('');
     if (list.dataset.revealed) $$('.athlete', list).forEach((el) => el.classList.add('is-revealed'));

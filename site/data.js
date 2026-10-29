@@ -10,8 +10,7 @@ window.DGT = {
   lineUrl: 'https://line.me/ti/p/K2-bgRDOkr',          // LINE 친구추가 (QR 에서 디코드)
   whatsappUrl: 'https://wa.me/qr/YKCJST5QMUUOA1?s=p', // WhatsApp 연락처 (QR 에서 디코드)
   instagramUrl: 'https://www.instagram.com/dragon_gym_taekwondo/',
-  /* 인스타 @dragon_gym_taekwondo 게시물/릴 shortcode (instagram.com/p/<코드>/). 프로필에서 수집, 최신순. */
-  instagram: ['Degn-8jAG3B', 'Dd7vcqTlQqh', 'Dd24lNjiJRC'],
+  /* 인스타 게시물 코드·페이스북 릴스 ID 는 content/social.json (관리자 페이지에서 수정) */
   mainPhone: '0869515115',
   timeZone: 'Asia/Bangkok',
 
@@ -23,206 +22,12 @@ window.DGT = {
     athlete: { en: 'Athlete',      th: 'นักกีฬา',       ko: '선수반',       age: 'by invitation', color: 'athlete' },
   },
 
-  /* 지점. 첫 항목이 메인(Suan Luang). 좌표·place_id 는 구글맵에서 확인한 값.
-   * schedule 은 포스터에서 옮겨 적음. 보트라군 지점은 탈랑으로 이전(2026-10-29 도장 확인)해 제거했다. 라임라이트·탈랑의 포스터 배정은 추정이므로
-   * 도장 확인 후 poster/schedule 만 바꾸면 된다. */
-  branches: [
-    {
-      id: 'suanluang',
-      main: true,
-      name: { en: 'Suan Luang (HQ)', th: 'สาขาสวนหลวง (สำนักงานใหญ่)', ko: '수안루앙 (본관)' },
-      area: { en: 'Phuket Town', th: 'ตัวเมืองภูเก็ต', ko: '푸켓 타운' },
-      address: {
-        en: '4/1 Virat Hongyok Rd (Suan Luang), Talat Nuea, Mueang Phuket 83000',
-        th: '4/1 ถ.วิรัชหงษ์หยก (สวนหลวง) ต.ตลาดเหนือ อ.เมือง จ.ภูเก็ต 83000',
-        ko: '4/1 Virat Hongyok Rd (Suan Luang), Talat Nuea, Mueang Phuket 83000',
-      },
-      lat: 7.881482, lng: 98.3751723,
-      placeId: 'ChIJRR0aUOcxUDARZ1M5sZDEtws',
-      phones: [
-        { number: '0869515115', label: { en: 'Main line', th: 'เบอร์หลัก', ko: '대표번호' } },
-        { number: '0993699565', label: { en: 'Suan Luang', th: 'สาขาสวนหลวง', ko: '수안루앙' } },
-      ],
-      rating: { score: 4.8, count: 16 },
-      poster: 'assets/schedule-suanluang',
-      schedule: [
-        { d: 'thu', s: '15:00', e: '16:00', p: 'kids', note: '3–5 y' },
-        { d: 'tue', s: '16:20', e: '17:20', p: 'basic' }, { d: 'wed', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'thu', s: '16:20', e: '17:20', p: 'basic' }, { d: 'fri', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'tue', s: '17:30', e: '18:30', p: 'basic' }, { d: 'wed', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'thu', s: '17:30', e: '18:30', p: 'basic' }, { d: 'fri', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'tue', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'wed', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'thu', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'fri', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'sat', s: '09:00', e: '10:00', p: 'kids', note: '3–5 y' },
-        { d: 'sat', s: '10:00', e: '11:00', p: 'acro', note: 'Gymnastics + Demo kick' },
-        { d: 'sat', s: '11:15', e: '12:15', p: 'basic' },
-        { d: 'sat', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sat', s: '15:30', e: '17:30', p: 'athlete' },
-        { d: 'sat', s: '16:30', e: '18:30', p: 'athlete' },
-        { d: 'sun', s: '10:00', e: '11:00', p: 'basic' },
-        { d: 'sun', s: '11:15', e: '12:15', p: 'basic' },
-        { d: 'sun', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sun', s: '15:30', e: '17:30', p: 'athlete' },
-        { d: 'sun', s: '16:30', e: '18:30', p: 'athlete' },
-      ],
-    },
-    {
-      id: 'limelight',
-      name: { en: 'Limelight', th: 'สาขาไลม์ไลท์', ko: '라임라이트' },
-      area: { en: 'Phuket Old Town', th: 'เมืองเก่าภูเก็ต', ko: '푸켓 올드타운' },
-      address: {
-        en: 'Limelight Phuket, 2/23 Dibuk Rd, Talat Yai, Mueang Phuket 83000',
-        th: 'ไลม์ไลท์ ภูเก็ต 2/23 ถ.ดีบุก ต.ตลาดใหญ่ อ.เมือง จ.ภูเก็ต 83000',
-        ko: 'Limelight Phuket, 2/23 Dibuk Rd, Talat Yai, Mueang Phuket 83000',
-      },
-      // 도장 단독 구글맵 등록이 없어 Limelight Phuket 몰 위치를 쓴다 (사용자 제공 링크, 2026-10-29)
-      lat: 7.8862402, lng: 98.3919712,
-      placeId: null,
-      mapsQuery: 'Limelight Phuket, 2/23 Dibuk Rd, Phuket',
-      // 사용자가 준 구글맵 링크의 장소 ID(ftid) — 이 링크로 열면 정확히 Limelight Phuket 이 열린다
-      mapsUrl: 'https://www.google.com/maps?q=Limelight+Phuket,+2/23+Dibuk+Rd,+Tambon+Talat+Yai,+Mueang+Phuket+District,+Phuket+83000&ftid=0x305031f75a6dec53:0x2fee43914d396841',
-      phones: [
-        { number: '0869515115', label: { en: 'Main line', th: 'เบอร์หลัก', ko: '대표번호' } },
-        { number: '0993652365', label: { en: 'Kru Fai', th: 'ครูฝ้าย', ko: '파이 코치' } },
-      ],
-      rating: null,
-      // 시간표: 지점명 없는 빨간 포스터를 임시 배정 (도장 확인 필요)
-      poster: 'assets/schedule-red',
-      schedule: [
-        { d: 'fri', s: '15:15', e: '15:45', p: 'kids', note: '2–4 y' },
-        { d: 'tue', s: '16:20', e: '17:20', p: 'basic' }, { d: 'wed', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'thu', s: '16:20', e: '17:20', p: 'basic' }, { d: 'fri', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'tue', s: '17:30', e: '18:30', p: 'basic' }, { d: 'wed', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'thu', s: '17:30', e: '18:30', p: 'basic' }, { d: 'fri', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'tue', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'wed', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'thu', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'fri', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'sat', s: '10:00', e: '10:30', p: 'acro' },
-        { d: 'sat', s: '10:30', e: '11:00', p: 'acro' },
-        { d: 'sat', s: '11:15', e: '12:15', p: 'basic' },
-        { d: 'sat', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sat', s: '15:00', e: '17:00', p: 'athlete' },
-        { d: 'sun', s: '10:00', e: '10:30', p: 'kids', note: '2–4 y' },
-        { d: 'sun', s: '10:30', e: '11:00', p: 'kids', note: '2–4 y' },
-        { d: 'sun', s: '11:15', e: '12:15', p: 'basic' },
-        { d: 'sun', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sun', s: '15:00', e: '17:00', p: 'athlete' },
-      ],
-    },
-    {
-      id: 'thalang',
-      name: { en: 'Thalang', th: 'สาขาถลาง', ko: '탈랑' },
-      area: { en: 'Thalang', th: 'ถลาง', ko: '탈랑' },
-      address: {
-        en: 'Srisoonthorn Rd (X9J3+JQ2), Si Sunthon, Thalang, Phuket 83110',
-        th: 'ถ.ศรีสุนทร (X9J3+JQ2) ต.ศรีสุนทร อ.ถลาง จ.ภูเก็ต 83110',
-        ko: 'Srisoonthorn Rd (X9J3+JQ2), Si Sunthon, Thalang, Phuket 83110',
-      },
-      lat: 7.9815713, lng: 98.3543901,
-      placeId: 'ChIJv7B6QgA3UDARr1on4FwEXXw',
-      phones: [
-        { number: '0869515115', label: { en: 'Main line', th: 'เบอร์หลัก', ko: '대표번호' } },
-        { number: '0880082331', label: { en: 'Kru Bas', th: 'ครูบาส', ko: '바스 코치' } },
-      ],
-      rating: { score: 5.0, count: 5 },
-      poster: 'assets/schedule-yellow',
-      schedule: [
-        { d: 'tue', s: '16:20', e: '17:20', p: 'acro', note: 'Lv 1–2' },
-        { d: 'tue', s: '17:30', e: '18:30', p: 'acro', note: 'Lv 3–4' },
-        { d: 'wed', s: '16:20', e: '17:20', p: 'basic' }, { d: 'thu', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'fri', s: '16:20', e: '17:20', p: 'basic' },
-        { d: 'wed', s: '17:30', e: '18:30', p: 'basic' }, { d: 'thu', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'fri', s: '17:30', e: '18:30', p: 'basic' },
-        { d: 'tue', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'wed', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'thu', s: '18:30', e: '20:30', p: 'athlete' }, { d: 'fri', s: '18:30', e: '20:30', p: 'athlete' },
-        { d: 'sat', s: '09:00', e: '09:30', p: 'kids', note: '2–4 y' },
-        { d: 'sat', s: '09:30', e: '10:00', p: 'kids', note: '2–4 y' },
-        { d: 'sat', s: '10:00', e: '11:00', p: 'basic' },
-        { d: 'sat', s: '11:15', e: '12:15', p: 'acro', note: 'Lv 1–2' },
-        { d: 'sat', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sat', s: '15:00', e: '17:00', p: 'athlete' },
-        { d: 'sun', s: '10:00', e: '11:00', p: 'basic' },
-        { d: 'sun', s: '11:15', e: '12:15', p: 'acro', note: 'Lv 3–4' },
-        { d: 'sun', s: '14:00', e: '15:00', p: 'basic' },
-        { d: 'sun', s: '15:00', e: '17:00', p: 'athlete' },
-      ],
-    },
-  ],
-
-
-  /* 코치진·대표선수 (도장 제공 자료 2026-10-29). 사진: assets/team/*. 경력은 연도순. */
-  team: {
-    // 승단 심사위원진 (도장 확인 2026-10-29)
-    judges: [
-      { img: 'choi', name: { en: 'Chatchai Choi (Choi Young-seok)', th: 'ชัชชัย ชเว', ko: '최영석 총감독' },
-        role: { en: 'Thailand national team head coach', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย', ko: '태국 태권도 국가대표팀 총감독' },
-        note: { en: 'Head coach since 2002', th: 'หัวหน้าผู้ฝึกสอนตั้งแต่ปี 2002', ko: '2002년부터 국가대표팀 총감독' } },
-      { img: 'park', name: { en: 'Park Hee-gang', th: 'ปาร์ค ฮีคัง', ko: '박희강 코치' },
-        role: { en: 'Thailand national team coach', th: 'โค้ชทีมชาติไทย', ko: '태국 태권도 국가대표팀 코치' },
-        // 사용자는 '1988 방콕 아시안게임'이라 했으나 1988년 아시안게임은 없고 방콕 대회는 1998년 — 1998 로 표기, 도장 확인 필요
-        note: { en: 'Gold medallist, 1998 Bangkok Asian Games', th: 'เหรียญทองเอเชียนเกมส์ 1998 กรุงเทพฯ', ko: '1998 방콕 아시안게임 금메달' } },
-      { img: 'yoo', name: { en: 'Yong Taek Yoo', th: 'ยู ยงแท็ก', ko: '유영택 코치' },
-        role: { en: 'Dragon Gym head coach · 7th Dan', th: 'หัวหน้าโค้ชดราก้อนยิม · ดั้ง 7', ko: '드래곤짐 수석 코치 · 공인 7단' },
-        note: { en: 'Former Thailand national team coach (2019)', th: 'อดีตโค้ชทีมชาติไทย (2019)', ko: '태국 국가대표팀 코치 역임 (2019)' } },
-    ],
-    // 감독·코치진 카드 (유영택 수석코치는 coach 타임라인 카드로 따로 표시)
-    staff: [
-      { // 유영택 수석코치 (경력 상세는 왼쪽 타임라인 카드)
-        img: 'yoo', tag: '7th DAN',
-        name: { en: 'Coach Yong Taek Yoo', th: 'โค้ชยู ยงแท็ก', ko: '유영택 코치' },
-        role: { en: 'Head coach · Dragon Gym since 2011', th: 'หัวหน้าโค้ช · ดราก้อนยิมตั้งแต่ปี 2011', ko: '수석 코치 · 2011년부터 드래곤짐' },
-        items: [
-          { en: 'Taekwondo 7th Dan (2021)', th: 'สายดำดั้ง 7 (2021)', ko: '태권도 공인 7단 (2021)' },
-          { en: 'Thailand national team coach (2019)', th: 'โค้ชทีมชาติไทย (2019)', ko: '태국 태권도 국가대표팀 코치 (2019)' },
-          { en: 'Head coach, Thailand para-taekwondo national team (2023–)', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด (2023–)', ko: '태국 장애인 태권도 국가대표팀 총감독 (2023~)' },
-        ],
-      },
-      { // 타나크릿 요드락: 드래곤짐 출신 국가대표, 현재 드래곤짐 코치 (도장 확인 2026-10-29)
-        img: 'thanakrit', tag: 'SEA GAMES GOLD ×2',
-        name: { en: 'Coach Thanakrit Yodrak', th: 'โค้ชธนกฤต ยอดรัก', ko: '타나크릿 요드락 코치' },
-        role: { en: 'Coach · Dragon Gym alumnus & Thai national-team athlete', th: 'โค้ช · ศิษย์เก่าดราก้อนยิมและนักกีฬาทีมชาติไทย', ko: '코치 · 드래곤짐 출신 태국 국가대표' },
-        items: [
-          { en: 'SEA Games gold medallist, 2021 and 2023', th: 'เหรียญทองซีเกมส์ 2021 และ 2023', ko: 'SEA Games 금메달 2회 (2021, 2023)' },
-          { en: 'Asian Junior Championships 2017 — bronze', th: 'ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง', ko: '아시안 주니어 태권도 선수권대회 2017 동메달' },
-          { en: 'Trained at Dragon Gym, now coaching the next generation here', th: 'เติบโตจากดราก้อนยิม และกลับมาสอนรุ่นน้องที่นี่', ko: '드래곤짐에서 성장해 지금은 후배들을 지도' },
-        ],
-      },
-    ],
-    coach: {
-      timeline: [
-        { y: '2005', en: 'Coach, Zhejiang Province (China) taekwondo team', th: 'โค้ชทีมเทควันโดมณฑลเจ้อเจียง ประเทศจีน', ko: '중국 저장성 태권도 대표팀 코치' },
-        { y: '2006', en: 'Coach, Hanyang University taekwondo team · Kukkiwon 3rd-degree master licence', th: 'โค้ชทีมเทควันโดมหาวิทยาลัยฮันยาง · ใบอนุญาตครูฝึกระดับ 3 คุกกิวอน', ko: '한양대학교 태권도팀 코치 · 국기원 태권도 3단 사범 자격 취득' },
-        { y: '2008–2010', en: 'Coach, Poongsaeng High School taekwondo team', th: 'โค้ชทีมเทควันโดโรงเรียนมัธยมพุงแซง', ko: '풍생고등학교 태권도팀 코치' },
-        { y: '2011–', en: 'Head coach, Phuket taekwondo team (Dragon Taekwondo)', th: 'หัวหน้าโค้ชทีมเทควันโดภูเก็ต (ดราก้อนเทควันโด)', ko: '푸켓 태권도팀 코치 (드래곤 태권도)', now: true },
-        { y: '2019', en: 'Coach, Thailand national taekwondo team', th: 'โค้ชทีมชาติไทย เทควันโด', ko: '태국 태권도 국가대표팀 코치' },
-        { y: '2021', en: 'Promoted to 7th Dan', th: 'เลื่อนเป็นสายดำดั้ง 7', ko: '태권도 공인 7단 승단' },
-        { y: '2023–', en: 'Head coach, Thailand para-taekwondo national team', th: 'หัวหน้าผู้ฝึกสอนทีมชาติไทย พาราเทควันโด', ko: '태국 장애인 태권도 국가대표팀 총감독', now: true },
-      ],
-    },
-    athletes: [
-      { img: 'thanakrit', name: { en: 'Thanakrit Yodrak', th: 'ธนกฤต ยอดรัก', ko: '타나크릿 요드락' }, gold: true,
-        items: { en: ['Asian Junior Championships 2017 — bronze', '2017 gold medal', 'SEA Games 2021 & 2023 — gold'], th: ['ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017 — เหรียญทองแดง', 'เหรียญทอง 2017', 'ซีเกมส์ 2021 และ 2023 — เหรียญทอง'], ko: ['아시안 주니어 태권도 선수권대회 2017 동메달', '2017 금메달', '2021, 2023 SEA 게임 금메달'] } },
-      { img: 'weerapat', name: { en: 'Weerapat Krairiksh', th: 'วีรภัทร ไกรฤกษ์', ko: '위라팟 크라이릭쉬' },
-        items: { en: ['2018 Youth Olympic Games', '2018 Jeju Korea Open'], th: ['ยูธโอลิมปิกเกมส์ 2018', 'เจจู โคเรียโอเพ่น 2018'], ko: ['2018 유스 올림픽 게임', '2018 제주 코리아 오픈 국제대회'] } },
-      { img: 'chayarin', name: { en: 'Chayarin Hokcharasri', th: 'ชยรินทร์ หอกจรัสศรี', ko: '치야린 혹차라시' },
-        items: { en: ['2018 Jeju Korea Open', '2018 Belgian Open'], th: ['เจจู โคเรียโอเพ่น 2018', 'เบลเยียมโอเพ่น 2018'], ko: ['2018 제주 코리아 오픈 국제대회', '2018 벨기에 오픈'] } },
-      { img: 'saito', name: { en: 'Shin Saito', th: 'ชิน ไซโตะ', ko: '신 사이토' },
-        items: { en: ['Japan national team', 'Asian Junior Championships 2017'], th: ['ทีมชาติญี่ปุ่น', 'ชิงแชมป์เอเชียรุ่นจูเนียร์ 2017'], ko: ['일본 국가대표팀', '아시안 주니어 태권도 선수권대회 2017'] } },
-      { img: 'nutnicha', name: { en: 'Nutnicha Saimuang', th: 'ณัฐณิชา สายเมือง', ko: '누트니차 사이무엥' },
-        items: { en: ['2022 World Taekwondo Championships, Sofia'], th: ['ชิงแชมป์โลก 2022 โซเฟีย'], ko: ['2022 소피아 세계 태권도 선수권대회'] } },
-    ],
-  },
+  /* 지점·시간표는 content/branches.json, 코치진·선수는 content/team.json (관리자 페이지 /admin 에서 수정) */
 
   /* 페이스북 게시물 permalink (페이지 플러그인의 타임라인 탭은 게시물을 그리지 않아 개별 임베드로 보여준다).
    * 추가하려면 게시물의 "..." → 링크 복사 로 얻은 URL 을 맨 앞에 넣는다. 앞 3개만 표시. */
   posts: [
     'https://www.facebook.com/dragongymtaekwondo/posts/pfbid0QDSRhsKLGaekZC2xJXUrUW87UFdU1Nxv4uPVKxQ2b4WmG78LBzu1Fr5BosWy9ncWl',
-  ],
-
-  /* 페이스북 릴스 ID (페이지 /reels/ 에서 수집, 최신순). 바꾸려면 ID 만 교체. */
-  reels: [
-    '1583927846235395', '869744646128158', '2663812344034060',
-    '4353307154930798', '28801326209554140', '1751078702896137',
-    '1057452456926476', '1772662137097649', '1817317749429157', '1171472698564247',
   ],
 
   /* 태국어 번역. data-i18n 키 ↔ 문자열. 영어 원문은 HTML 에 있다. */
@@ -498,3 +303,11 @@ window.DGT = {
     },
   },
 };
+
+/* 관리자 페이지(/admin, Sveltia CMS)가 편집하는 콘텐츠. main.js 는 이 Promise 가 끝난 뒤 시작한다.
+ * no-cache: Pages CDN 캐시(10분) 대신 매번 재검증해 CMS 저장 후 배포가 끝나면 바로 보이게 한다. */
+window.DGT_READY = Promise.all(['branches', 'team', 'social'].map((name) =>
+  fetch(`content/${name}.json`, { cache: 'no-cache' }).then((r) => {
+    if (!r.ok) throw new Error(`content/${name}.json ${r.status}`);
+    return r.json();
+  }))).then(([b, team, social]) => Object.assign(window.DGT, { branches: b.branches, team, instagram: social.instagram, reels: social.reels }));

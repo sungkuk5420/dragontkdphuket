@@ -16,7 +16,9 @@ site/
   index.html        원페이지(히어로·소개·프로그램·지점+지도·시간표·페이스북·체험문의·FAQ) + JSON-LD
   styles.css        디자인 토큰(금/검/적), 섹션 스타일, 리빌 애니메이션
   main.js           인터랙션(GSAP·Lenis·커서·틸트·시간표 실시간 하이라이트·지도·폼·언어 전환 ไทย/EN/한국어)
-  data.js           지점·좌표·전화·시간표·릴스 ID·인스타 코드·LINE/WhatsApp 링크·영어/한국어 번역
+  data.js           프로그램 정의·영어/한국어 번역 + content/*.json 로더(window.DGT_READY)
+  content/          관리자 페이지가 편집하는 데이터: branches.json(지점·시간표) team.json(코치진·선수) social.json(인스타·릴스)
+  admin/            관리자 페이지(Sveltia CMS) index.html + config.yml
   feed.json, feed/img/  페이스북 최신 게시물(자동 수집 결과 — 손으로 고치지 않는다)
 scripts/fetch-fb-feed.mjs   공개 페이스북 페이지 → feed.json 수집기 (헤드리스 Chrome, 키 불필요)
   assets/           로고(포스터에서 추출)·LINE QR·시간표 포스터(webp/jpg)·OG 이미지
@@ -49,8 +51,16 @@ python -m http.server 5190     # http://127.0.0.1:5190/
 
 - 페이스북 피드는 자동이다. 바로 갱신하려면 Actions 에서 워크플로를 수동 실행하거나 로컬에서 `node scripts/fetch-fb-feed.mjs` 후 커밋한다.
 
-- 시간표·전화·주소·좌표: `site/data.js` 의 `branches`. 포스터 이미지는 `assets/schedule-*.jpg|webp`.
-- 릴스: 페이스북 페이지 `/reels/` 에서 릴 URL 의 숫자 ID 를 `data.js` 의 `reels` 에 넣는다(앞 6개 표시).
+- **관리자 페이지 `https://dragongymphuket.com/admin/`** (Sveltia CMS, DB 없음): 지점·시간표·포스터,
+  코치진·심사위원·선수(사진 포함), 인스타 코드·릴스 ID 를 폼으로 고친다. 저장하면 `main` 에 커밋되고
+  `pages.yml` 이 1~2분 뒤 재배포한다. 업로드 이미지는 webp(긴 변 1600px)로 바뀌어 `site/assets/uploads/` 에 들어간다.
+  - 로그인: "액세스 토큰으로 로그인" → GitHub Settings → Developer settings → Fine-grained token,
+    이 레포만 · Contents **Read and write**. ("GitHub(으)로 로그인" 버튼은 OAuth 중계 서버가 없어 쓰지 않는다.)
+  - 로컬에서는 `http://127.0.0.1:5190/admin/` → "로컬 저장소로 작업" → 레포 루트 폴더 선택(Chrome/Edge). 파일만 바뀌고 커밋은 직접.
+  - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json` (필드 정의는 `site/admin/config.yml`).
+    손으로 고쳐도 되지만 JSON 문법이 깨지면 지점·시간표·코치진이 통째로 안 나온다.
+- 관리자 페이지에 없는 것: 문구·번역(`data.js` 의 `i18n`, `index.html`), LINE/WhatsApp 링크·QR,
+  프로그램 정의(`data.js` 의 `programs`), JSON-LD 의 지점 정보(`index.html`).
 - 문구: HTML 원문이 태국어(기본). 영어·한국어는 `data.js` 의 `i18n.en` / `i18n.ko` (키는 HTML 의 `data-i18n`).
   태국어 문구를 고치면 `index.html` 을, 영어·한국어는 `data.js` 를 고친다.
 - CSS/JS 를 고치면 `index.html` 의 `?v=` 캐시버스팅 숫자를 올린다.
