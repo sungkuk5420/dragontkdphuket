@@ -3,26 +3,25 @@
  * 입력칸은 data-bind="파일.경로" 로 data 에 바로 묶는다 (예: branches.branches.0.name.ko). */
 import { createRepo, REPO, BRANCH, SITE_DIR } from './repo.js';
 import * as auth from './auth.js';
+import { t, lang, applyStatic, onLangChange } from './i18n.js';
 
+// 화면 이름표는 t(key) 로 그때그때 (언어 전환), 커밋 메시지는 한국어로 고정
 const FILES = {
-  branches: { path: 'site/content/branches.json', label: '지점·시간표' },
-  team: { path: 'site/content/team.json', label: '코치진·선수' },
-  contact: { path: 'site/content/contact.json', label: '문의 채널' },
-  social: { path: 'site/content/social.json', label: 'SNS' },
+  branches: { path: 'site/content/branches.json', key: 'file.branches' },
+  team: { path: 'site/content/team.json', key: 'file.team' },
+  contact: { path: 'site/content/contact.json', key: 'file.contact' },
+  social: { path: 'site/content/social.json', key: 'file.social' },
 };
-const DAYS = [['mon', '월'], ['tue', '화'], ['wed', '수'], ['thu', '목'], ['fri', '금'], ['sat', '토'], ['sun', '일']];
-const PROGRAMS = {
-  kids: { name: '키즈 스포츠', c: 'var(--p-kids)' },
-  basic: { name: '기본반', c: 'var(--p-basic)' },
-  acro: { name: '아크로바틱', c: 'var(--p-acro)' },
-  athlete: { name: '선수반', c: 'var(--p-athlete)' },
-};
+const fileLabel = (k, as) => t(FILES[k].key, {}, as);
+const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const PROGRAMS = { kids: 'var(--p-kids)', basic: 'var(--p-basic)', acro: 'var(--p-acro)', athlete: 'var(--p-athlete)' };
+const progName = (p) => (PROGRAMS[p] ? t(`prog.${p}`) : p);
+// 사이트 내용의 언어 칸(관리 화면 언어와 별개)
 const LANGS = [['th', 'ไทย'], ['en', 'EN'], ['ko', '한국어']];
-const TEAM = {
-  judges: { title: '승단 심사위원진', one: '심사위원', lead: '사이트의 "승단 심사위원진" 패널. 순서대로 표시됩니다.' },
-  staff: { title: '코치진', one: '코치', lead: '사이트의 코치진 카드. 사진 위 배지와 경력 목록을 함께 보여줍니다.' },
-  athletes: { title: '드래곤짐 출신 국가대표', one: '선수', lead: '대표 선수 목록. 금메달 강조를 켜면 금색 테두리가 붙습니다.' },
-};
+const TEAM = ['judges', 'staff', 'athletes'];
+const team = (key, f) => t(`team.${key}.${f}`);
+// 내용의 3개 국어 칸 중 화면 언어 → 한국어 → 태국어 → 영어 순으로 비어 있지 않은 것
+const pick = (tri) => (tri ? tri[lang()] || tri.ko || tri.th || tri.en || '' : '');
 const RAW = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${SITE_DIR}`;
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -69,7 +68,7 @@ function toast(text, isErr = false) {
 function refreshSavebar() {
   const keys = dirtyKeys();
   $('#savebar').classList.toggle('is-on', keys.length > 0);
-  $('#saveText').textContent = keys.length ? `저장 안 한 변경: ${keys.map((k) => FILES[k].label).join(', ')}` : '';
+  $('#saveText').textContent = keys.length ? t('save.unsaved', { list: keys.map((k) => fileLabel(k)).join(', ') }) : '';
 }
 function changed() { refreshSavebar(); renderSide(); }
 
@@ -99,9 +98,9 @@ function triInputs(path, placeholder = '') {
 /* ================= 이미지 처리 ================= */
 // 브라우저에서 줄이고(긴 변 max) webp 로 바꿔 레포 용량을 아낀다. square 면 가운데를 정사각형으로 자른다.
 async function processImage(file, { kind, max = 1600, square = false, type = 'image/webp', quality = 0.86 }) {
-  if (!file.type.startsWith('image/')) throw new Error('이미지 파일만 올릴 수 있습니다.');
+  if (!file.type.startsWith('image/')) throw new Error(t('img.onlyImage'));
   let bmp;
-  try { bmp = await createImageBitmap(file); } catch { throw new Error('읽을 수 없는 이미지입니다 (아이폰 HEIC 는 JPEG 로 바꿔 올려 주세요).'); }
+  try { bmp = await createImageBitmap(file); } catch { throw new Error(t('img.unreadable')); }
   let sx = 0, sy = 0, sw = bmp.width, sh = bmp.height;
   if (square) { const s = Math.min(sw, sh); sx = (sw - s) / 2; sy = (sh - s) / 2; sw = sh = s; }
   const scale = Math.min(1, max / Math.max(sw, sh));
@@ -120,9 +119,9 @@ async function processImage(file, { kind, max = 1600, square = false, type = 'im
 }
 
 // 이미지 칸: 미리보기 + 드롭존. data-img="data 경로" 또는 data-img-draft (다이얼로그 초안)
-function imageField({ path, value, kind, variant = '', title = '사진 바꾸기', help = '탭하거나 끌어다 놓기 · JPG/PNG/WebP', opts = {} }) {
+function imageField({ path, value, kind, variant = '', title = t('img.change'), help = t('img.help'), opts = {} }) {
   return `<div class="imgfield ${variant ? `imgfield--${variant}` : ''}">
-    <div class="imgfield__preview">${imgTag(value) || '<span class="hint">사진 없음</span>'}${pending.has(value) ? '<span class="badge pending">저장 전</span>' : ''}</div>
+    <div class="imgfield__preview">${imgTag(value) || `<span class="hint">${t('img.none')}</span>`}${pending.has(value) ? `<span class="badge pending">${t('img.pending')}</span>` : ''}</div>
     <label class="drop" data-drop>
       <input type="file" accept="image/*" data-img="${esc(path)}" data-kind="${kind}" data-opts='${esc(JSON.stringify(opts))}'>
       ${ICON.upload}<b>${title}</b><span>${help}</span>
@@ -148,21 +147,21 @@ async function handleImage(input, file) {
     const target = input.dataset.img;
     if (target.startsWith('draft:')) draftImageSink(target.slice(6), path);
     else { setPath(target, path); changed(); renderMain(); }
-    toast('사진을 바꿨습니다. [저장]을 눌러야 사이트에 반영됩니다.');
+    toast(t('img.changed'));
   } catch (e) { toast(e.message, true); }
 }
 
 /* ================= 다이얼로그 ================= */
 // 초안(draft)을 편집하다 [적용] 하면 onApply(draft). 입력은 data-d="경로" 로 초안에 묶는다.
-function openDialog({ title, draft, body, onApply, onDelete, applyLabel = '적용' }) {
+function openDialog({ title, draft, body, onApply, onDelete, applyLabel = t('dlg.apply') }) {
   const dlg = $('#dlg'), form = $('#dlgForm');
   const dget = (p) => p.split('.').reduce((o, k) => (o == null ? o : o[k]), draft);
   const dset = (p, v) => { const ks = p.split('.'); const last = ks.pop(); ks.reduce((o, k) => o[k], draft)[last] = v; };
   const paint = () => {
-    form.innerHTML = `<div class="dlg__head"><h2>${esc(title)}</h2><button class="iconbtn" type="button" data-close aria-label="닫기">${ICON.x}</button></div>
+    form.innerHTML = `<div class="dlg__head"><h2>${esc(title)}</h2><button class="iconbtn" type="button" data-close aria-label="${t('dlg.close')}">${ICON.x}</button></div>
       <div class="dlg__body">${body(draft, { dget })}</div>
-      <div class="dlg__foot">${onDelete ? '<button class="btn btn--danger" type="button" data-del>삭제</button>' : ''}
-        <button class="btn btn--ghost" type="button" data-close>취소</button><button class="btn btn--gold" type="submit">${esc(applyLabel)}</button></div>`;
+      <div class="dlg__foot">${onDelete ? `<button class="btn btn--danger" type="button" data-del>${t('dlg.delete')}</button>` : ''}
+        <button class="btn btn--ghost" type="button" data-close>${t('dlg.cancel')}</button><button class="btn btn--gold" type="submit">${esc(applyLabel)}</button></div>`;
     wireDrops(form);
   };
   draftImageSink = (p, path) => { dset(p, path); paint(); };
@@ -177,7 +176,7 @@ function openDialog({ title, draft, body, onApply, onDelete, applyLabel = '적�
     const t = e.target.closest('button');
     if (!t) return;
     if (t.hasAttribute('data-close')) dlg.close();
-    else if (t.hasAttribute('data-del')) { if (confirm('삭제할까요? [저장]을 눌러야 사이트에서 사라집니다.')) { onDelete(); dlg.close(); changed(); renderMain(); } }
+    else if (t.hasAttribute('data-del')) { if (confirm(t('dlg.delConfirm'))) { onDelete(); dlg.close(); changed(); renderMain(); } }
     else if (t.dataset.act) dialogAct(t, draft, dget, dset, paint);
   };
   form.onsubmit = (e) => {
@@ -202,29 +201,32 @@ const dInput = (draft, p, attrs = '') => `<input class="input" data-d="${p}" val
 const dTri = (draft, p) => `<div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${dInput(draft, `${p}.${k}`, `aria-label="${label}"`)}</label>`).join('')}</div>`;
 
 /* ================= 왼쪽 목록 ================= */
+// 지점 이름은 화면 언어 → 한국어 → 태국어 순으로 비어 있지 않은 것
+const branchName = (b) => pick(b.name) || t('side.newBranchName');
 function navItem(href, icon, title, meta, extra = '') {
   return `<li><a href="#${href}" class="${route === href ? 'is-active' : ''}"><span class="nav__icon">${icon}</span>
     <span class="nav__text"><span class="nav__title">${esc(title)} ${extra}</span><span class="nav__meta">${esc(meta)}</span></span></a></li>`;
 }
 function renderSide() {
   if (!data.branches) return;
-  const b = data.branches.branches, t = data.team;
+  const b = data.branches.branches;
   const photo = (list) => (list[0] && list[0].img ? imgTag(list[0].img) : ICON.people);
+  const tm = data.team;
   $('#side').innerHTML = `
-    <h3>지점 · 시간표</h3>
-    <ul class="nav">${b.map((x, i) => navItem(`b/${i}`, ICON.pin, x.name.ko || x.name.th || '새 지점', `수업 ${x.schedule.length}개`, x.main ? '<span class="badge">본관</span>' : '')).join('')}</ul>
-    <button class="btn btn--ghost btn--sm btn--block" type="button" id="addBranch">＋ 새 지점</button>
-    <h3>코치진 · 선수</h3>
+    <h3>${t('side.branches')}</h3>
+    <ul class="nav">${b.map((x, i) => navItem(`b/${i}`, ICON.pin, branchName(x), t('side.classes', { n: x.schedule.length }), x.main ? `<span class="badge">${t('side.main')}</span>` : '')).join('')}</ul>
+    <button class="btn btn--ghost btn--sm btn--block" type="button" id="addBranch">${t('side.addBranch')}</button>
+    <h3>${t('side.team')}</h3>
     <ul class="nav">
-      ${navItem('team/judges', photo(t.judges), TEAM.judges.title, `${t.judges.length}명`)}
-      ${navItem('team/staff', photo(t.staff), TEAM.staff.title, `${t.staff.length}명`)}
-      ${navItem('team/timeline', ICON.clock, '수석 코치 경력', `${t.coach.timeline.length}줄`)}
-      ${navItem('team/athletes', photo(t.athletes), TEAM.athletes.title, `${t.athletes.length}명`)}
+      ${navItem('team/judges', photo(tm.judges), team('judges', 'title'), t('side.people', { n: tm.judges.length }))}
+      ${navItem('team/staff', photo(tm.staff), team('staff', 'title'), t('side.people', { n: tm.staff.length }))}
+      ${navItem('team/timeline', ICON.clock, t('side.timeline'), t('side.lines', { n: tm.coach.timeline.length }))}
+      ${navItem('team/athletes', photo(tm.athletes), team('athletes', 'title'), t('side.people', { n: tm.athletes.length }))}
     </ul>
-    <h3>문의 · SNS</h3>
+    <h3>${t('side.contactSocial')}</h3>
     <ul class="nav">
-      ${navItem('contact', data.contact.line.qr ? imgTag(data.contact.line.qr) : ICON.chat, 'LINE · WhatsApp · Messenger', '채팅 링크와 QR 코드')}
-      ${navItem('social', ICON.insta, '인스타그램 · 페이스북 릴스', `게시물 ${data.social.instagram.length} · 릴스 ${data.social.reels.length}`)}
+      ${navItem('contact', data.contact.line.qr ? imgTag(data.contact.line.qr) : ICON.chat, 'LINE · WhatsApp · Messenger', t('side.contactMeta'))}
+      ${navItem('social', ICON.insta, t('side.social'), t('side.socialMeta', { ig: data.social.instagram.length, reels: data.social.reels.length }))}
     </ul>`;
   $('#addBranch').onclick = addBranch;
 }
@@ -232,75 +234,75 @@ function renderSide() {
 /* ================= 페이지: 지점 ================= */
 function pageBranch(i) {
   const b = data.branches.branches[i];
-  if (!b) return '<div class="empty">지점을 찾을 수 없습니다.</div>';
+  if (!b) return `<div class="empty">${t('br.notFound')}</div>`;
   const P = `branches.branches.${i}`;
   const rating = b.rating || {};
   const byDay = (d) => b.schedule.map((s, j) => ({ ...s, j })).filter((s) => s.d === d).sort((a, c) => toMin(a.s) - toMin(c.s) || toMin(a.e) - toMin(c.e));
   return `
-  <div class="page-head"><div><h1>${esc(b.name.ko || b.name.th || '새 지점')}</h1><p>지점 정보와 주간 시간표. 바꾼 뒤 아래 [저장]을 누르세요.</p></div></div>
+  <div class="page-head"><div><h1>${esc(branchName(b))}</h1><p>${t('br.lead')}</p></div></div>
 
   <section class="card">
-    <div class="card__head"><div><h2>주간 시간표</h2><p>수업을 누르면 수정, 요일 아래 ＋ 로 추가. 사이트에서는 시작 시각 순으로 보입니다.</p></div></div>
-    <div class="week">${DAYS.map(([d, label]) => `<div class="day"><div class="day__name">${label}</div>
-      ${byDay(d).map((s) => `<button class="slot" type="button" style="--c:${PROGRAMS[s.p] ? PROGRAMS[s.p].c : 'var(--ink)'}" data-slot="${s.j}">
-        <b>${esc(s.s)}–${esc(s.e)}</b>${esc(PROGRAMS[s.p] ? PROGRAMS[s.p].name : s.p)}${s.note ? `<br><small>${esc(s.note)}</small>` : ''}</button>`).join('')}
-      <button class="day__add" type="button" data-add-slot="${d}">＋ 수업</button></div>`).join('')}</div>
-    <div class="legend">${Object.values(PROGRAMS).map((p) => `<span><i style="--c:${p.c}"></i>${p.name}</span>`).join('')}</div>
+    <div class="card__head"><div><h2>${t('br.week')}</h2><p>${t('br.weekLead')}</p></div></div>
+    <div class="week">${DAYS.map((d) => `<div class="day"><div class="day__name">${t(`day.${d}`)}</div>
+      ${byDay(d).map((s) => `<button class="slot" type="button" style="--c:${PROGRAMS[s.p] || 'var(--ink)'}" data-slot="${s.j}">
+        <b>${esc(s.s)}–${esc(s.e)}</b>${esc(progName(s.p))}${s.note ? `<br><small>${esc(s.note)}</small>` : ''}</button>`).join('')}
+      <button class="day__add" type="button" data-add-slot="${d}">${t('br.addSlot')}</button></div>`).join('')}</div>
+    <div class="legend">${Object.entries(PROGRAMS).map(([k, c]) => `<span><i style="--c:${c}"></i>${progName(k)}</span>`).join('')}</div>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>시간표 포스터</h2><p>시간표 옆에 보이고 누르면 크게 열리는 세로 포스터</p></div></div>
-    ${imageField({ path: `${P}.poster`, value: b.poster, kind: `poster-${b.id}`, variant: 'poster', title: '포스터 바꾸기', opts: { max: 1600 } })}
+    <div class="card__head"><div><h2>${t('br.poster')}</h2><p>${t('br.posterLead')}</p></div></div>
+    ${imageField({ path: `${P}.poster`, value: b.poster, kind: `poster-${b.id}`, variant: 'poster', title: t('br.posterChange'), opts: { max: 1600 } })}
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>기본 정보</h2></div></div>
-    <div class="field"><span class="label">지점 이름</span>${triInputs(`${P}.name`)}</div>
-    <div class="field"><span class="label">지역</span>${triInputs(`${P}.area`)}</div>
-    <label class="check"><input type="checkbox" data-bind="${P}.main" ${b.main ? 'checked' : ''}> 본관(메인 지점) 표시</label>
+    <div class="card__head"><div><h2>${t('br.basic')}</h2></div></div>
+    <div class="field"><span class="label">${t('br.name')}</span>${triInputs(`${P}.name`)}</div>
+    <div class="field"><span class="label">${t('br.area')}</span>${triInputs(`${P}.area`)}</div>
+    <label class="check"><input type="checkbox" data-bind="${P}.main" ${b.main ? 'checked' : ''}> ${t('br.main')}</label>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>위치 · 구글맵</h2><p>구글맵 링크를 붙여 넣으면 좌표를 자동으로 채웁니다</p></div></div>
-    <div class="field"><span class="label">주소</span>${triInputs(`${P}.address`)}</div>
+    <div class="card__head"><div><h2>${t('br.location')}</h2><p>${t('br.locationLead')}</p></div></div>
+    <div class="field"><span class="label">${t('br.address')}</span>${triInputs(`${P}.address`)}</div>
     <div class="map">
       <div>
-        <div class="field"><span class="label">구글맵 링크 붙여넣기</span>
-          <div class="paste"><input class="input" id="mapsPaste" placeholder="https://www.google.com/maps/… 또는 7.88, 98.37"><button class="btn btn--ink" type="button" id="mapsApply">적용</button></div>
-          <p class="hint">구글맵에서 장소를 연 뒤 주소창의 긴 주소를 복사하세요. 장소를 우클릭해 나오는 좌표 숫자도 됩니다.</p></div>
+        <div class="field"><span class="label">${t('br.paste')}</span>
+          <div class="paste"><input class="input" id="mapsPaste" placeholder="${esc(t('br.pastePh'))}"><button class="btn btn--ink" type="button" id="mapsApply">${t('dlg.apply')}</button></div>
+          <p class="hint">${t('br.pasteHint')}</p></div>
         <div class="row">
-          <label class="field"><span>위도</span>${bindInput(`${P}.lat`, 'data-type="num" inputmode="decimal"')}</label>
-          <label class="field"><span>경도</span>${bindInput(`${P}.lng`, 'data-type="num" inputmode="decimal"')}</label>
+          <label class="field"><span>${t('br.lat')}</span>${bindInput(`${P}.lat`, 'data-type="num" inputmode="decimal"')}</label>
+          <label class="field"><span>${t('br.lng')}</span>${bindInput(`${P}.lng`, 'data-type="num" inputmode="decimal"')}</label>
         </div>
-        <label class="field"><span>'구글맵에서 열기' 링크 (선택)</span>${bindInput(`${P}.mapsUrl`, 'data-type="opt" placeholder="비우면 좌표로 엽니다"')}</label>
-        <label class="field"><span>구글 place_id (선택)</span>${bindInput(`${P}.placeId`, 'data-type="opt" placeholder="ChIJ…"')}</label>
+        <label class="field"><span>${esc(t('br.mapsUrl'))}</span>${bindInput(`${P}.mapsUrl`, `data-type="opt" placeholder="${esc(t('br.mapsUrlPh'))}"`)}</label>
+        <label class="field"><span>${t('br.placeId')}</span>${bindInput(`${P}.placeId`, 'data-type="opt" placeholder="ChIJ…"')}</label>
       </div>
-      <iframe id="mapPreview" title="지도 미리보기" loading="lazy" src="${mapEmbed(b)}"></iframe>
+      <iframe id="mapPreview" title="${t('br.mapPreview')}" loading="lazy" src="${mapEmbed(b)}"></iframe>
     </div>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>전화번호</h2><p>첫 번째 번호가 지점 카드의 [전화] 버튼이 됩니다</p></div>
-      <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}.phones" data-tpl='{"number":"","label":{"th":"","en":"","ko":""}}'>＋ 번호 추가</button></div>
+    <div class="card__head"><div><h2>${t('br.phones')}</h2><p>${t('br.phonesLead')}</p></div>
+      <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}.phones" data-tpl='{"number":"","label":{"th":"","en":"","ko":""}}'>${t('br.addPhone')}</button></div>
     ${b.phones.map((ph, j) => `<div class="phone">
-      ${bindInput(`${P}.phones.${j}.number`, 'inputmode="tel" placeholder="0869515115" aria-label="번호"')}
-      <div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${bindInput(`${P}.phones.${j}.label.${k}`, `aria-label="이름 ${label}"`)}</label>`).join('')}</div>
-      <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}.phones" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-        <button class="iconbtn" type="button" data-list-del="${P}.phones" data-i="${j}" aria-label="삭제">${ICON.x}</button></div>
+      ${bindInput(`${P}.phones.${j}.number`, `inputmode="tel" placeholder="0869515115" aria-label="${t('br.number')}"`)}
+      <div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${bindInput(`${P}.phones.${j}.label.${k}`, `aria-label="${t('br.phoneLabel', { lang: label })}"`)}</label>`).join('')}</div>
+      <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}.phones" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+        <button class="iconbtn" type="button" data-list-del="${P}.phones" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div>
     </div>`).join('')}
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>구글 평점</h2><p>구글맵 리뷰가 없으면 비워 두세요 (사이트에서 숨김)</p></div></div>
+    <div class="card__head"><div><h2>${t('br.rating')}</h2><p>${t('br.ratingLead')}</p></div></div>
     <div class="row">
-      <label class="field"><span>평점 (0~5)</span><input class="input" data-rating="score" data-i="${i}" inputmode="decimal" value="${esc(rating.score ?? '')}"></label>
-      <label class="field"><span>리뷰 수</span><input class="input" data-rating="count" data-i="${i}" inputmode="numeric" value="${esc(rating.count ?? '')}"></label>
+      <label class="field"><span>${t('br.score')}</span><input class="input" data-rating="score" data-i="${i}" inputmode="decimal" value="${esc(rating.score ?? '')}"></label>
+      <label class="field"><span>${t('br.count')}</span><input class="input" data-rating="count" data-i="${i}" inputmode="numeric" value="${esc(rating.count ?? '')}"></label>
     </div>
   </section>
 
   <section class="card card--danger">
-    <div class="card__head"><div><h2>지점 삭제</h2><p>이 지점과 시간표가 사이트에서 사라집니다</p></div>
-      <button class="btn btn--danger btn--sm" type="button" id="delBranch">지점 삭제</button></div>
+    <div class="card__head"><div><h2>${t('br.delete')}</h2><p>${t('br.deleteLead')}</p></div>
+      <button class="btn btn--danger btn--sm" type="button" id="delBranch">${t('br.delete')}</button></div>
   </section>`;
 }
 const mapEmbed = (b) => `https://maps.google.com/maps?q=${encodeURIComponent(`${b.lat},${b.lng}`)}&z=16&output=embed`;
@@ -319,18 +321,17 @@ function wireBranch(i) {
   const b = data.branches.branches[i];
   $('#mapsApply').onclick = () => {
     const r = parseMaps($('#mapsPaste').value);
-    if (r.lat == null && !r.url) { toast('구글맵 링크나 "위도, 경도" 형식이 아닙니다.', true); return; }
+    if (r.lat == null && !r.url) { toast(t('br.badMaps'), true); return; }
     if (r.url) setPath(`${P}.mapsUrl`, r.url);
     if (r.lat != null) { setPath(`${P}.lat`, r.lat); setPath(`${P}.lng`, r.lng); }
     changed(); renderMain();
-    toast(r.lat != null ? '좌표와 링크를 채웠습니다. 지도 미리보기를 확인하세요.'
-      : '링크만 넣었습니다. 짧은 링크(maps.app.goo.gl)는 좌표가 없어, 링크를 브라우저에서 연 뒤 주소창의 긴 주소를 붙여 넣으세요.', r.lat == null);
+    toast(r.lat != null ? t('br.mapsFilled') : t('br.mapsLinkOnly'), r.lat == null);
   };
   $$('[data-slot]').forEach((el) => { el.onclick = () => editSlot(i, Number(el.dataset.slot)); });
   $$('[data-add-slot]').forEach((el) => { el.onclick = () => editSlot(i, -1, el.dataset.addSlot); });
   $('#delBranch').onclick = () => {
-    if (data.branches.branches.length <= 1) { toast('지점은 최소 1개가 있어야 합니다.', true); return; }
-    if (!confirm(`'${b.name.ko || b.name.th}' 지점을 삭제할까요? [저장]을 눌러야 사이트에서 사라집니다.`)) return;
+    if (data.branches.branches.length <= 1) { toast(t('br.minOne'), true); return; }
+    if (!confirm(t('br.delConfirm', { name: branchName(b) }))) return;
     data.branches.branches.splice(i, 1);
     changed(); go('b/0');
   };
@@ -341,17 +342,17 @@ function editSlot(bi, j, day) {
   const isNew = j < 0;
   const draft = isNew ? { d: day, s: '16:00', e: '17:00', p: 'basic', note: '' } : { note: '', ...clone(sched[j]) };
   openDialog({
-    title: isNew ? '수업 추가' : '수업 수정',
+    title: isNew ? t('slot.add') : t('slot.edit'),
     draft,
     body: (d) => `
-      <div class="field"><span class="label">요일</span><div class="seg">${DAYS.map(([k, l]) => `<label><input type="radio" name="d" data-d="d" value="${k}" ${d.d === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></div>
-      <div class="row"><label class="field"><span>시작</span>${dInput(d, 's', 'type="time" step="300" required')}</label>
-        <label class="field"><span>종료</span>${dInput(d, 'e', 'type="time" step="300" required')}</label></div>
-      <div class="field"><span class="label">프로그램</span><div class="seg seg--4">${Object.entries(PROGRAMS).map(([k, p]) => `<label><input type="radio" name="p" data-d="p" value="${k}" ${d.p === k ? 'checked' : ''}><span><i style="--c:${p.c}"></i>${p.name}</span></label>`).join('')}</div></div>
-      <label class="field"><span>메모 (선택)</span>${dInput(d, 'note', 'placeholder="예: 3–5 y, Lv 1–2 — 모든 언어에 그대로 표시"')}</label>`,
+      <div class="field"><span class="label">${t('slot.day')}</span><div class="seg">${DAYS.map((k) => `<label><input type="radio" name="d" data-d="d" value="${k}" ${d.d === k ? 'checked' : ''}><span>${t(`day.${k}`)}</span></label>`).join('')}</div></div>
+      <div class="row"><label class="field"><span>${t('slot.start')}</span>${dInput(d, 's', 'type="time" step="300" required')}</label>
+        <label class="field"><span>${t('slot.end')}</span>${dInput(d, 'e', 'type="time" step="300" required')}</label></div>
+      <div class="field"><span class="label">${t('slot.program')}</span><div class="seg seg--4">${Object.entries(PROGRAMS).map(([k, c]) => `<label><input type="radio" name="p" data-d="p" value="${k}" ${d.p === k ? 'checked' : ''}><span><i style="--c:${c}"></i>${progName(k)}</span></label>`).join('')}</div></div>
+      <label class="field"><span>${t('slot.note')}</span>${dInput(d, 'note', `placeholder="${esc(t('slot.notePh'))}"`)}</label>`,
     onApply: (d) => {
-      if (!TIME_RE.test(d.s) || !TIME_RE.test(d.e)) throw new Error('시각을 HH:MM 으로 입력하세요.');
-      if (toMin(d.e) <= toMin(d.s)) throw new Error('종료 시각이 시작보다 늦어야 합니다.');
+      if (!TIME_RE.test(d.s) || !TIME_RE.test(d.e)) throw new Error(t('slot.badTime'));
+      if (toMin(d.e) <= toMin(d.s)) throw new Error(t('slot.endAfter'));
       const slot = { d: d.d, s: d.s, e: d.e, p: d.p };
       if (d.note.trim()) slot.note = d.note.trim();
       if (isNew) sched.push(slot); else sched[j] = slot;
@@ -367,29 +368,29 @@ function addBranch() {
   const first = list[0];
   list.push({
     id: `branch${n}`,
-    name: { th: '', en: '', ko: '새 지점' }, area: { th: '', en: '', ko: '' }, address: { th: '', en: '', ko: '' },
+    name: { th: '', en: '', ko: t('side.newBranchName', {}, 'ko') }, area: { th: '', en: '', ko: '' }, address: { th: '', en: '', ko: '' },
     lat: first.lat, lng: first.lng, placeId: null,
     phones: [clone(first.phones[0])], rating: null, poster: first.poster, schedule: [],
   });
   changed(); go(`b/${list.length - 1}`);
-  toast('새 지점을 만들었습니다. 이름·주소·좌표·포스터를 채운 뒤 저장하세요.');
+  toast(t('br.created'));
 }
 
 /* ================= 페이지: 코치진·선수 ================= */
 function pagePeople(key) {
-  const meta = TEAM[key], list = data.team[key];
-  return `<div class="page-head"><div><h1>${meta.title}</h1><p>${meta.lead} 사진이나 [수정]을 누르면 편집합니다.</p></div></div>
+  const list = data.team[key];
+  return `<div class="page-head"><div><h1>${team(key, 'title')}</h1><p>${team(key, 'lead')} ${t('ppl.lead')}</p></div></div>
   <section class="card"><div class="people">
     ${list.map((p, i) => `<article class="person">
-      <button class="person__photo" type="button" data-edit="${i}" aria-label="${esc(p.name.ko)} 수정">${imgTag(p.img, p.name.ko)}</button>
-      <div class="person__body"><div class="person__name">${esc(p.name.ko || p.name.en)} ${p.gold ? '<span class="badge">금메달</span>' : ''}</div>
-        <div class="person__role">${esc(p.role ? p.role.ko : (p.items && p.items.ko ? p.items.ko[0] : '') || '')}</div></div>
+      <button class="person__photo" type="button" data-edit="${i}" aria-label="${esc(t('ppl.editAria', { name: pick(p.name) }))}">${imgTag(p.img, pick(p.name))}</button>
+      <div class="person__body"><div class="person__name">${esc(pick(p.name))} ${p.gold ? `<span class="badge">${t('ppl.gold')}</span>` : ''}</div>
+        <div class="person__role">${esc(p.role ? pick(p.role) : (p.items && p.items.ko ? (p.items[lang()] || [])[0] || p.items.ko[0] : '') || '')}</div></div>
       <div class="person__bar">
-        <button class="iconbtn" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="앞으로">${ICON.left}</button>
-        <button class="btn btn--ghost btn--sm" type="button" data-edit="${i}">수정</button>
-        <button class="iconbtn" type="button" data-move="${i}" data-dir="1" ${i === list.length - 1 ? 'disabled' : ''} aria-label="뒤로">${ICON.right}</button>
+        <button class="iconbtn" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="${t('ctl.prev')}">${ICON.left}</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-edit="${i}">${t('ctl.edit')}</button>
+        <button class="iconbtn" type="button" data-move="${i}" data-dir="1" ${i === list.length - 1 ? 'disabled' : ''} aria-label="${t('ctl.next')}">${ICON.right}</button>
       </div></article>`).join('')}
-    <button class="add-tile" type="button" id="addPerson">＋ ${meta.one} 추가</button>
+    <button class="add-tile" type="button" id="addPerson">${t('ppl.add', { one: team(key, 'one') })}</button>
   </div></section>`;
 }
 function wirePeople(key) {
@@ -414,25 +415,25 @@ function editPerson(key, i) {
   const draft = isNew ? tpl : { ...clone(tpl), ...clone(list[i]) };
   const lineTpl = JSON.stringify(emptyTri());
   openDialog({
-    title: `${TEAM[key].one} ${isNew ? '추가' : '수정'}`,
+    title: t(isNew ? 'ppl.dlgAdd' : 'ppl.dlgEdit', { one: team(key, 'one') }),
     draft,
     body: (d) => `
-      <div class="field"><span class="label">사진 (가운데를 정사각형으로 자릅니다)</span>
+      <div class="field"><span class="label">${t('ppl.photo')}</span>
         ${imageField({ path: 'draft:img', value: d.img, kind: key, opts: { square: true, max: 600 } })}</div>
-      <div class="field"><span class="label">이름</span>${dTri(d, 'name')}</div>
-      ${d.role ? `<div class="field"><span class="label">직함</span>${dTri(d, 'role')}</div>` : ''}
-      ${d.note ? `<div class="field"><span class="label">한 줄 소개</span>${dTri(d, 'note')}</div>` : ''}
-      ${key === 'staff' ? `<label class="field"><span>사진 위 배지 (선택)</span>${dInput(d, 'tag', 'placeholder="예: 7th DAN"')}</label>
-        <div class="field"><span class="label">경력</span><div class="lines">${d.items.map((_, j) => `<div class="line">${dTri(d, `items.${j}`)}
-          <div class="line__ctl"><button class="iconbtn" type="button" data-act="up" data-list="items" data-i="${j}" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-          <button class="iconbtn" type="button" data-act="del" data-list="items" data-i="${j}" aria-label="삭제">${ICON.x}</button></div></div>`).join('')}</div>
-          <button class="btn btn--ghost btn--sm" type="button" data-act="add" data-list="items" data-tpl='${lineTpl}' style="margin-top:10px">＋ 경력 추가</button></div>` : ''}
-      ${key === 'athletes' ? `<label class="check"><input type="checkbox" data-d="gold" ${d.gold ? 'checked' : ''}> 금메달 강조 (금색 테두리)</label>
-        <div class="field"><span class="label">경력 — 한 줄에 하나씩</span><div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>
-          <textarea class="input" data-d-lines="items.${k}" aria-label="경력 ${label}">${esc(d.items[k].join('\n'))}</textarea></label>`).join('')}</div></div>` : ''}`,
+      <div class="field"><span class="label">${t('ppl.name')}</span>${dTri(d, 'name')}</div>
+      ${d.role ? `<div class="field"><span class="label">${t('ppl.role')}</span>${dTri(d, 'role')}</div>` : ''}
+      ${d.note ? `<div class="field"><span class="label">${t('ppl.note')}</span>${dTri(d, 'note')}</div>` : ''}
+      ${key === 'staff' ? `<label class="field"><span>${t('ppl.tag')}</span>${dInput(d, 'tag', `placeholder="${esc(t('ppl.tagPh'))}"`)}</label>
+        <div class="field"><span class="label">${t('ppl.career')}</span><div class="lines">${d.items.map((_, j) => `<div class="line">${dTri(d, `items.${j}`)}
+          <div class="line__ctl"><button class="iconbtn" type="button" data-act="up" data-list="items" data-i="${j}" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+          <button class="iconbtn" type="button" data-act="del" data-list="items" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div></div>`).join('')}</div>
+          <button class="btn btn--ghost btn--sm" type="button" data-act="add" data-list="items" data-tpl='${lineTpl}' style="margin-top:10px">${t('ppl.addCareer')}</button></div>` : ''}
+      ${key === 'athletes' ? `<label class="check"><input type="checkbox" data-d="gold" ${d.gold ? 'checked' : ''}> ${t('ppl.goldCheck')}</label>
+        <div class="field"><span class="label">${t('ppl.careerLines')}</span><div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>
+          <textarea class="input" data-d-lines="items.${k}" aria-label="${t('ppl.careerAria', { lang: label })}">${esc(d.items[k].join('\n'))}</textarea></label>`).join('')}</div></div>` : ''}`,
     onApply: (d) => {
-      if (!d.img) throw new Error('사진을 올려 주세요.');
-      if (!d.name.ko.trim() && !d.name.th.trim()) throw new Error('이름(한국어 또는 태국어)을 입력하세요.');
+      if (!d.img) throw new Error(t('ppl.needPhoto'));
+      if (!d.name.ko.trim() && !d.name.th.trim()) throw new Error(t('ppl.needName'));
       if (key === 'staff') d.items = d.items.filter((x) => x.th || x.en || x.ko);
       if (isNew) list.push(d); else list[i] = d;
     },
@@ -443,15 +444,15 @@ function editPerson(key, i) {
 function pageTimeline() {
   const P = 'team.coach.timeline';
   const list = data.team.coach.timeline;
-  return `<div class="page-head"><div><h1>수석 코치 경력</h1><p>사이트 코치진 섹션 왼쪽의 연도별 타임라인. 위에서 아래 순서로 표시됩니다.</p></div>
-    <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}" data-tpl='{"y":"","th":"","en":"","ko":""}'>＋ 경력 추가</button></div>
+  return `<div class="page-head"><div><h1>${t('tl.title')}</h1><p>${t('tl.lead')}</p></div>
+    <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}" data-tpl='{"y":"","th":"","en":"","ko":""}'>${t('tl.add')}</button></div>
   <section class="card"><div class="lines">${list.map((r, j) => `<div class="line line--year">
-    <div>${bindInput(`${P}.${j}.y`, 'placeholder="2019 / 2011–" aria-label="연도"')}
-      <label class="check"><input type="checkbox" data-bind="${P}.${j}.now" ${r.now ? 'checked' : ''}> 현재</label></div>
+    <div>${bindInput(`${P}.${j}.y`, `placeholder="2019 / 2011–" aria-label="${t('tl.year')}"`)}
+      <label class="check"><input type="checkbox" data-bind="${P}.${j}.now" ${r.now ? 'checked' : ''}> ${t('tl.now')}</label></div>
     ${triInputs(`${P}.${j}`)}
-    <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-      <button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="1" ${j === list.length - 1 ? 'disabled' : ''} aria-label="아래로">${ICON.down}</button>
-      <button class="iconbtn" type="button" data-list-del="${P}" data-i="${j}" aria-label="삭제">${ICON.x}</button></div>
+    <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+      <button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="1" ${j === list.length - 1 ? 'disabled' : ''} aria-label="${t('ctl.down')}">${ICON.down}</button>
+      <button class="iconbtn" type="button" data-list-del="${P}" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div>
   </div>`).join('')}</div></section>`;
 }
 
@@ -459,28 +460,28 @@ function pageTimeline() {
 function pageContact() {
   const c = data.contact;
   const channel = (key, name, urlHint) => `<section class="card">
-    <div class="card__head"><div><h2>${name}</h2><p>링크와 QR 은 같은 계정이어야 합니다 — 하나를 바꾸면 다른 하나도 바꾸세요</p></div>
-      <a class="btn btn--ghost btn--sm" href="${esc(c[key].url)}" target="_blank" rel="noopener">링크 열어보기</a></div>
-    <label class="field"><span>${name} 링크</span>${bindInput(`contact.${key}.url`, `placeholder="${urlHint}"`)}</label>
-    <div class="field"><span class="label">QR 코드</span>${imageField({ path: `contact.${key}.qr`, value: c[key].qr, kind: `${key}-qr`, variant: 'qr', title: 'QR 바꾸기', help: 'QR 이 선명하게 보이는 정사각형 이미지', opts: { max: 800, type: 'image/png' } })}</div>
+    <div class="card__head"><div><h2>${name}</h2><p>${t('ct.pairLead')}</p></div>
+      <a class="btn btn--ghost btn--sm" href="${esc(c[key].url)}" target="_blank" rel="noopener">${t('ct.open')}</a></div>
+    <label class="field"><span>${t('ct.link', { name })}</span>${bindInput(`contact.${key}.url`, `placeholder="${urlHint}"`)}</label>
+    <div class="field"><span class="label">${t('ct.qr')}</span>${imageField({ path: `contact.${key}.qr`, value: c[key].qr, kind: `${key}-qr`, variant: 'qr', title: t('ct.qrChange'), help: t('ct.qrHelp'), opts: { max: 800, type: 'image/png' } })}</div>
   </section>`;
-  return `<div class="page-head"><div><h1>LINE · WhatsApp · Messenger</h1><p>체험 문의 섹션의 채팅 버튼·QR, 하단 링크, 화면 오른쪽 아래 떠 있는 버튼에 함께 반영됩니다.</p></div></div>
+  return `<div class="page-head"><div><h1>LINE · WhatsApp · Messenger</h1><p>${t('ct.lead')}</p></div></div>
     ${channel('line', 'LINE', 'https://line.me/ti/p/…')}
     ${channel('whatsapp', 'WhatsApp', 'https://wa.me/66…')}
     <section class="card"><div class="card__head"><div><h2>Facebook Messenger</h2></div>
-      <a class="btn btn--ghost btn--sm" href="${esc(c.messenger.url)}" target="_blank" rel="noopener">링크 열어보기</a></div>
-      <label class="field"><span>Messenger 링크</span>${bindInput('contact.messenger.url', 'placeholder="https://m.me/…"')}</label></section>`;
+      <a class="btn btn--ghost btn--sm" href="${esc(c.messenger.url)}" target="_blank" rel="noopener">${t('ct.open')}</a></div>
+      <label class="field"><span>${t('ct.link', { name: 'Messenger' })}</span>${bindInput('contact.messenger.url', 'placeholder="https://m.me/…"')}</label></section>`;
 }
 
 /* ================= 페이지: SNS ================= */
 function pageSocial() {
   const s = data.social;
-  return `<div class="page-head"><div><h1>인스타그램 · 페이스북 릴스</h1></div></div>
-  <section class="card"><div class="card__head"><div><h2>인스타그램 게시물</h2><p>최신이 위. 앞 3개가 사이트에 보입니다.</p></div></div>
-    <label class="field"><span>게시물 주소 또는 코드 — 한 줄에 하나</span><textarea class="input" data-lines="social.instagram" data-ig>${esc(s.instagram.join('\n'))}</textarea></label>
-    <p class="hint">instagram.com/p/<b>코드</b>/ 주소를 통째로 붙여 넣어도 코드만 저장됩니다.</p></section>
-  <section class="card"><div class="card__head"><div><h2>페이스북 릴스 ID (예비)</h2><p>페이스북 자동 수집이 실패했을 때만 쓰이는 목록입니다.</p></div></div>
-    <label class="field"><span>릴스 주소 또는 숫자 ID — 한 줄에 하나</span><textarea class="input" data-lines="social.reels" data-reel>${esc(s.reels.join('\n'))}</textarea></label></section>`;
+  return `<div class="page-head"><div><h1>${t('sn.title')}</h1></div></div>
+  <section class="card"><div class="card__head"><div><h2>${t('sn.ig')}</h2><p>${t('sn.igLead')}</p></div></div>
+    <label class="field"><span>${t('sn.igField')}</span><textarea class="input" data-lines="social.instagram" data-ig>${esc(s.instagram.join('\n'))}</textarea></label>
+    <p class="hint">${t('sn.igHint')}</p></section>
+  <section class="card"><div class="card__head"><div><h2>${t('sn.reels')}</h2><p>${t('sn.reelsLead')}</p></div></div>
+    <label class="field"><span>${t('sn.reelsField')}</span><textarea class="input" data-lines="social.reels" data-reel>${esc(s.reels.join('\n'))}</textarea></label></section>`;
 }
 
 /* ================= 라우팅·렌더 ================= */
@@ -489,11 +490,11 @@ function renderMain() {
   const [kind, arg] = route.split('/');
   let html = '', wire = () => {};
   if (kind === 'b') { html = pageBranch(Number(arg)); wire = () => wireBranch(Number(arg)); }
-  else if (kind === 'team' && TEAM[arg]) { html = pagePeople(arg); wire = () => wirePeople(arg); }
+  else if (kind === 'team' && TEAM.includes(arg)) { html = pagePeople(arg); wire = () => wirePeople(arg); }
   else if (kind === 'team' && arg === 'timeline') html = pageTimeline();
   else if (kind === 'contact') html = pageContact();
   else if (kind === 'social') html = pageSocial();
-  else html = '<div class="empty">왼쪽에서 편집할 항목을 고르세요.</div>';
+  else html = `<div class="empty">${t('main.pick')}</div>`;
   const y = window.scrollY;
   main.innerHTML = html;
   wireDrops(main);
@@ -528,7 +529,7 @@ function onMainInput(e) {
       clearTimeout(mapTimer);
       mapTimer = setTimeout(() => { const b = data.branches.branches[Number(route.split('/')[1])]; if ($('#mapPreview') && b) $('#mapPreview').src = mapEmbed(b); }, 600);
     }
-    if (/\.name\.(ko|th)$/.test(el.dataset.bind) && route.startsWith('b/')) $('.page-head h1').textContent = getPath(el.dataset.bind.replace(/\.(ko|th)$/, '.ko')) || '새 지점';
+    if (/\.name\.(ko|th|en)$/.test(el.dataset.bind) && route.startsWith('b/')) $('.page-head h1').textContent = branchName(data.branches.branches[Number(route.split('/')[1])]);
     changed();
   } else if (el.dataset.rating) {
     const b = data.branches.branches[Number(el.dataset.i)];
@@ -554,7 +555,7 @@ function onMainClick(e) {
   if (btn.dataset.listAdd) { getPath(btn.dataset.listAdd).push(JSON.parse(btn.dataset.tpl)); changed(); renderMain(); }
   else if (btn.dataset.listDel) {
     const list = getPath(btn.dataset.listDel);
-    if (btn.dataset.listDel.endsWith('.phones') && list.length <= 1) { toast('전화번호는 최소 1개가 있어야 합니다.', true); return; }
+    if (btn.dataset.listDel.endsWith('.phones') && list.length <= 1) { toast(t('br.phoneMin'), true); return; }
     list.splice(Number(btn.dataset.i), 1); changed(); renderMain();
   } else if (btn.dataset.listMove) {
     const list = getPath(btn.dataset.listMove), i = Number(btn.dataset.i), k = i + Number(btn.dataset.dir);
@@ -567,15 +568,15 @@ function onMainClick(e) {
 function validate() {
   const ids = new Set();
   for (const b of data.branches.branches) {
-    const nm = b.name.ko || b.name.th || b.id;
-    if (!b.name.th.trim() && !b.name.ko.trim()) return `지점 이름을 입력하세요 (${b.id}).`;
-    if (ids.has(b.id)) return `지점 ID 가 겹칩니다: ${b.id}`;
+    const nm = b.name[lang()] || b.name.ko || b.name.th || b.id;
+    if (!b.name.th.trim() && !b.name.ko.trim()) return t('v.branchName', { id: b.id });
+    if (ids.has(b.id)) return t('v.dupId', { id: b.id });
     ids.add(b.id);
-    if (!Number.isFinite(b.lat) || !Number.isFinite(b.lng)) return `${nm}: 위도·경도를 확인하세요.`;
-    if (!b.phones.length || b.phones.some((p) => !/^0\d{8,9}$/.test(p.number))) return `${nm}: 전화번호는 0 으로 시작하는 9~10자리 숫자로 입력하세요.`;
-    if (!b.poster) return `${nm}: 시간표 포스터를 올려 주세요.`;
+    if (!Number.isFinite(b.lat) || !Number.isFinite(b.lng)) return t('v.latlng', { name: nm });
+    if (!b.phones.length || b.phones.some((p) => !/^0\d{8,9}$/.test(p.number))) return t('v.phone', { name: nm });
+    if (!b.poster) return t('v.poster', { name: nm });
   }
-  for (const k of ['line', 'whatsapp', 'messenger']) if (!/^https:\/\//.test(data.contact[k].url)) return `${k} 링크는 https:// 로 시작해야 합니다.`;
+  for (const k of ['line', 'whatsapp', 'messenger']) if (!/^https:\/\//.test(data.contact[k].url)) return t('v.https', { k });
   return '';
 }
 // data 안에서 쓰이는 새 이미지만 올린다 (바꿨다 되돌린 이미지는 버린다)
@@ -589,28 +590,26 @@ async function save() {
   const bad = validate();
   if (bad) { toast(bad, true); return; }
   const btn = $('#saveBtn');
-  btn.disabled = true; btn.textContent = '저장 중…';
+  btn.disabled = true; btn.textContent = t('save.saving');
   try {
     const imgs = usedPending();
     const files = [
       ...keys.map((k) => ({ path: FILES[k].path, text: `${JSON.stringify(data[k], null, 2)}\n` })),
       ...imgs.map((p) => ({ path: SITE_DIR + p, base64: pending.get(p).base64 })),
     ];
-    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => FILES[k].label).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
+    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => fileLabel(k, 'ko')).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
     keys.forEach((k) => { snap[k] = JSON.stringify(data[k]); });
     // 올린 이미지는 이제 레포에 있다 — 배포 전엔 사이트 경로가 404 라 imgTag 의 레포 원본 대체가 보여 준다
     imgs.forEach((p) => pending.delete(p));
-    toast('저장했습니다. 1~2분 뒤 사이트에 반영됩니다.');
+    toast(t('save.done'));
     changed(); renderMain();
   } catch (e) {
     console.error(e);
-    toast(e.status === 403 ? '토큰에 쓰기 권한이 없습니다. GitHub 토큰의 Contents 권한을 "Read and write" 로 바꿔 주세요.'
-      : e.status === 401 ? '토큰이 만료되었습니다. 로그아웃 후 "비밀번호를 잊었어요"에서 새 토큰으로 재설정하세요.'
-        : `저장하지 못했습니다: ${e.message}`, true);
-  } finally { btn.disabled = false; btn.textContent = '저장'; }
+    toast(e.status === 403 ? t('save.403') : e.status === 401 ? t('save.401') : t('save.fail', { msg: e.message }), true);
+  } finally { btn.disabled = false; btn.textContent = t('save.save'); }
 }
 function discard() {
-  if (!confirm('저장하지 않은 변경을 모두 되돌릴까요?')) return;
+  if (!confirm(t('save.discardConfirm'))) return;
   Object.keys(FILES).forEach((k) => { data[k] = JSON.parse(snap[k]); });
   pending.clear();
   changed(); renderMain();
@@ -625,7 +624,7 @@ async function startApp(token) {
     await Promise.all(Object.entries(FILES).map(async ([k, f]) => { data[k] = await repo.readJson(f.path); snap[k] = JSON.stringify(data[k]); }));
   } catch (e) {
     if (e.status === 401) { auth.session.clear(); location.reload(); return; }
-    $('#main').innerHTML = `<div class="empty">데이터를 불러오지 못했습니다: ${esc(e.message)}</div>`;
+    $('#main').innerHTML = `<div class="empty">${esc(t('load.fail', { msg: e.message }))}</div>`;
     return;
   }
   $('#main').addEventListener('input', onMainInput);
@@ -635,7 +634,7 @@ async function startApp(token) {
   $('#discardBtn').onclick = discard;
   $('#backBtn').onclick = () => { history.replaceState(null, '', location.pathname); onRoute(); };
   $('#logoutBtn').onclick = () => {
-    if (dirtyKeys().length && !confirm('저장하지 않은 변경이 있습니다. 로그아웃할까요?')) return;
+    if (dirtyKeys().length && !confirm(t('save.logoutConfirm'))) return;
     auth.session.clear(); location.hash = ''; location.reload();
   };
   window.addEventListener('beforeunload', (e) => { if (dirtyKeys().length) { e.preventDefault(); e.returnValue = ''; } });
@@ -646,21 +645,27 @@ async function startApp(token) {
 /* ---------- 로그인 화면 ---------- */
 let authFile = null;
 function gateSay(text, kind = 'err') { const m = $('#gateMsg'); m.textContent = text; m.className = `msg ${kind}`; }
+let gateView = 'unlock';
+// 제목·안내문만 (언어 전환 때 입력값·메시지는 그대로 두고 이것만 다시 쓴다)
+function gateLabels() {
+  const first = !authFile;
+  const [title, lead] = gateView === 'setup' || first ? [first ? 'gate.setup' : 'gate.reset', first ? 'gate.setupLead' : 'gate.resetLead']
+    : gateView === 'change' ? ['gate.change', null] : ['gate.login', null];
+  $('#gateTitle').textContent = t(title);
+  $('#gateLead').textContent = lead ? t(lead) : gateView === 'unlock' && !first ? 'Dragon Gym Taekwondo Phuket' : '';
+}
 function gateShow(view) {
   ['formUnlock', 'formSetup', 'formChange'].forEach((id) => { $(`#${id}`).hidden = true; });
   gateSay('', '');
   const first = !authFile;
-  if (view === 'setup' || first) {
-    $('#gateTitle').textContent = first ? '관리자 초기 설정' : '비밀번호 재설정';
-    $('#gateLead').textContent = first ? 'GitHub 토큰을 한 번 입력하고 관리자 비밀번호를 정하세요. 토큰은 비밀번호로 암호화되어 레포에 저장됩니다.'
-      : '레포 쓰기 권한이 있는 GitHub 토큰으로 새 비밀번호를 정합니다.';
+  gateView = first ? 'setup' : view;
+  gateLabels();
+  if (gateView === 'setup') {
     $('#setupNav').hidden = first;
     $('#formSetup').hidden = false; $('#tok').focus();
-  } else if (view === 'change') {
-    $('#gateTitle').textContent = '비밀번호 변경'; $('#gateLead').textContent = '';
+  } else if (gateView === 'change') {
     $('#formChange').hidden = false; $('#opw').focus();
   } else {
-    $('#gateTitle').textContent = '관리자 로그인'; $('#gateLead').textContent = 'Dragon Gym Taekwondo Phuket';
     $('#formUnlock').hidden = false; $('#pw').focus();
   }
 }
@@ -668,7 +673,7 @@ const gateRoute = () => gateShow({ '#change': 'change', '#reset': 'setup' }[loca
 const busy = (form, on) => { $('button[type=submit]', form).disabled = on; };
 
 $('#formUnlock').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checking'), 'ok');
   try {
     const token = await auth.decryptToken(authFile, $('#pw').value);
     auth.session.set(token, $('#remember').checked);
@@ -678,12 +683,12 @@ $('#formUnlock').addEventListener('submit', async (e) => {
   } catch (err) { gateSay(err.message); busy(e.target, false); }
 });
 $('#formSetup').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('토큰 확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checkingToken'), 'ok');
   try {
     const token = $('#tok').value.trim();
     const pw = auth.checkNewPassword($('#npw1').value, $('#npw2').value);
     await auth.checkToken(token);
-    gateSay('암호화해서 레포에 저장 중…', 'ok');
+    gateSay(t('gate.encrypting'), 'ok');
     await auth.saveAuthFile(token, await auth.encryptToken(token, pw), authFile ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
     auth.session.set(token, false);
     window.removeEventListener('hashchange', gateRoute);
@@ -692,7 +697,7 @@ $('#formSetup').addEventListener('submit', async (e) => {
   } catch (err) { gateSay(err.message); busy(e.target, false); }
 });
 $('#formChange').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checking'), 'ok');
   try {
     const token = await auth.decryptToken(authFile, $('#opw').value);
     const pw = auth.checkNewPassword($('#cpw1').value, $('#cpw2').value);
@@ -700,8 +705,15 @@ $('#formChange').addEventListener('submit', async (e) => {
     await auth.saveAuthFile(token, next, 'chore(admin): 관리자 비밀번호 변경');
     authFile = next; // 배포 반영 전에도 새 비밀번호로 열리게
     location.hash = ''; gateShow('unlock');
-    gateSay('비밀번호를 바꿨습니다. 새 비밀번호로 로그인하세요.', 'ok');
+    gateSay(t('gate.changed'), 'ok');
   } catch (err) { gateSay(err.message); } finally { busy(e.target, false); }
+});
+
+// 언어 전환: 정적 문구는 i18n.applyStatic 이, 그려 놓은 화면은 여기서 다시 그린다 (편집 중인 data 는 그대로)
+applyStatic();
+onLangChange(() => {
+  if (!$('#gate').hidden) gateLabels();
+  if (data.branches) { refreshSavebar(); renderSide(); renderMain(); }
 });
 
 (async () => {

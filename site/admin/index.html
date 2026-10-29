@@ -9,38 +9,39 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Dragon Gym 관리자</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="admin.css?v=1">
+  <link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
   <!-- ================= 로그인 ================= -->
   <main class="gate" id="gate" hidden>
     <div class="gate__card">
+      <div class="langpick" role="group" data-i18n-aria="top.lang" aria-label="언어"><button type="button" data-lang-pick="ko" aria-pressed="true"><span class="hide-m">한국어</span><span class="only-m">KO</span></button><button type="button" data-lang-pick="en" aria-pressed="false">EN</button><button type="button" data-lang-pick="th" aria-pressed="false"><span class="hide-m">ไทย</span><span class="only-m">TH</span></button></div>
       <img class="gate__logo" src="../assets/logo.png" alt="">
       <h1 id="gateTitle">관리자 로그인</h1>
       <p class="lead" id="gateLead"></p>
 
       <form id="formUnlock" hidden>
-        <label class="field"><span>비밀번호</span><input class="input" id="pw" type="password" autocomplete="current-password" required></label>
-        <label class="check"><input id="remember" type="checkbox"> 이 기기에서 로그인 유지</label>
-        <button class="btn btn--ink btn--block" type="submit">로그인</button>
-        <nav><a href="#change">비밀번호 변경</a><a href="#reset">비밀번호를 잊었어요</a></nav>
+        <label class="field"><span data-i18n="gate.pw">비밀번호</span><input class="input" id="pw" type="password" autocomplete="current-password" required></label>
+        <label class="check"><input id="remember" type="checkbox"> <span data-i18n="gate.remember">이 기기에서 로그인 유지</span></label>
+        <button class="btn btn--ink btn--block" type="submit" data-i18n="gate.submit">로그인</button>
+        <nav><a href="#change" data-i18n="gate.changeLink">비밀번호 변경</a><a href="#reset" data-i18n="gate.forgot">비밀번호를 잊었어요</a></nav>
       </form>
 
       <form id="formSetup" hidden>
-        <label class="field"><span>GitHub 토큰</span><input class="input" id="tok" type="password" autocomplete="off" required placeholder="github_pat_…"></label>
-        <p class="hint" style="margin-top:-8px;margin-bottom:14px">Fine-grained token · 이 레포만 · Contents: Read and write</p>
-        <label class="field"><span>새 비밀번호 (10자 이상)</span><input class="input" id="npw1" type="password" autocomplete="new-password" minlength="10" required></label>
-        <label class="field"><span>새 비밀번호 확인</span><input class="input" id="npw2" type="password" autocomplete="new-password" minlength="10" required></label>
-        <button class="btn btn--ink btn--block" type="submit">저장하고 로그인</button>
-        <nav id="setupNav"><a href="#">← 로그인으로</a></nav>
+        <label class="field"><span data-i18n="gate.token">GitHub 토큰</span><input class="input" id="tok" type="password" autocomplete="off" required placeholder="github_pat_…"></label>
+        <p class="hint" style="margin-top:-8px;margin-bottom:14px" data-i18n="gate.tokenHint">Fine-grained token · 이 레포만 · Contents: Read and write</p>
+        <label class="field"><span data-i18n="gate.newPw">새 비밀번호 (10자 이상)</span><input class="input" id="npw1" type="password" autocomplete="new-password" minlength="10" required></label>
+        <label class="field"><span data-i18n="gate.newPw2">새 비밀번호 확인</span><input class="input" id="npw2" type="password" autocomplete="new-password" minlength="10" required></label>
+        <button class="btn btn--ink btn--block" type="submit" data-i18n="gate.saveLogin">저장하고 로그인</button>
+        <nav id="setupNav"><a href="#" data-i18n="gate.back">← 로그인으로</a></nav>
       </form>
 
       <form id="formChange" hidden>
-        <label class="field"><span>현재 비밀번호</span><input class="input" id="opw" type="password" autocomplete="current-password" required></label>
-        <label class="field"><span>새 비밀번호 (10자 이상)</span><input class="input" id="cpw1" type="password" autocomplete="new-password" minlength="10" required></label>
-        <label class="field"><span>새 비밀번호 확인</span><input class="input" id="cpw2" type="password" autocomplete="new-password" minlength="10" required></label>
-        <button class="btn btn--ink btn--block" type="submit">비밀번호 변경</button>
-        <nav><a href="#">← 로그인으로</a></nav>
+        <label class="field"><span data-i18n="gate.curPw">현재 비밀번호</span><input class="input" id="opw" type="password" autocomplete="current-password" required></label>
+        <label class="field"><span data-i18n="gate.newPw">새 비밀번호 (10자 이상)</span><input class="input" id="cpw1" type="password" autocomplete="new-password" minlength="10" required></label>
+        <label class="field"><span data-i18n="gate.newPw2">새 비밀번호 확인</span><input class="input" id="cpw2" type="password" autocomplete="new-password" minlength="10" required></label>
+        <button class="btn btn--ink btn--block" type="submit" data-i18n="gate.change">비밀번호 변경</button>
+        <nav><a href="#" data-i18n="gate.back">← 로그인으로</a></nav>
       </form>
 
       <p class="msg" id="gateMsg" role="status"></p>
@@ -50,26 +51,27 @@
   <!-- ================= 관리 화면 ================= -->
   <div id="shell" hidden>
     <header class="topbar">
-      <button class="iconbtn back" id="backBtn" type="button" aria-label="목록으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-      <a class="brand" href="#"><img src="../assets/logo.png" alt=""><span>DRAGON GYM <small>관리</small></span></a>
+      <button class="iconbtn back" id="backBtn" type="button" data-i18n-aria="top.back" aria-label="목록으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <a class="brand" href="#"><img src="../assets/logo.png" alt=""><span>DRAGON GYM <small data-i18n="top.admin">관리</small></span></a>
       <div class="topbar__spacer"></div>
-      <a class="btn btn--ghost btn--sm" href="../" target="_blank" rel="noopener">사이트<span class="hide-m">에서 확인</span></a>
-      <button class="btn btn--ghost btn--sm" id="logoutBtn" type="button">로그아웃</button>
+      <div class="langpick" role="group" data-i18n-aria="top.lang" aria-label="언어"><button type="button" data-lang-pick="ko" aria-pressed="true"><span class="hide-m">한국어</span><span class="only-m">KO</span></button><button type="button" data-lang-pick="en" aria-pressed="false">EN</button><button type="button" data-lang-pick="th" aria-pressed="false"><span class="hide-m">ไทย</span><span class="only-m">TH</span></button></div>
+      <a class="btn btn--ghost btn--sm tb-btn" href="../" target="_blank" rel="noopener" data-i18n-aria="top.siteLong" aria-label="사이트에서 확인"><svg class="only-m" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg><span class="hide-m" data-i18n="top.siteLong">사이트에서 확인</span></a>
+      <button class="btn btn--ghost btn--sm tb-btn" id="logoutBtn" type="button" data-i18n-aria="top.logout" aria-label="로그아웃"><svg class="only-m" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l-5-5 5-5M5 12h11"/></svg><span class="hide-m" data-i18n="top.logout">로그아웃</span></button>
     </header>
     <div class="app" id="app">
       <aside class="side" id="side"></aside>
-      <main class="main" id="main"><div class="loading">불러오는 중…</div></main>
+      <main class="main" id="main"><div class="loading" data-i18n="loading">불러오는 중…</div></main>
     </div>
-    <div class="savebar" id="savebar" role="region" aria-label="저장">
-      <span id="saveText">저장하지 않은 변경사항이 있습니다</span>
-      <button class="btn btn--ghost btn--sm" id="discardBtn" type="button">되돌리기</button>
-      <button class="btn btn--gold btn--sm" id="saveBtn" type="button">저장</button>
+    <div class="savebar" id="savebar" role="region" data-i18n-aria="save.region" aria-label="저장">
+      <span id="saveText" data-i18n="save.default">저장하지 않은 변경사항이 있습니다</span>
+      <button class="btn btn--ghost btn--sm" id="discardBtn" type="button" data-i18n="save.discard">되돌리기</button>
+      <button class="btn btn--gold btn--sm" id="saveBtn" type="button" data-i18n="save.save">저장</button>
     </div>
   </div>
 
   <dialog id="dlg"><form class="dlg" id="dlgForm" method="dialog" novalidate></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="app.js?v=1"></script>
+  <script type="module" src="app.js?v=2"></script>
 </body>
 </html>

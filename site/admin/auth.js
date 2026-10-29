@@ -2,6 +2,7 @@
  * 레포는 공개라 암호문도 공개다 — 비밀번호가 곧 보안이므로 10자 이상을 강제한다.
  * 풀린 토큰은 이 탭(sessionStorage) 또는 '로그인 유지' 시 이 기기(localStorage)에만 둔다. */
 import { REPO, BRANCH, AUTH_PATH } from './repo.js';
+import { t } from './i18n.js';
 
 const ITER = 600000;
 const TOKEN_KEY = 'dgt-admin.token';
@@ -26,12 +27,12 @@ export async function decryptToken(data, password) {
   const key = await deriveKey(password, unb64(data.salt), data.iter);
   try {
     return dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.iv) }, key, unb64(data.ct)));
-  } catch { throw new Error('비밀번호가 틀렸습니다.'); }
+  } catch { throw new Error(t('auth.wrongPw')); }
 }
 
 export function checkNewPassword(a, b) {
-  if (a.length < 10) throw new Error('비밀번호는 10자 이상이어야 합니다.');
-  if (a !== b) throw new Error('새 비밀번호 확인이 일치하지 않습니다.');
+  if (a.length < 10) throw new Error(t('auth.pwShort'));
+  if (a !== b) throw new Error(t('auth.pwMismatch'));
   return a;
 }
 
@@ -39,7 +40,7 @@ export function checkNewPassword(a, b) {
 export async function loadAuthFile() {
   const r = await fetch('auth.json', { cache: 'no-cache' });
   if (r.status === 404) return null;
-  if (!r.ok) throw new Error(`auth.json 을 불러오지 못했습니다 (${r.status}).`);
+  if (!r.ok) throw new Error(t('auth.loadFail', { status: r.status }));
   return r.json();
 }
 
@@ -51,10 +52,10 @@ const gh = (token, path, init = {}) => fetch(`https://api.github.com/repos/${REP
 /** 토큰이 이 레포에 닿는지 (쓰기 권한은 레포 API 가 계정 권한만 알려줘 저장 시 403 으로 드러난다) */
 export async function checkToken(token) {
   const r = await gh(token, '');
-  if (r.status === 401) throw new Error('토큰이 올바르지 않거나 만료되었습니다.');
-  if (!r.ok) throw new Error(`토큰으로 레포에 접근할 수 없습니다 (${r.status}).`);
+  if (r.status === 401) throw new Error(t('auth.tokenBad'));
+  if (!r.ok) throw new Error(t('auth.tokenNoRepo', { status: r.status }));
   const repo = await r.json();
-  if (!repo.permissions || !repo.permissions.push) throw new Error('이 계정에는 레포 쓰기 권한이 없습니다.');
+  if (!repo.permissions || !repo.permissions.push) throw new Error(t('auth.noPush'));
 }
 
 export async function saveAuthFile(token, data, message) {
@@ -62,8 +63,8 @@ export async function saveAuthFile(token, data, message) {
   const sha = cur.ok ? (await cur.json()).sha : undefined;
   const body = { message, branch: BRANCH, content: btoa(JSON.stringify(data, null, 2) + '\n'), ...(sha ? { sha } : {}) };
   const r = await gh(token, `/contents/${AUTH_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
-  if (r.status === 403) throw new Error('토큰에 쓰기 권한이 없습니다 (403). GitHub → Settings → Developer settings → Fine-grained tokens → 이 토큰 → Repository permissions 에서 Contents 를 "Read and write" 로 바꾸거나 새 토큰을 만드세요.');
-  if (!r.ok) throw new Error(`암호화한 토큰을 레포에 저장하지 못했습니다 (${r.status}).`);
+  if (r.status === 403) throw new Error(t('auth.save403'));
+  if (!r.ok) throw new Error(t('auth.saveFail', { status: r.status }));
 }
 
 export const session = {
