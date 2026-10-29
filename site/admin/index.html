@@ -128,7 +128,8 @@
       if (r.status === 401) throw new Error('토큰이 올바르지 않거나 만료되었습니다.');
       if (!r.ok) throw new Error(`토큰으로 레포에 접근할 수 없습니다 (${r.status}).`);
       const repo = await r.json();
-      if (!repo.permissions || !repo.permissions.push) throw new Error('이 토큰에는 레포 쓰기 권한(Contents: Read and write)이 없습니다.');
+      // 계정 권한 확인 (토큰 자체의 쓰기 권한은 저장 시 403 으로 드러난다)
+      if (!repo.permissions || !repo.permissions.push) throw new Error('이 계정에는 레포 쓰기 권한이 없습니다.');
     }
     // 최신 sha 를 API 로 다시 받아 덮어쓴다 (사이트 배포본은 수 분 늦을 수 있다)
     async function saveAuthFile(token, data, message) {
@@ -136,6 +137,8 @@
       const sha = cur.ok ? (await cur.json()).sha : undefined;
       const body = { message, branch: BRANCH, content: btoa(JSON.stringify(data, null, 2) + '\n'), ...(sha ? { sha } : {}) };
       const r = await gh(token, `/contents/${AUTH_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
+      // 레포 API 의 permissions 는 토큰이 아니라 계정 권한이라, 토큰의 Contents 가 Read-only 면 여기서야 403 이 난다
+      if (r.status === 403) throw new Error('토큰에 쓰기 권한이 없습니다 (403). GitHub → Settings → Developer settings → Fine-grained tokens → 이 토큰 → Repository permissions 에서 Contents 를 "Read and write" 로 바꾸거나 새 토큰을 만드세요.');
       if (!r.ok) throw new Error(`암호화한 토큰을 레포에 저장하지 못했습니다 (${r.status}).`);
     }
     async function loadAuthFile() {

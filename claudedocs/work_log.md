@@ -75,3 +75,6 @@
 11. feat(admin): LINE·WhatsApp QR 이미지와 링크, Messenger 링크를 관리자 페이지에서 수정 (content/contact.json)
    - HTML 의 링크 9곳·QR 2곳에 data-contact 표시를 달고 main.js 가 로드 후 덮어씀. HTML 값은 로드 전 기본값으로 유지(첫 화면 깜빡임 방지).
    - data.js 의 미사용 messengerUrl/lineUrl/whatsappUrl 은 contact.json 과 이중 관리가 되어 제거. 임시 값으로 화면 반영 확인 후 원복.
+
+12. fix(admin): 초기 설정 403 시 원인 안내 — 레포 API permissions 는 계정 권한이라 Read-only 토큰을 사전에 못 거름
+   - 사용자 실제 설정에서 PUT 403 (main 보호·룰셋 없음 확인). 토큰 Contents 권한이 Read-only 인 것으로 판단, 안내 문구로 해결 경로 제시.
