@@ -6,9 +6,7 @@ window.DGT = {
   siteUrl: 'https://dragongymphuket.com/',
   facebookUrl: 'https://www.facebook.com/dragongymtaekwondo',
   facebookReelsUrl: 'https://www.facebook.com/dragongymtaekwondo/reels/',
-  messengerUrl: 'https://m.me/dragongymtaekwondo',
-  lineUrl: 'https://line.me/ti/p/K2-bgRDOkr',          // LINE 친구추가 (QR 에서 디코드)
-  whatsappUrl: 'https://wa.me/qr/YKCJST5QMUUOA1?s=p', // WhatsApp 연락처 (QR 에서 디코드)
+  /* Messenger·LINE·WhatsApp 링크와 QR 은 content/contact.json (관리자 페이지에서 수정) */
   instagramUrl: 'https://www.instagram.com/dragon_gym_taekwondo/',
   /* 인스타 게시물 코드·페이스북 릴스 ID 는 content/social.json (관리자 페이지에서 수정) */
   mainPhone: '0869515115',
@@ -306,8 +304,8 @@ window.DGT = {
 
 /* 관리자 페이지(/admin, Sveltia CMS)가 편집하는 콘텐츠. main.js 는 이 Promise 가 끝난 뒤 시작한다.
  * no-cache: Pages CDN 캐시(10분) 대신 매번 재검증해 CMS 저장 후 배포가 끝나면 바로 보이게 한다. */
-window.DGT_READY = Promise.all(['branches', 'team', 'social'].map((name) =>
+window.DGT_READY = Promise.all(['branches', 'team', 'social', 'contact'].map((name) =>
   fetch(`content/${name}.json`, { cache: 'no-cache' }).then((r) => {
     if (!r.ok) throw new Error(`content/${name}.json ${r.status}`);
     return r.json();
-  }))).then(([b, team, social]) => Object.assign(window.DGT, { branches: b.branches, team, instagram: social.instagram, reels: social.reels }));
+  }))).then(([b, team, social, contact]) => Object.assign(window.DGT, { branches: b.branches, team, instagram: social.instagram, reels: social.reels, contact }));

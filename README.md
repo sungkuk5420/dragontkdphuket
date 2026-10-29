@@ -60,9 +60,9 @@ python -m http.server 5190     # http://127.0.0.1:5190/
     비밀번호 변경·분실 재설정은 로그인 화면 아래 링크. 레포가 공개라 암호문도 공개이므로 비밀번호가 곧 보안이다.
     옛 암호문은 git 기록에 남으니, 비밀번호 유출이 의심되면 비밀번호가 아니라 **토큰을 폐기·재발급**하고 재설정한다.
   - 로컬에서는 `http://127.0.0.1:5190/admin/` → "로컬 저장소로 작업" → 레포 루트 폴더 선택(Chrome/Edge). 파일만 바뀌고 커밋은 직접.
-  - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json` (필드 정의는 `site/admin/config.yml`).
+  - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json`, `contact.json`(LINE·WhatsApp·Messenger 링크와 QR) (필드 정의는 `site/admin/config.yml`).
     손으로 고쳐도 되지만 JSON 문법이 깨지면 지점·시간표·코치진이 통째로 안 나온다.
-- 관리자 페이지에 없는 것: 문구·번역(`data.js` 의 `i18n`, `index.html`), LINE/WhatsApp 링크·QR,
+- 관리자 페이지에 없는 것: 문구·번역(`data.js` 의 `i18n`, `index.html`),
   프로그램 정의(`data.js` 의 `programs`), JSON-LD 의 지점 정보(`index.html`).
 - 문구: HTML 원문이 태국어(기본). 영어·한국어는 `data.js` 의 `i18n.en` / `i18n.ko` (키는 HTML 의 `data-i18n`).
   태국어 문구를 고치면 `index.html` 을, 영어·한국어는 `data.js` 를 고친다.

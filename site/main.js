@@ -472,6 +472,14 @@
       .map((p) => `<a href="${telHref(p.number)}"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.6 3.6a1 1 0 0 1-.25 1l-2.25 2.2z"/></svg>${fmtPhone(p.number)} <small>${L(p.label)}</small></a>`).join('');
   }
 
+  /* ---------- LINE·WhatsApp·Messenger 링크와 QR (content/contact.json, HTML 값은 로드 전 기본값) ---------- */
+  function renderContact() {
+    const c = D.contact;
+    $$('[data-contact]').forEach((a) => { const v = c[a.dataset.contact]; if (v && v.url) a.href = v.url; });
+    $$('[data-contact-qr]').forEach((img) => { const v = c[img.dataset.contactQr]; if (v && v.qr) img.src = v.qr; });
+  }
+  renderContact();
+
   /* ---------- 라이트박스 (포스터 확대) ---------- */
   const lb = $('#lightbox'), lbImg = $('#lbImg'), lbCap = $('#lbCaption');
   let lastFocus = null;

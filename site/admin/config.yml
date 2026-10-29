@@ -175,6 +175,30 @@ collections:
                   - { name: en, label: 영어, widget: list, field: { name: item, label: 항목, widget: string } }
                   - { name: ko, label: 한국어, widget: list, field: { name: item, label: 항목, widget: string } }
 
+      # ---------------- 채팅 문의 (LINE·WhatsApp·Messenger) ----------------
+      - name: contact
+        label: LINE · WhatsApp · Messenger
+        file: site/content/contact.json
+        format: json
+        fields:
+          - name: line
+            label: LINE
+            widget: object
+            fields:
+              - { name: url, label: LINE 친구추가 링크, widget: string, pattern: ["^https://", "https:// 로 시작하는 주소"], hint: "LINE 앱 → 친구 추가 → QR 코드 → 링크 복사 (예: https://line.me/ti/p/...)" }
+              - { name: qr, label: LINE QR 코드 이미지, widget: image, hint: 위 링크와 같은 계정의 QR 이어야 합니다. 정사각형 이미지 }
+          - name: whatsapp
+            label: WhatsApp
+            widget: object
+            fields:
+              - { name: url, label: WhatsApp 링크, widget: string, pattern: ["^https://", "https:// 로 시작하는 주소"], hint: "예: https://wa.me/66869515115 (국가번호 66 + 0 뺀 번호)" }
+              - { name: qr, label: WhatsApp QR 코드 이미지, widget: image, hint: 위 링크와 같은 계정의 QR 이어야 합니다. 정사각형 이미지 }
+          - name: messenger
+            label: Facebook Messenger
+            widget: object
+            fields:
+              - { name: url, label: Messenger 링크, widget: string, pattern: ["^https://", "https:// 로 시작하는 주소"], hint: "예: https://m.me/페이지아이디" }
+
       # ---------------- SNS ----------------
       - name: social
         label: 인스타그램 · 페이스북 릴스

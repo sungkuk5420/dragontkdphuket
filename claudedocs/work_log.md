@@ -71,3 +71,10 @@
 10. feat(admin): 관리자 비밀번호 잠금 — GitHub 토큰을 비밀번호로 암호화해 site/admin/auth.json 으로 레포에 저장, 첫 접속 시 초기 비밀번호 설정
    - 사용자는 토큰 평문 레포 저장을 원했으나 레포 공개라 거절, 암호화 저장으로 대체. 해제한 토큰은 localStorage 'sveltia-cms.user' 에 넣어 Sveltia 자동 로그인(번들 코드로 확인).
    - 채팅에 붙인 토큰은 쓰지 않음 — 초기 설정은 사용자가 화면에서 직접. 설정·잠금해제·로그인 유지는 가짜 토큰+API 스텁으로 검증, 실제 GitHub 저장은 미검증. 커밋 이 항목 아래 해시.
+
+11. feat(admin): LINE·WhatsApp QR 이미지와 링크, Messenger 링크를 관리자 페이지에서 수정 (content/contact.json)
+   - HTML 의 링크 9곳·QR 2곳에 data-contact 표시를 달고 main.js 가 로드 후 덮어씀. HTML 값은 로드 전 기본값으로 유지(첫 화면 깜빡임 방지).
+   - data.js 의 미사용 messengerUrl/lineUrl/whatsappUrl 은 contact.json 과 이중 관리가 되어 제거. 임시 값으로 화면 반영 확인 후 원복.
+
+12. fix(admin): 초기 설정 403 시 원인 안내 — 레포 API permissions 는 계정 권한이라 Read-only 토큰을 사전에 못 거름
+   - 사용자 실제 설정에서 PUT 403 (main 보호·룰셋 없음 확인). 토큰 Contents 권한이 Read-only 인 것으로 판단, 안내 문구로 해결 경로 제시.
