@@ -54,8 +54,11 @@ python -m http.server 5190     # http://127.0.0.1:5190/
 - **관리자 페이지 `https://dragongymphuket.com/admin/`** (Sveltia CMS, DB 없음): 지점·시간표·포스터,
   코치진·심사위원·선수(사진 포함), 인스타 코드·릴스 ID 를 폼으로 고친다. 저장하면 `main` 에 커밋되고
   `pages.yml` 이 1~2분 뒤 재배포한다. 업로드 이미지는 webp(긴 변 1600px)로 바뀌어 `site/assets/uploads/` 에 들어간다.
-  - 로그인: "액세스 토큰으로 로그인" → GitHub Settings → Developer settings → Fine-grained token,
-    이 레포만 · Contents **Read and write**. ("GitHub(으)로 로그인" 버튼은 OAuth 중계 서버가 없어 쓰지 않는다.)
+  - 로그인: 관리자 비밀번호. 처음 한 번 "관리자 초기 설정" 화면에서 GitHub 토큰(Fine-grained, 이 레포만 ·
+    Contents **Read and write**)과 비밀번호(10자 이상)를 넣으면 토큰을 비밀번호로 암호화(PBKDF2 60만 회 + AES-GCM)해
+    `site/admin/auth.json` 으로 커밋한다. 이후에는 비밀번호만 입력. "로그인 유지" 를 켜면 그 브라우저는 다시 묻지 않는다.
+    비밀번호 변경·분실 재설정은 로그인 화면 아래 링크. 레포가 공개라 암호문도 공개이므로 비밀번호가 곧 보안이다.
+    옛 암호문은 git 기록에 남으니, 비밀번호 유출이 의심되면 비밀번호가 아니라 **토큰을 폐기·재발급**하고 재설정한다.
   - 로컬에서는 `http://127.0.0.1:5190/admin/` → "로컬 저장소로 작업" → 레포 루트 폴더 선택(Chrome/Edge). 파일만 바뀌고 커밋은 직접.
   - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json` (필드 정의는 `site/admin/config.yml`).
     손으로 고쳐도 되지만 JSON 문법이 깨지면 지점·시간표·코치진이 통째로 안 나온다.

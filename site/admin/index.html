@@ -1,5 +1,8 @@
 <!doctype html>
-<!-- 관리자 페이지 (Sveltia CMS). 설정은 같은 폴더의 config.yml. 저장하면 main 브랜치에 커밋 → Pages 재배포. -->
+<!-- 관리자 페이지 (Sveltia CMS). 설정은 같은 폴더의 config.yml. 저장하면 main 브랜치에 커밋 → Pages 재배포.
+     비밀번호 잠금: GitHub 토큰을 비밀번호로 암호화(PBKDF2-SHA256 60만 회 → AES-GCM)해 auth.json 으로 레포에 둔다.
+     레포는 공개라 암호문도 공개다 — 비밀번호가 곧 보안이므로 10자 이상을 강제한다.
+     풀리면 Sveltia 가 시작 시 읽는 localStorage 'sveltia-cms.user' 에 토큰을 넣고 CMS 스크립트를 불러 자동 로그인시킨다. -->
 <html lang="ko">
 <head>
   <meta charset="utf-8">
@@ -7,8 +10,225 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Dragon Gym 관리자</title>
   <link rel="icon" href="../assets/favicon.png">
+  <style>
+    :root { --gold: #f5b700; --ink: #111; --line: #d9d9d9; --err: #c62828; --ok: #2e7d32; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f2f2f2; color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif; padding: 16px; }
+    .gate { width: 100%; max-width: 380px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px 24px; }
+    .gate__logo { display: block; width: 72px; height: 72px; margin: 0 auto 8px; }
+    .gate h1 { font-size: 18px; text-align: center; margin: 0 0 4px; }
+    .gate p.lead { text-align: center; color: #666; font-size: 13px; margin: 0 0 20px; }
+    .gate label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+    .gate input[type=password], .gate input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+    .gate input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+    .gate .check { display: flex; gap: 6px; align-items: center; font-weight: 400; margin-top: 12px; }
+    .gate button[type=submit] { width: 100%; margin-top: 18px; padding: 11px; border: 0; border-radius: 8px; background: var(--ink); color: var(--gold); font: inherit; font-weight: 700; cursor: pointer; }
+    .gate button[disabled] { opacity: .6; cursor: wait; }
+    .gate .hint { font-size: 12px; color: #777; margin: 4px 0 0; }
+    .gate .msg { min-height: 20px; font-size: 13px; margin: 12px 0 0; }
+    .gate .msg.err { color: var(--err); } .gate .msg.ok { color: var(--ok); }
+    .gate nav { display: flex; justify-content: space-between; margin-top: 16px; font-size: 12px; }
+    .gate nav a { color: #555; }
+    [hidden] { display: none !important; }
+  </style>
 </head>
 <body>
-  <script src="https://unpkg.com/@sveltia/cms@0.238.1/dist/sveltia-cms.js"></script>
+  <main class="gate" id="gate" hidden>
+    <img class="gate__logo" src="../assets/logo.png" alt="">
+    <h1 id="gateTitle">관리자 로그인</h1>
+    <p class="lead" id="gateLead"></p>
+
+    <!-- 잠금 해제 -->
+    <form id="formUnlock" hidden>
+      <label for="pw">비밀번호</label>
+      <input id="pw" type="password" autocomplete="current-password" required>
+      <label class="check"><input id="remember" type="checkbox"> 이 기기에서 로그인 유지</label>
+      <button type="submit">로그인</button>
+      <nav><a href="#change">비밀번호 변경</a><a href="#reset">비밀번호를 잊었어요</a></nav>
+    </form>
+
+    <!-- 초기 설정·재설정: 토큰 + 새 비밀번호 -->
+    <form id="formSetup" hidden>
+      <label for="tok">GitHub 토큰</label>
+      <input id="tok" type="password" autocomplete="off" required placeholder="github_pat_…">
+      <p class="hint">Fine-grained token · 이 레포만 · Contents 읽기/쓰기</p>
+      <label for="npw1">새 비밀번호 (10자 이상)</label>
+      <input id="npw1" type="password" autocomplete="new-password" minlength="10" required>
+      <label for="npw2">새 비밀번호 확인</label>
+      <input id="npw2" type="password" autocomplete="new-password" minlength="10" required>
+      <button type="submit">저장하고 로그인</button>
+      <nav id="setupNav"><a href="#">← 로그인으로</a></nav>
+    </form>
+
+    <!-- 비밀번호 변경: 현재 비밀번호 + 새 비밀번호 -->
+    <form id="formChange" hidden>
+      <label for="opw">현재 비밀번호</label>
+      <input id="opw" type="password" autocomplete="current-password" required>
+      <label for="cpw1">새 비밀번호 (10자 이상)</label>
+      <input id="cpw1" type="password" autocomplete="new-password" minlength="10" required>
+      <label for="cpw2">새 비밀번호 확인</label>
+      <input id="cpw2" type="password" autocomplete="new-password" minlength="10" required>
+      <button type="submit">비밀번호 변경</button>
+      <nav><a href="#">← 로그인으로</a></nav>
+    </form>
+
+    <p class="msg" id="msg" role="status"></p>
+  </main>
+
+  <script>
+  (() => {
+    'use strict';
+    const REPO = 'sungkuk5420/dragontkdphuket';
+    const BRANCH = 'main';
+    const AUTH_PATH = 'site/admin/auth.json';   // 레포 안 경로 (사이트에서는 ./auth.json)
+    const CMS_SRC = 'https://unpkg.com/@sveltia/cms@0.238.1/dist/sveltia-cms.js';
+    const USER_KEY = 'sveltia-cms.user';         // Sveltia 가 시작할 때 읽는 로그인 정보
+    const REMEMBER_KEY = 'dgt-admin.remember';
+    const SESSION_KEY = 'dgt-admin.unlocked';
+    const ITER = 600000;
+
+    const $ = (id) => document.getElementById(id);
+    const enc = new TextEncoder(), dec = new TextDecoder();
+    const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+    const store = {
+      get(area, k) { try { return area.getItem(k); } catch { return null; } },
+      set(area, k, v) { try { area.setItem(k, v); } catch { /* 저장소 차단 */ } },
+      del(area, k) { try { area.removeItem(k); } catch { /* 저장소 차단 */ } },
+    };
+
+    let authFile = null; // { sha, data } — 레포의 auth.json
+
+    /* ---------- 암호화 ---------- */
+    async function deriveKey(password, salt, iter) {
+      const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: iter }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    }
+    async function encryptToken(token, password) {
+      const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(password, salt, ITER);
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(token));
+      return { v: 1, kdf: 'PBKDF2-SHA256', iter: ITER, salt: b64(salt), iv: b64(iv), ct: b64(ct) };
+    }
+    async function decryptToken(data, password) {
+      const key = await deriveKey(password, unb64(data.salt), data.iter);
+      try {
+        return dec.decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(data.iv) }, key, unb64(data.ct)));
+      } catch { throw new Error('비밀번호가 틀렸습니다.'); }
+    }
+
+    /* ---------- GitHub API ---------- */
+    const gh = (token, path, init = {}) => fetch(`https://api.github.com/repos/${REPO}${path}`, {
+      ...init,
+      headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, ...(init.headers || {}) },
+    });
+    async function checkToken(token) {
+      const r = await gh(token, '');
+      if (r.status === 401) throw new Error('토큰이 올바르지 않거나 만료되었습니다.');
+      if (!r.ok) throw new Error(`토큰으로 레포에 접근할 수 없습니다 (${r.status}).`);
+      const repo = await r.json();
+      if (!repo.permissions || !repo.permissions.push) throw new Error('이 토큰에는 레포 쓰기 권한(Contents: Read and write)이 없습니다.');
+    }
+    // 최신 sha 를 API 로 다시 받아 덮어쓴다 (사이트 배포본은 수 분 늦을 수 있다)
+    async function saveAuthFile(token, data, message) {
+      const cur = await gh(token, `/contents/${AUTH_PATH}?ref=${BRANCH}`);
+      const sha = cur.ok ? (await cur.json()).sha : undefined;
+      const body = { message, branch: BRANCH, content: btoa(JSON.stringify(data, null, 2) + '\n'), ...(sha ? { sha } : {}) };
+      const r = await gh(token, `/contents/${AUTH_PATH}`, { method: 'PUT', body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(`암호화한 토큰을 레포에 저장하지 못했습니다 (${r.status}).`);
+    }
+    async function loadAuthFile() {
+      const r = await fetch('auth.json', { cache: 'no-cache' });
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error(`auth.json 을 불러오지 못했습니다 (${r.status}).`);
+      return r.json();
+    }
+
+    /* ---------- CMS 시작 ---------- */
+    function startCms(token, remember) {
+      if (token) store.set(localStorage, USER_KEY, JSON.stringify({ backendName: 'github', token }));
+      if (remember) store.set(localStorage, REMEMBER_KEY, '1');
+      store.set(sessionStorage, SESSION_KEY, '1');
+      $('gate').remove();
+      const s = document.createElement('script');
+      s.src = CMS_SRC;
+      document.body.appendChild(s);
+    }
+    function savedToken() {
+      try { const u = JSON.parse(store.get(localStorage, USER_KEY) || 'null'); return u && u.token ? u.token : null; } catch { return null; }
+    }
+
+    /* ---------- 화면 ---------- */
+    const busy = (form, on) => { form.querySelector('button[type=submit]').disabled = on; };
+    const say = (text, kind = 'err') => { $('msg').textContent = text; $('msg').className = `msg ${kind}`; };
+    function show(view) {
+      ['formUnlock', 'formSetup', 'formChange'].forEach((id) => { $(id).hidden = true; });
+      say('', '');
+      const first = !authFile;
+      if (view === 'setup' || first) {
+        $('gateTitle').textContent = first ? '관리자 초기 설정' : '비밀번호 재설정';
+        $('gateLead').textContent = first
+          ? 'GitHub 토큰을 한 번 입력하고 관리자 비밀번호를 정하세요. 토큰은 비밀번호로 암호화되어 레포에 저장됩니다.'
+          : '레포 쓰기 권한이 있는 GitHub 토큰으로 새 비밀번호를 정합니다.';
+        $('setupNav').hidden = first;
+        $('formSetup').hidden = false; $('tok').focus();
+      } else if (view === 'change') {
+        $('gateTitle').textContent = '비밀번호 변경'; $('gateLead').textContent = '';
+        $('formChange').hidden = false; $('opw').focus();
+      } else {
+        $('gateTitle').textContent = '관리자 로그인'; $('gateLead').textContent = 'Dragon Gym Taekwondo Phuket';
+        $('formUnlock').hidden = false; $('pw').focus();
+      }
+    }
+    const route = () => show({ '#change': 'change', '#reset': 'setup' }[location.hash] || 'unlock');
+    const newPassword = (a, b) => {
+      if (a.length < 10) throw new Error('비밀번호는 10자 이상이어야 합니다.');
+      if (a !== b) throw new Error('새 비밀번호 확인이 일치하지 않습니다.');
+      return a;
+    };
+
+    $('formUnlock').addEventListener('submit', async (e) => {
+      e.preventDefault(); busy(e.target, true); say('확인 중…', 'ok');
+      try { startCms(await decryptToken(authFile, $('pw').value), $('remember').checked); }
+      catch (err) { say(err.message); busy(e.target, false); }
+    });
+    $('formSetup').addEventListener('submit', async (e) => {
+      e.preventDefault(); busy(e.target, true); say('토큰 확인 중…', 'ok');
+      try {
+        const token = $('tok').value.trim();
+        const pw = newPassword($('npw1').value, $('npw2').value);
+        await checkToken(token);
+        say('암호화해서 레포에 저장 중…', 'ok');
+        await saveAuthFile(token, await encryptToken(token, pw), authFile ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
+        startCms(token, false);
+      } catch (err) { say(err.message); busy(e.target, false); }
+    });
+    $('formChange').addEventListener('submit', async (e) => {
+      e.preventDefault(); busy(e.target, true); say('확인 중…', 'ok');
+      try {
+        const token = await decryptToken(authFile, $('opw').value);
+        const pw = newPassword($('cpw1').value, $('cpw2').value);
+        const next = await encryptToken(token, pw);
+        await saveAuthFile(token, next, 'chore(admin): 관리자 비밀번호 변경');
+        authFile = next; // 배포 반영 전에도 새 비밀번호로 열리게
+        location.hash = ''; show('unlock');
+        say('비밀번호를 바꿨습니다. 새 비밀번호로 로그인하세요.', 'ok');
+      } catch (err) { say(err.message); busy(e.target, false); }
+    });
+    window.addEventListener('hashchange', route);
+
+    /* ---------- 시작 ---------- */
+    (async () => {
+      // 이 탭에서 이미 풀었거나 '로그인 유지' 기기면 바로 CMS. 아니면 남은 로그인 정보를 지우고 비밀번호를 묻는다.
+      const remembered = store.get(localStorage, REMEMBER_KEY) === '1' || store.get(sessionStorage, SESSION_KEY) === '1';
+      if (remembered && savedToken()) { startCms(null, false); return; }
+      store.del(localStorage, USER_KEY); store.del(localStorage, REMEMBER_KEY);
+      $('gate').hidden = false;
+      try { authFile = await loadAuthFile(); route(); }
+      catch (err) { show('unlock'); say(err.message); }
+    })();
+  })();
+  </script>
 </body>
 </html>
