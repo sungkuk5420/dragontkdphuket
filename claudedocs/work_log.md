@@ -66,3 +66,4 @@
    - Decap 대신 Sveltia: 토큰 로그인이 내장돼 OAuth 중계 서버 없이 동작하고 업로드 이미지를 webp 로 자동 변환. 이미지 저장소는 레포(site/assets/uploads).
    - 이미지 필드를 확장자 없는 키 → webp 전체 경로로 바꾸고 jpg 폴백 <source> 제거. 원본 data.js 와 병합 결과 deep-equal 확인. LINE/WhatsApp 링크는 main.js 미사용이라 CMS 제외.
    - 견적서(docs/견적서.html) 유지보수 월 요금 행 삭제(docs/ 는 미추적이라 커밋 제외). 미완: CMS 로그인·실제 저장은 main 머지 후 토큰으로 확인 필요.
+   - PR #2 로 main 머지(0adf2e6), Pages 배포 성공. 운영 /admin/·content/*.json 200, 지점 3·심사위원 3·선수 5 렌더링 확인.
