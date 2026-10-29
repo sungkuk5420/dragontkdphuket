@@ -26,7 +26,9 @@
   const qLang = new URLSearchParams(location.search).get('lang'); // ?lang=ko 공유 링크용
   if (LANGS.includes(qLang)) lang = qLang;
   const t = (key) => (D.i18n[lang] && D.i18n[lang][key]) ?? D.i18n[BASE][key] ?? key;
-  const L = (obj) => (obj && typeof obj === 'object' ? (obj[lang] ?? obj[BASE] ?? obj.en) : obj);
+  // 관리자 페이지에서 비워 둔 언어는 빈 문자열로 저장되므로 빈 값도 다른 언어로 대체한다
+  const L = (obj) => (obj && typeof obj === 'object' ? [lang, BASE, 'en', 'ko'].map((k) => obj[k]).find((v) => v != null && v !== '') ?? '' : obj);
+  const LL = (obj) => [lang, BASE, 'en', 'ko'].map((k) => obj[k]).find((v) => Array.isArray(v) && v.length) || [];
 
   function applyLang() {
     document.documentElement.lang = lang;
@@ -453,14 +455,14 @@
     if (staff && D.team.staff) staff.innerHTML = D.team.staff.map((s) => `<article class="mentor" data-tag="${esc(s.tag || '')}">
       <picture class="mentor__photo"><img src="${esc(s.img)}" alt="${esc(s.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
       <div class="mentor__body"><p class="mentor__role">${esc(L(s.role))}</p><h4 class="mentor__name">${esc(L(s.name))}</h4>
-        <ul class="mentor__items">${s.items.map((r) => `<li>${esc(r[lang] ?? r.en)}</li>`).join('')}</ul></div></article>`).join('');
+        <ul class="mentor__items">${s.items.map((r) => `<li>${esc(L(r))}</li>`).join('')}</ul></div></article>`).join('');
     tl.innerHTML = D.team.coach.timeline.map((r) => `<li class="timeline__item${r.now ? ' is-now' : ''}">
       <span class="timeline__year">${esc(r.y)}${r.now ? `<small>${esc(t('team.now'))}</small>` : ''}</span>
-      <span class="timeline__text">${esc(r[lang] ?? r.en)}</span></li>`).join('');
+      <span class="timeline__text">${esc(L(r))}</span></li>`).join('');
     list.innerHTML = D.team.athletes.map((a) => `<li class="athlete${a.gold ? ' athlete--gold' : ''}">
       <picture class="athlete__photo"><img src="${esc(a.img)}" alt="${esc(a.name.en)}" width="300" height="300" loading="lazy" decoding="async"></picture>
-      <div class="athlete__body"><h4 class="athlete__name">${esc(a.name[lang] ?? a.name.en)}</h4>
-        <ul class="athlete__items">${(a.items[lang] ?? a.items.en).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></li>`).join('');
+      <div class="athlete__body"><h4 class="athlete__name">${esc(L(a.name))}</h4>
+        <ul class="athlete__items">${LL(a.items).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></li>`).join('');
     if (list.dataset.revealed) $$('.athlete', list).forEach((el) => el.classList.add('is-revealed'));
   }
 
