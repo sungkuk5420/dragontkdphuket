@@ -1,12 +1,14 @@
 /* 관리자 페이지 ↔ GitHub 레포. 데이터는 site/content/*.json, 이미지는 site/assets/uploads/ (DB 없음).
  * 읽기는 Contents API(raw), 저장은 Git Data API 로 바뀐 JSON·이미지를 커밋 하나로 묶는다(중간 상태가 배포되지 않게).
  * main 에 커밋되면 .github/workflows/pages.yml 이 사이트를 다시 배포한다. */
-import { t } from './i18n.js';
+import { t } from './i18n.js?v=3';
 
 export const REPO = 'sungkuk5420/dragontkdphuket';
 export const BRANCH = 'main';
 export const SITE_DIR = 'site/';
 export const AUTH_PATH = 'site/admin/auth.json';
+// 관원 장부(암호문). site/ 밖이라 사이트로 배포되지 않고, 저장해도 재배포가 돌지 않는다.
+export const LEDGER_PATH = 'admin-data/members.enc.json';
 
 const API = `https://api.github.com/repos/${REPO}`;
 

@@ -9,7 +9,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Dragon Gym 관리자</title>
   <link rel="icon" href="../assets/favicon.png">
-  <link rel="stylesheet" href="admin.css?v=2">
+  <link rel="stylesheet" href="admin.css?v=4">
 </head>
 <body>
   <!-- ================= 로그인 ================= -->
@@ -30,6 +30,8 @@
       <form id="formSetup" hidden>
         <label class="field"><span data-i18n="gate.token">GitHub 토큰</span><input class="input" id="tok" type="password" autocomplete="off" required placeholder="github_pat_…"></label>
         <p class="hint" style="margin-top:-8px;margin-bottom:14px" data-i18n="gate.tokenHint">Fine-grained token · 이 레포만 · Contents: Read and write</p>
+        <label class="field" id="rcodeField" hidden><span data-i18n="gate.rcode">관원 장부 복구 코드</span><input class="input" id="rcode" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+          <small class="hint" data-i18n="gate.rcodeHint">관원 장부를 만들 때 받은 코드. 없으면 장부를 열 수 없게 됩니다.</small></label>
         <label class="field"><span data-i18n="gate.newPw">새 비밀번호 (10자 이상)</span><input class="input" id="npw1" type="password" autocomplete="new-password" minlength="10" required></label>
         <label class="field"><span data-i18n="gate.newPw2">새 비밀번호 확인</span><input class="input" id="npw2" type="password" autocomplete="new-password" minlength="10" required></label>
         <button class="btn btn--ink btn--block" type="submit" data-i18n="gate.saveLogin">저장하고 로그인</button>
@@ -72,6 +74,6 @@
   <dialog id="dlg"><form class="dlg" id="dlgForm" method="dialog" novalidate></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="app.js?v=2"></script>
+  <script type="module" src="app.js?v=3"></script>
 </body>
 </html>

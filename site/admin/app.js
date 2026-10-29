@@ -1,9 +1,9 @@
 /* Dragon Gym 관리자 화면. 레이아웃은 tkd.reizwings.jp 관리자와 같은 "왼쪽 목록 + 오른쪽 카드 편집".
  * 편집은 메모리의 data 에만 반영하고, 아래 저장 바의 [저장] 한 번에 바뀐 JSON·새 이미지를 커밋 하나로 올린다.
  * 입력칸은 data-bind="파일.경로" 로 data 에 바로 묶는다 (예: branches.branches.0.name.ko). */
-import { createRepo, REPO, BRANCH, SITE_DIR } from './repo.js';
-import * as auth from './auth.js';
-import { t, lang, applyStatic, onLangChange } from './i18n.js';
+import { createRepo, REPO, BRANCH, SITE_DIR, AUTH_PATH, LEDGER_PATH } from './repo.js?v=3';
+import * as auth from './auth.js?v=3';
+import { t, lang, applyStatic, onLangChange } from './i18n.js?v=3';
 
 // 화면 이름표는 t(key) 로 그때그때 (언어 전환), 커밋 메시지는 한국어로 고정
 const FILES = {
@@ -42,6 +42,7 @@ const ICON = {
   right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>',
   down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/><path d="M7 6V4.5A1.5 1.5 0 0 1 8.5 3h7A1.5 1.5 0 0 1 17 4.5V6"/></svg>',
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
 };
 
@@ -52,7 +53,15 @@ const snap = {};          // 파일 키 → 마지막으로 불러온/저장한 
 const pending = new Map(); // 'assets/uploads/…' → { base64, url } 아직 커밋 안 된 새 이미지
 let route = '';
 
-const dirtyKeys = () => Object.keys(FILES).filter((k) => data[k] && JSON.stringify(data[k]) !== snap[k]);
+// 관원 장부: 공개 레포라 암호문으로만 저장한다 (키는 auth.js — 비밀번호·복구 코드로 감싸 auth.json 에). 사이트에는 배포되지 않는다.
+// state: loading | none(아직 안 만듦) | locked(이 기기에 키 없음 — 비밀번호 필요) | ready | error
+const ledger = { state: 'loading', key: null, data: null, snap: '', auth: null, err: '' };
+
+const dirtyKeys = () => [
+  ...Object.keys(FILES).filter((k) => data[k] && JSON.stringify(data[k]) !== snap[k]),
+  ...(ledger.data && JSON.stringify(ledger.data) !== ledger.snap ? ['members'] : []),
+];
+const labelOf = (k, as) => (k === 'members' ? t('file.members', {}, as) : fileLabel(k, as));
 
 /* ================= 공통 UI ================= */
 let toastTimer = 0;
@@ -68,7 +77,7 @@ function toast(text, isErr = false) {
 function refreshSavebar() {
   const keys = dirtyKeys();
   $('#savebar').classList.toggle('is-on', keys.length > 0);
-  $('#saveText').textContent = keys.length ? t('save.unsaved', { list: keys.map((k) => fileLabel(k)).join(', ') }) : '';
+  $('#saveText').textContent = keys.length ? t('save.unsaved', { list: keys.map((k) => labelOf(k)).join(', ') }) : '';
 }
 function changed() { refreshSavebar(); renderSide(); }
 
@@ -153,7 +162,7 @@ async function handleImage(input, file) {
 
 /* ================= 다이얼로그 ================= */
 // 초안(draft)을 편집하다 [적용] 하면 onApply(draft). 입력은 data-d="경로" 로 초안에 묶는다.
-function openDialog({ title, draft, body, onApply, onDelete, applyLabel = t('dlg.apply') }) {
+function openDialog({ title, draft, body, onApply, onDelete, applyLabel = t('dlg.apply'), deleteText = t('dlg.delConfirm') }) {
   const dlg = $('#dlg'), form = $('#dlgForm');
   const dget = (p) => p.split('.').reduce((o, k) => (o == null ? o : o[k]), draft);
   const dset = (p, v) => { const ks = p.split('.'); const last = ks.pop(); ks.reduce((o, k) => o[k], draft)[last] = v; };
@@ -173,11 +182,11 @@ function openDialog({ title, draft, body, onApply, onDelete, applyLabel = t('dlg
   };
   form.onchange = form.oninput;
   form.onclick = (e) => {
-    const t = e.target.closest('button');
-    if (!t) return;
-    if (t.hasAttribute('data-close')) dlg.close();
-    else if (t.hasAttribute('data-del')) { if (confirm(t('dlg.delConfirm'))) { onDelete(); dlg.close(); changed(); renderMain(); } }
-    else if (t.dataset.act) dialogAct(t, draft, dget, dset, paint);
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.hasAttribute('data-close')) dlg.close();
+    else if (btn.hasAttribute('data-del')) { if (confirm(deleteText)) { onDelete(); dlg.close(); changed(); renderMain(); } }
+    else if (btn.dataset.act) dialogAct(btn, draft, dget, dset, paint);
   };
   form.onsubmit = (e) => {
     e.preventDefault();
@@ -213,6 +222,8 @@ function renderSide() {
   const photo = (list) => (list[0] && list[0].img ? imgTag(list[0].img) : ICON.people);
   const tm = data.team;
   $('#side').innerHTML = `
+    <h3>${t('side.members')}</h3>
+    <ul class="nav">${navItem('members', ICON.wallet, t('mem.title'), ledgerMeta())}</ul>
     <h3>${t('side.branches')}</h3>
     <ul class="nav">${b.map((x, i) => navItem(`b/${i}`, ICON.pin, branchName(x), t('side.classes', { n: x.schedule.length }), x.main ? `<span class="badge">${t('side.main')}</span>` : '')).join('')}</ul>
     <button class="btn btn--ghost btn--sm btn--block" type="button" id="addBranch">${t('side.addBranch')}</button>
@@ -484,6 +495,329 @@ function pageSocial() {
     <label class="field"><span>${t('sn.reelsField')}</span><textarea class="input" data-lines="social.reels" data-reel>${esc(s.reels.join('\n'))}</textarea></label></section>`;
 }
 
+/* ================= 페이지: 관원 · 회비 ================= */
+// 장부 = { v, members: [{ id, name, branch, phone, parent, fee, start: 'YYYY-MM', end: 'YYYY-MM'|null, memo }],
+//          pay: { 'YYYY-MM': { 관원id: { amt, date: 'YYYY-MM-DD', how: 'cash'|'transfer'|'other', memo? } | { skip: true, memo? } } } }
+// 기록이 없는 달은 미납(지난달·이번 달) 또는 아직(다음 달 이후). 등록월 전·퇴원월 뒤는 회비 대상이 아니다.
+const YM_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const pad2 = (n) => String(n).padStart(2, '0');
+const thisMonth = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; };
+const today = () => `${thisMonth()}-${pad2(new Date().getDate())}`;
+const yearMonths = (y) => Array.from({ length: 12 }, (_, i) => `${y}-${pad2(i + 1)}`);
+const baht = (n) => `฿${Number(n || 0).toLocaleString('en-US')}`;
+const LOCALE = { ko: 'ko-KR', en: 'en-US', th: 'th-TH-u-ca-gregory' }; // 태국어도 서기 연도로 (연도 버튼과 맞춘다)
+const monthName = (k, style) => new Date(Number(k.slice(0, 4)), Number(k.slice(5)) - 1, 1)
+  .toLocaleDateString(LOCALE[lang()], style === 'short' ? { month: 'short' } : { year: 'numeric', month: 'long' });
+const emptyLedger = () => ({ v: 1, members: [], pay: {} });
+const view = { year: new Date().getFullYear(), month: thisMonth(), branch: 'all', q: '', unpaid: false, left: false };
+
+async function loadLedger() {
+  try { ledger.auth = await repo.readJson(AUTH_PATH); } catch (e) { if (e.status !== 404) throw e; ledger.auth = null; }
+  if (!ledger.auth || !ledger.auth.ledger) { ledger.state = 'none'; return; }
+  const key = auth.session.getKey();
+  if (!key) { ledger.state = 'locked'; return; }
+  try { await openLedger(key); } catch (e) { if (e.status) throw e; ledger.state = 'locked'; } // 재설정으로 키가 바뀌었으면 다시 묻는다
+}
+async function openLedger(key) {
+  let box = null;
+  try { box = await repo.readJson(LEDGER_PATH); } catch (e) { if (e.status !== 404) throw e; }
+  ledger.data = { ...emptyLedger(), ...(box ? await auth.decryptLedger(key, box) : {}) };
+  ledger.snap = JSON.stringify(ledger.data);
+  ledger.key = key;
+  ledger.state = 'ready';
+}
+
+const memberById = (id) => ledger.data.members.find((m) => m.id === id);
+const inMonth = (m, k) => m.start <= k && (!m.end || m.end >= k);
+const payOf = (m, k) => (ledger.data.pay[k] || {})[m.id];
+function cellState(m, k) {
+  if (!inMonth(m, k)) return 'out';
+  const p = payOf(m, k);
+  if (p) return p.skip ? 'skip' : 'paid';
+  return k > thisMonth() ? 'future' : 'due';
+}
+const branchOk = (m, b) => b === 'all' || m.branch === b;
+const branchLabel = (id) => { const b = data.branches.branches.find((x) => x.id === id); return b ? branchName(b) : t('mem.noBranch'); };
+const branchOrder = (id) => { const i = data.branches.branches.findIndex((x) => x.id === id); return i < 0 ? 99 : i; };
+function monthStats(k, b) {
+  const s = { active: 0, paid: 0, skip: 0, due: 0, sum: 0, dueList: [] };
+  for (const m of ledger.data.members) {
+    if (!branchOk(m, b) || !inMonth(m, k)) continue;
+    s.active++;
+    const st = cellState(m, k);
+    if (st === 'paid') { s.paid++; s.sum += Number(payOf(m, k).amt) || 0; }
+    else if (st === 'skip') s.skip++;
+    else if (st === 'due') { s.due++; s.dueList.push(m); }
+  }
+  return s;
+}
+function ledgerMeta() {
+  if (ledger.state !== 'ready') return t(`mem.state.${ledger.state}`);
+  const s = monthStats(thisMonth(), 'all');
+  return !s.active ? t('mem.metaNone') : s.due ? t('mem.metaDue', { n: s.due }) : t('mem.metaOk', { n: s.active });
+}
+// 지난 기록에서 빈 달 객체를 치운다 (변경 감지가 헛돌지 않게)
+function prunePay() { Object.keys(ledger.data.pay).forEach((k) => { if (!Object.keys(ledger.data.pay[k]).length) delete ledger.data.pay[k]; }); }
+
+function pageMembers() {
+  const head = (lead) => `<div class="page-head"><div><h1>${t('mem.title')}</h1><p>${lead}</p></div></div>`;
+  if (ledger.state === 'loading') return `${head(t('mem.lead'))}<div class="loading">${t('loading')}</div>`;
+  if (ledger.state === 'error') return `${head(t('mem.lead'))}<div class="empty">${esc(t('mem.loadFail', { msg: ledger.err }))}</div>`;
+  if (ledger.state === 'none' || ledger.state === 'locked') {
+    const isNew = ledger.state === 'none';
+    return `${head(t('mem.lead'))}
+    <section class="card lockcard"><div class="card__head"><div><h2>${t(isNew ? 'mem.createTitle' : 'mem.lockedTitle')}</h2><p>${t(isNew ? 'mem.createLead' : 'mem.lockedLead')}</p></div></div>
+      ${isNew ? `<p class="note">${t('mem.privacy')}</p>` : ''}
+      <form id="ledgerPw" class="lockcard__form"><label class="field"><span>${t('gate.pw')}</span><input class="input" type="password" id="ledgerPwInput" autocomplete="current-password" required></label>
+        <button class="btn btn--ink" type="submit">${t(isNew ? 'mem.create' : 'mem.unlock')}</button></form></section>`;
+  }
+  const chips = [['all', t('mem.allBranches')], ...data.branches.branches.map((b) => [b.id, branchName(b)])];
+  return `<div id="ledgerPage">
+    <div class="page-head"><div><h1>${t('mem.title')}</h1><p>${t('mem.leadReady')}</p></div>
+      <div class="head-actions"><button class="btn btn--ghost btn--sm" type="button" data-ledger="csv">${t('mem.csv')}</button>
+        <button class="btn btn--gold btn--sm" type="button" data-ledger="add">${t('mem.add')}</button></div></div>
+    <div class="ledger-bar">
+      <div class="yearnav"><button class="iconbtn" type="button" data-ledger="prev" aria-label="${t('mem.prevYear')}">${ICON.left}</button>
+        <b>${view.year}</b><button class="iconbtn" type="button" data-ledger="next" aria-label="${t('mem.nextYear')}">${ICON.right}</button></div>
+      <div class="chips">${chips.map(([id, label]) => `<button type="button" class="chip ${view.branch === id ? 'is-on' : ''}" data-branch="${esc(id)}">${esc(label)}</button>`).join('')}</div>
+      <input class="input ledger-search" type="search" id="ledgerQ" value="${esc(view.q)}" placeholder="${t('mem.search')}" aria-label="${t('mem.search')}">
+      <label class="check"><input type="checkbox" id="ledgerUnpaid" ${view.unpaid ? 'checked' : ''}> ${t('mem.onlyUnpaid')}</label>
+      <label class="check"><input type="checkbox" id="ledgerLeft" ${view.left ? 'checked' : ''}> ${t('mem.showLeft')}</label>
+    </div>
+    <div id="ledgerView">${ledgerView()}</div>
+    <p class="hint ledger-foot"><button class="linkbtn" type="button" data-ledger="code">${t('mem.newCode')}</button></p>
+  </div>`;
+}
+
+function ledgerView() {
+  const k = view.month, s = monthStats(k, view.branch), now = thisMonth();
+  const months = yearMonths(view.year);
+  const q = view.q.trim().toLowerCase();
+  const rows = ledger.data.members.filter((m) => branchOk(m, view.branch)
+    && months.some((mk) => inMonth(m, mk))
+    && (view.left || !m.end || m.end >= now)
+    && (!q || [m.name, m.phone, m.parent, m.memo].some((x) => String(x || '').toLowerCase().includes(q)))
+    && (!view.unpaid || cellState(m, k) === 'due'))
+    .sort((a, b) => branchOrder(a.branch) - branchOrder(b.branch) || a.name.localeCompare(b.name));
+  const cellText = { paid: '✓', skip: t('mem.skipShort'), due: t('mem.dueShort'), future: '' };
+  const tip = (m, mk, st) => {
+    const p = payOf(m, mk);
+    return `${m.name} · ${monthName(mk)} · ${st === 'paid' ? `${baht(p.amt)} ${p.date}` : st === 'skip' ? t('mem.stSkip') : t('mem.stDue')}`;
+  };
+  return `
+    <div class="stats" aria-live="polite">
+      <div class="stat stat--month"><span>${t('mem.statMonth')}</span><b>${esc(monthName(k))}</b></div>
+      <div class="stat"><span>${t('mem.statActive')}</span><b>${s.active}</b></div>
+      <div class="stat stat--ok"><span>${t('mem.statPaid')}</span><b>${s.paid}</b></div>
+      <div class="stat stat--due"><span>${t('mem.statDue')}</span><b>${s.due}</b></div>
+      <div class="stat"><span>${t('mem.statSkip')}</span><b>${s.skip}</b></div>
+      <div class="stat"><span>${t('mem.statSum')}</span><b>${baht(s.sum)}</b></div>
+    </div>
+    ${s.due ? `<section class="card duecard"><div class="card__head"><div><h2>${esc(t('mem.dueTitle', { m: monthName(k), n: s.due }))}</h2><p>${t('mem.dueLead')}</p></div></div>
+      <div class="chips">${s.dueList.map((m) => `<button type="button" class="chip chip--due" data-pay="${esc(m.id)}|${k}">${esc(m.name)}${m.phone ? ` <small>${esc(m.phone)}</small>` : ''}</button>`).join('')}</div></section>` : ''}
+    <section class="card card--flush">
+      ${rows.length ? `<div class="ledger"><table>
+        <thead><tr><th class="ledger__name" scope="col">${t('mem.name')}</th>${months.map((mk) => `<th scope="col" class="${mk === k ? 'is-sel' : ''}"><button type="button" class="mhead ${mk === now ? 'is-now' : ''}" data-month="${mk}" aria-pressed="${mk === k}">${esc(monthName(mk, 'short'))}</button></th>`).join('')}</tr></thead>
+        <tbody>${rows.map((m) => `<tr><th class="ledger__name" scope="row"><button type="button" data-member="${esc(m.id)}"><b>${esc(m.name)}</b><small>${esc(branchLabel(m.branch))} · ${baht(m.fee)}</small></button></th>
+          ${months.map((mk) => {
+            const st = cellState(m, mk);
+            if (st === 'out') return `<td class="c-out ${mk === k ? 'is-sel' : ''}"></td>`;
+            return `<td class="${mk === k ? 'is-sel' : ''}"><button type="button" class="cell cell--${st}" data-pay="${esc(m.id)}|${mk}" title="${esc(tip(m, mk, st))}" aria-label="${esc(tip(m, mk, st))}">${cellText[st]}</button></td>`;
+          }).join('')}</tr>`).join('')}</tbody></table></div>`
+        : `<div class="empty">${t(ledger.data.members.length ? 'mem.noMatch' : 'mem.empty')}</div>`}
+      <div class="ledger-legend"><span><b class="cell cell--paid">✓</b>${t('mem.stPaid')}</span><span><b class="cell cell--due">${t('mem.dueShort')}</b>${t('mem.stDue')}</span>
+        <span><b class="cell cell--skip">${t('mem.skipShort')}</b>${t('mem.stSkip')}</span><span><b class="cell c-out"></b>${t('mem.legendOut')}</span></div>
+    </section>`;
+}
+
+function wireMembers() {
+  const form = $('#ledgerPw');
+  if (form) form.onsubmit = (e) => { e.preventDefault(); ledgerPassword($('#ledgerPwInput').value, form); };
+  const page = $('#ledgerPage');
+  if (!page) return;
+  // 좁은 화면에서 표가 옆으로 길면 고른 달이 보이게 굴린다
+  const showMonth = () => {
+    const box = $('.ledger'), th = $('.ledger thead th.is-sel'), name = $('.ledger thead .ledger__name');
+    if (box && th && box.scrollWidth > box.clientWidth) box.scrollLeft = Math.max(0, th.offsetLeft - name.offsetWidth - th.offsetWidth * 2);
+  };
+  const repaint = () => { const x = ($('.ledger') || {}).scrollLeft; $('#ledgerView').innerHTML = ledgerView(); if ($('.ledger')) $('.ledger').scrollLeft = x || 0; };
+  showMonth();
+  page.onclick = (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.pay) { const [id, k] = b.dataset.pay.split('|'); editPay(id, k); }
+    else if (b.dataset.member) editMember(b.dataset.member);
+    else if (b.dataset.month) { view.month = b.dataset.month; repaint(); }
+    else if (b.dataset.branch) { view.branch = b.dataset.branch; renderMain(); }
+    else if (b.dataset.ledger === 'add') editMember(null);
+    else if (b.dataset.ledger === 'csv') exportCsv();
+    else if (b.dataset.ledger === 'code') newRecoveryCode();
+    else if (b.dataset.ledger === 'prev' || b.dataset.ledger === 'next') {
+      view.year += b.dataset.ledger === 'prev' ? -1 : 1;
+      view.month = `${view.year}-${view.month.slice(5)}`;
+      renderMain();
+    }
+  };
+  $('#ledgerQ').oninput = (e) => { view.q = e.target.value; repaint(); };
+  $('#ledgerUnpaid').onchange = (e) => { view.unpaid = e.target.checked; repaint(); };
+  $('#ledgerLeft').onchange = (e) => { view.left = e.target.checked; repaint(); };
+}
+
+// 잠긴 장부 열기 / 처음 만들기. 만들 때는 auth.json(키 감싼 것)과 빈 장부를 커밋 하나로 올린다.
+async function ledgerPassword(pw, form) {
+  const btn = $('button[type=submit]', form);
+  btn.disabled = true;
+  try {
+    if (ledger.state === 'locked') {
+      const key = await auth.openLedgerKey(ledger.auth.ledger, pw);
+      auth.session.setKey(key);
+      await openLedger(key);
+    } else {
+      await auth.decryptToken(ledger.auth, pw); // 관리자 비밀번호가 맞는지 (틀리면 여기서 멈춘다)
+      const { raw, code, wrap } = await auth.createLedgerKey(pw);
+      const nextAuth = { ...ledger.auth, ledger: wrap };
+      const empty = emptyLedger();
+      await repo.commitFiles([
+        { path: AUTH_PATH, text: `${JSON.stringify(nextAuth, null, 2)}\n` },
+        { path: LEDGER_PATH, text: `${JSON.stringify(await auth.encryptLedger(raw, empty))}\n` },
+      ], 'chore(admin): 관원 장부 만들기 (암호화)');
+      ledger.auth = nextAuth;
+      auth.session.setKey(raw);
+      Object.assign(ledger, { data: empty, snap: JSON.stringify(empty), key: raw, state: 'ready' });
+      toast(t('mem.created'));
+      showRecoveryCode(code);
+    }
+    renderSide(); renderMain();
+  } catch (e) {
+    toast(e.status === 403 ? t('save.403') : e.status ? t('save.fail', { msg: e.message }) : e.message, true);
+    btn.disabled = false;
+  }
+}
+function showRecoveryCode(code) {
+  openDialog({
+    title: t('mem.codeTitle'),
+    draft: {},
+    body: () => `<p>${t('mem.codeLead')}</p><div class="rcode">${esc(code)}</div>
+      <button class="btn btn--ghost btn--sm" type="button" data-copy>${t('mem.copy')}</button><p class="hint">${t('mem.codeHint')}</p>`,
+    onApply: () => {},
+    applyLabel: t('mem.codeDone'),
+  });
+  $('#dlgForm [data-copy]').onclick = () => navigator.clipboard.writeText(code).then(() => toast(t('mem.copied')), () => {});
+}
+async function newRecoveryCode() {
+  if (!confirm(t('mem.newCodeConfirm'))) return;
+  try {
+    const { code, rc } = await auth.newRecoveryCode(ledger.key);
+    const latest = await repo.readJson(AUTH_PATH);
+    const nextAuth = { ...latest, ledger: { ...latest.ledger, rc } };
+    await repo.commitFiles([{ path: AUTH_PATH, text: `${JSON.stringify(nextAuth, null, 2)}\n` }], 'chore(admin): 관원 장부 복구 코드 새로 만들기');
+    ledger.auth = nextAuth;
+    showRecoveryCode(code);
+  } catch (e) { toast(e.status === 403 ? t('save.403') : t('save.fail', { msg: e.message }), true); }
+}
+
+const segRadios = (d, name, opts) => `<div class="seg seg--${opts.length}">${opts.map(([v, label]) => `<label><input type="radio" name="${name}" value="${v}" data-d="${name}" ${d[name] === v ? 'checked' : ''}><span>${label}</span></label>`).join('')}</div>`;
+const toAmount = (v) => { const s = String(v).replace(/[,\s฿]/g, ''); const n = Number(s); return s === '' || !Number.isFinite(n) || n < 0 ? null : n; };
+
+function editMember(id) {
+  const list = ledger.data.members;
+  const cur = id ? memberById(id) : null;
+  const last = list[list.length - 1];
+  const draft = cur ? { ...cur, fee: String(cur.fee), end: cur.end || '', phone: cur.phone || '', parent: cur.parent || '', memo: cur.memo || '' }
+    : { name: '', branch: view.branch !== 'all' ? view.branch : (data.branches.branches[0] || {}).id || '', phone: '', parent: '',
+      fee: last ? String(last.fee) : '', start: thisMonth(), end: '', memo: '' };
+  openDialog({
+    title: t(cur ? 'mem.editTitle' : 'mem.addTitle'),
+    draft,
+    body: (d) => `
+      <label class="field"><span>${t('mem.name')}</span>${dInput(d, 'name', 'autocomplete="off"')}</label>
+      <div class="row">
+        <label class="field"><span>${t('mem.branch')}</span><select class="input" data-d="branch"><option value="">${t('mem.noBranch')}</option>
+          ${data.branches.branches.map((b) => `<option value="${esc(b.id)}" ${d.branch === b.id ? 'selected' : ''}>${esc(branchName(b))}</option>`).join('')}</select></label>
+        <label class="field"><span>${t('mem.fee')}</span>${dInput(d, 'fee', 'inputmode="numeric" placeholder="2500"')}</label>
+      </div>
+      <div class="row">
+        <label class="field"><span>${t('mem.phone')}</span>${dInput(d, 'phone', 'inputmode="tel"')}</label>
+        <label class="field"><span>${t('mem.parent')}</span>${dInput(d, 'parent')}</label>
+      </div>
+      <div class="row">
+        <label class="field"><span>${t('mem.start')}</span>${dInput(d, 'start', 'type="month" placeholder="YYYY-MM"')}</label>
+        <label class="field"><span>${t('mem.end')}</span>${dInput(d, 'end', 'type="month" placeholder="YYYY-MM"')}</label>
+      </div>
+      <p class="hint" style="margin:-6px 0 14px">${t('mem.endHint')}</p>
+      <label class="field"><span>${t('mem.memo')}</span><textarea class="input" data-d="memo">${esc(d.memo)}</textarea></label>`,
+    onApply: (d) => {
+      const name = d.name.trim(), fee = toAmount(d.fee);
+      if (!name) throw new Error(t('mem.errName'));
+      if (fee == null) throw new Error(t('mem.errFee'));
+      if (!YM_RE.test(d.start)) throw new Error(t('mem.errStart'));
+      if (d.end && (!YM_RE.test(d.end) || d.end < d.start)) throw new Error(t('mem.errEnd'));
+      const m = { id: cur ? cur.id : `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name, branch: d.branch,
+        phone: d.phone.trim(), parent: d.parent.trim(), fee, start: d.start, end: d.end || null, memo: d.memo.trim() };
+      if (cur) list[list.indexOf(cur)] = m; else list.push(m);
+    },
+    onDelete: cur ? () => {
+      list.splice(list.indexOf(cur), 1);
+      Object.values(ledger.data.pay).forEach((mo) => { delete mo[cur.id]; });
+      prunePay();
+    } : null,
+    deleteText: t('mem.delConfirm'),
+  });
+}
+
+function editPay(id, k) {
+  const m = memberById(id);
+  if (!m) return;
+  const p = payOf(m, k);
+  const draft = { st: p ? (p.skip ? 'skip' : 'paid') : 'paid', amt: String(p && !p.skip ? p.amt : m.fee),
+    date: (p && p.date) || today(), how: (p && p.how) || 'cash', memo: (p && p.memo) || '' };
+  openDialog({
+    title: `${m.name} · ${monthName(k)}`,
+    draft,
+    body: (d) => `
+      <div class="field"><span class="label">${t('mem.status')}</span>${segRadios(d, 'st', [['paid', t('mem.stPaid')], ['skip', t('mem.stSkip')], ['due', t('mem.stDue')]])}</div>
+      <div class="row">
+        <label class="field"><span>${t('mem.amount')}</span>${dInput(d, 'amt', 'inputmode="numeric"')}</label>
+        <label class="field"><span>${t('mem.date')}</span>${dInput(d, 'date', 'type="date"')}</label>
+      </div>
+      <div class="field"><span class="label">${t('mem.how')}</span>${segRadios(d, 'how', [['cash', t('mem.cash')], ['transfer', t('mem.transfer')], ['other', t('mem.other')]])}</div>
+      <label class="field"><span>${t('mem.memo')}</span>${dInput(d, 'memo')}</label>
+      <p class="hint">${t('mem.payHint')}</p>`,
+    onApply: (d) => {
+      const memo = d.memo.trim() ? { memo: d.memo.trim() } : {};
+      let entry = null;
+      if (d.st === 'skip') entry = { skip: true, ...memo };
+      else if (d.st === 'paid') {
+        const amt = toAmount(d.amt);
+        if (amt == null) throw new Error(t('mem.errFee'));
+        if (!DATE_RE.test(d.date)) throw new Error(t('mem.errDate'));
+        entry = { amt, date: d.date, how: d.how, ...memo };
+      }
+      const month = ledger.data.pay[k] || (ledger.data.pay[k] = {});
+      if (entry) month[id] = entry; else delete month[id];
+      prunePay();
+    },
+  });
+}
+
+// 엑셀 백업 (선택한 해). 엑셀이 한글을 깨지 않게 BOM, 수식으로 읽히지 않게 = + - @ 앞에 '
+function exportCsv() {
+  const months = yearMonths(view.year);
+  const head = [t('mem.name'), t('mem.branch'), t('mem.phone'), t('mem.parent'), t('mem.fee'), t('mem.start'), t('mem.end'), t('mem.memo'), ...months];
+  const rows = ledger.data.members.filter((m) => months.some((k) => inMonth(m, k))).map((m) => [
+    m.name, branchLabel(m.branch), m.phone, m.parent, m.fee, m.start, m.end || '', m.memo,
+    ...months.map((k) => { const st = cellState(m, k); return st === 'paid' ? payOf(m, k).amt : st === 'skip' ? t('mem.stSkip') : st === 'due' ? t('mem.stDue') : ''; }),
+  ]);
+  const cell = (c) => { const v = String(c ?? ''); return `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`; };
+  const csv = `﻿${[head, ...rows].map((r) => r.map(cell).join(',')).join('\r\n')}`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `dragon-gym-members-${view.year}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
 /* ================= 라우팅·렌더 ================= */
 function renderMain() {
   const main = $('#main');
@@ -494,6 +828,7 @@ function renderMain() {
   else if (kind === 'team' && arg === 'timeline') html = pageTimeline();
   else if (kind === 'contact') html = pageContact();
   else if (kind === 'social') html = pageSocial();
+  else if (kind === 'members') { html = pageMembers(); wire = wireMembers; }
   else html = `<div class="empty">${t('main.pick')}</div>`;
   const y = window.scrollY;
   main.innerHTML = html;
@@ -505,7 +840,7 @@ function go(r) { if (location.hash.slice(1) === r) onRoute(); else location.hash
 function onRoute() {
   const h = location.hash.slice(1);
   const mobile = matchMedia('(max-width: 820px)').matches;
-  route = h || (mobile ? '' : 'b/0');
+  route = h || (mobile ? '' : 'members');
   $('#app').classList.toggle('is-editing', Boolean(h));
   document.body.classList.toggle('is-editing', Boolean(h)); // 모바일 상단바의 ← 뒤로 버튼
   renderSide(); renderMain();
@@ -587,21 +922,26 @@ function usedPending() {
 async function save() {
   const keys = dirtyKeys();
   if (!keys.length) return;
+  const contentKeys = keys.filter((k) => k !== 'members');
   const bad = validate();
   if (bad) { toast(bad, true); return; }
   const btn = $('#saveBtn');
   btn.disabled = true; btn.textContent = t('save.saving');
   try {
     const imgs = usedPending();
+    const ledgerText = keys.includes('members') ? JSON.stringify(ledger.data) : null;
     const files = [
-      ...keys.map((k) => ({ path: FILES[k].path, text: `${JSON.stringify(data[k], null, 2)}\n` })),
+      ...contentKeys.map((k) => ({ path: FILES[k].path, text: `${JSON.stringify(data[k], null, 2)}\n` })),
       ...imgs.map((p) => ({ path: SITE_DIR + p, base64: pending.get(p).base64 })),
+      ...(ledgerText ? [{ path: LEDGER_PATH, text: `${JSON.stringify(await auth.encryptLedger(ledger.key, JSON.parse(ledgerText)))}\n` }] : []),
     ];
-    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => fileLabel(k, 'ko')).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
-    keys.forEach((k) => { snap[k] = JSON.stringify(data[k]); });
+    // 커밋 메시지에 관원 이름 등은 넣지 않는다 (공개 레포)
+    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => labelOf(k, 'ko')).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
+    contentKeys.forEach((k) => { snap[k] = JSON.stringify(data[k]); });
+    if (ledgerText) ledger.snap = ledgerText;
     // 올린 이미지는 이제 레포에 있다 — 배포 전엔 사이트 경로가 404 라 imgTag 의 레포 원본 대체가 보여 준다
     imgs.forEach((p) => pending.delete(p));
-    toast(t('save.done'));
+    toast(t(contentKeys.length ? 'save.done' : 'save.doneLedger'));
     changed(); renderMain();
   } catch (e) {
     console.error(e);
@@ -611,6 +951,7 @@ async function save() {
 function discard() {
   if (!confirm(t('save.discardConfirm'))) return;
   Object.keys(FILES).forEach((k) => { data[k] = JSON.parse(snap[k]); });
+  if (ledger.data) ledger.data = JSON.parse(ledger.snap);
   pending.clear();
   changed(); renderMain();
 }
@@ -640,6 +981,9 @@ async function startApp(token) {
   window.addEventListener('beforeunload', (e) => { if (dirtyKeys().length) { e.preventDefault(); e.returnValue = ''; } });
   window.addEventListener('hashchange', onRoute);
   onRoute();
+  // 관원 장부는 화면을 막지 않고 따로 불러온다
+  loadLedger().catch((e) => { console.error(e); ledger.state = 'error'; ledger.err = e.message; })
+    .finally(() => { renderSide(); if (route === 'members') renderMain(); });
 }
 
 /* ---------- 로그인 화면 ---------- */
@@ -662,6 +1006,7 @@ function gateShow(view) {
   gateLabels();
   if (gateView === 'setup') {
     $('#setupNav').hidden = first;
+    $('#rcodeField').hidden = !(authFile && authFile.ledger);
     $('#formSetup').hidden = false; $('#tok').focus();
   } else if (gateView === 'change') {
     $('#formChange').hidden = false; $('#opw').focus();
@@ -677,6 +1022,7 @@ $('#formUnlock').addEventListener('submit', async (e) => {
   try {
     const token = await auth.decryptToken(authFile, $('#pw').value);
     auth.session.set(token, $('#remember').checked);
+    if (authFile.ledger) { try { auth.session.setKey(await auth.openLedgerKey(authFile.ledger, $('#pw').value)); } catch { /* 관원 화면에서 다시 묻는다 */ } }
     window.removeEventListener('hashchange', gateRoute);
     history.replaceState(null, '', location.pathname);
     startApp(token);
@@ -688,9 +1034,22 @@ $('#formSetup').addEventListener('submit', async (e) => {
     const token = $('#tok').value.trim();
     const pw = auth.checkNewPassword($('#npw1').value, $('#npw2').value);
     await auth.checkToken(token);
+    const latest = await auth.loadAuthLatest(token); // 배포본은 늦을 수 있다 — 장부 키를 잃지 않게 레포 최신본 기준
+    const next = await auth.encryptToken(token, pw);
+    let ledgerKey = null;
+    if (latest && latest.ledger) {
+      const code = $('#rcode').value.trim();
+      if (code) {
+        ledgerKey = await auth.recoverLedgerKey(latest.ledger, code);
+        next.ledger = await auth.rewrapLedgerKey(ledgerKey, pw, latest.ledger);
+      } else if (!confirm(t('gate.rcodeConfirm'))) {
+        $('#rcodeField').hidden = false; gateSay(t('gate.rcodeNeed')); busy(e.target, false); return;
+      }
+    }
     gateSay(t('gate.encrypting'), 'ok');
-    await auth.saveAuthFile(token, await auth.encryptToken(token, pw), authFile ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
+    await auth.saveAuthFile(token, next, latest ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
     auth.session.set(token, false);
+    if (ledgerKey) auth.session.setKey(ledgerKey);
     window.removeEventListener('hashchange', gateRoute);
     history.replaceState(null, '', location.pathname);
     startApp(token);
@@ -701,10 +1060,12 @@ $('#formChange').addEventListener('submit', async (e) => {
   try {
     const token = await auth.decryptToken(authFile, $('#opw').value);
     const pw = auth.checkNewPassword($('#cpw1').value, $('#cpw2').value);
+    const latest = await auth.loadAuthLatest(token);
     const next = await auth.encryptToken(token, pw);
+    if (latest && latest.ledger) next.ledger = await auth.rewrapLedgerKey(await auth.openLedgerKey(latest.ledger, $('#opw').value), pw, latest.ledger);
     await auth.saveAuthFile(token, next, 'chore(admin): 관리자 비밀번호 변경');
     authFile = next; // 배포 반영 전에도 새 비밀번호로 열리게
-    location.hash = ''; gateShow('unlock');
+    history.replaceState(null, '', location.pathname); gateShow('unlock'); // hashchange 로 안내 문구가 지워지지 않게
     gateSay(t('gate.changed'), 'ok');
   } catch (err) { gateSay(err.message); } finally { busy(e.target, false); }
 });
