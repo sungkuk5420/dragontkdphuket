@@ -64,6 +64,10 @@ python -m http.server 5190     # http://127.0.0.1:5190/
   - 로컬 `http://127.0.0.1:5190/admin/` 도 같은 화면이지만 저장은 GitHub `main` 으로 바로 간다(로컬 파일은 안 바뀜).
   - 편집 대상 파일: `site/content/branches.json`, `team.json`, `social.json`, `contact.json`(LINE·WhatsApp·Messenger 링크와 QR) (화면·검증은 `site/admin/app.js`).
     손으로 고쳐도 되지만 JSON 문법이 깨지면 지점·시간표·코치진이 통째로 안 나온다.
+  - **관원 · 회비** (왼쪽 맨 위): 관원 등록·퇴원, 연도별 12개월 납부표(✓ 납부 · 미납 · 휴원), 고른 달의 재원·납부·미납·수납액과 미납자 목록, 지점·이름 검색, 엑셀(CSV) 내려받기.
+    레포가 공개라 장부는 `admin-data/members.enc.json` 에 **암호문으로만** 둔다(site/ 밖 — 배포·재배포 없음). 장부 키는 무작위 AES-256 이고
+    관리자 비밀번호와 **복구 코드**(장부를 처음 만들 때 한 번 보여 줌)로 각각 감싸 `auth.json` 의 `ledger` 에 둔다. 비밀번호 변경은 키를 다시 감싸고,
+    "비밀번호를 잊었어요" 재설정은 복구 코드가 있어야 장부를 살린다(없으면 장부는 못 연다). 커밋 메시지에는 관원 정보를 넣지 않는다.
 - 관리자 페이지에 없는 것: 문구·번역(`data.js` 의 `i18n`, `index.html`),
   프로그램 정의(`data.js` 의 `programs`), JSON-LD 의 지점 정보(`index.html`).
 - 문구: HTML 원문이 태국어(기본). 영어·한국어는 `data.js` 의 `i18n.en` / `i18n.ko` (키는 HTML 의 `data-i18n`).

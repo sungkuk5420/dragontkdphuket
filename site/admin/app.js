@@ -1,28 +1,27 @@
 /* Dragon Gym 관리자 화면. 레이아웃은 tkd.reizwings.jp 관리자와 같은 "왼쪽 목록 + 오른쪽 카드 편집".
  * 편집은 메모리의 data 에만 반영하고, 아래 저장 바의 [저장] 한 번에 바뀐 JSON·새 이미지를 커밋 하나로 올린다.
  * 입력칸은 data-bind="파일.경로" 로 data 에 바로 묶는다 (예: branches.branches.0.name.ko). */
-import { createRepo, REPO, BRANCH, SITE_DIR } from './repo.js';
-import * as auth from './auth.js';
+import { createRepo, REPO, BRANCH, SITE_DIR, AUTH_PATH, LEDGER_PATH } from './repo.js?v=3';
+import * as auth from './auth.js?v=3';
+import { t, lang, applyStatic, onLangChange } from './i18n.js?v=3';
 
+// 화면 이름표는 t(key) 로 그때그때 (언어 전환), 커밋 메시지는 한국어로 고정
 const FILES = {
-  branches: { path: 'site/content/branches.json', label: '지점·시간표' },
-  team: { path: 'site/content/team.json', label: '코치진·선수' },
-  contact: { path: 'site/content/contact.json', label: '문의 채널' },
-  social: { path: 'site/content/social.json', label: 'SNS' },
+  branches: { path: 'site/content/branches.json', key: 'file.branches' },
+  team: { path: 'site/content/team.json', key: 'file.team' },
+  contact: { path: 'site/content/contact.json', key: 'file.contact' },
+  social: { path: 'site/content/social.json', key: 'file.social' },
 };
-const DAYS = [['mon', '월'], ['tue', '화'], ['wed', '수'], ['thu', '목'], ['fri', '금'], ['sat', '토'], ['sun', '일']];
-const PROGRAMS = {
-  kids: { name: '키즈 스포츠', c: 'var(--p-kids)' },
-  basic: { name: '기본반', c: 'var(--p-basic)' },
-  acro: { name: '아크로바틱', c: 'var(--p-acro)' },
-  athlete: { name: '선수반', c: 'var(--p-athlete)' },
-};
+const fileLabel = (k, as) => t(FILES[k].key, {}, as);
+const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const PROGRAMS = { kids: 'var(--p-kids)', basic: 'var(--p-basic)', acro: 'var(--p-acro)', athlete: 'var(--p-athlete)' };
+const progName = (p) => (PROGRAMS[p] ? t(`prog.${p}`) : p);
+// 사이트 내용의 언어 칸(관리 화면 언어와 별개)
 const LANGS = [['th', 'ไทย'], ['en', 'EN'], ['ko', '한국어']];
-const TEAM = {
-  judges: { title: '승단 심사위원진', one: '심사위원', lead: '사이트의 "승단 심사위원진" 패널. 순서대로 표시됩니다.' },
-  staff: { title: '코치진', one: '코치', lead: '사이트의 코치진 카드. 사진 위 배지와 경력 목록을 함께 보여줍니다.' },
-  athletes: { title: '드래곤짐 출신 국가대표', one: '선수', lead: '대표 선수 목록. 금메달 강조를 켜면 금색 테두리가 붙습니다.' },
-};
+const TEAM = ['judges', 'staff', 'athletes'];
+const team = (key, f) => t(`team.${key}.${f}`);
+// 내용의 3개 국어 칸 중 화면 언어 → 한국어 → 태국어 → 영어 순으로 비어 있지 않은 것
+const pick = (tri) => (tri ? tri[lang()] || tri.ko || tri.th || tri.en || '' : '');
 const RAW = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${SITE_DIR}`;
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -43,6 +42,7 @@ const ICON = {
   right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>',
   down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/><path d="M7 6V4.5A1.5 1.5 0 0 1 8.5 3h7A1.5 1.5 0 0 1 17 4.5V6"/></svg>',
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
 };
 
@@ -53,7 +53,15 @@ const snap = {};          // 파일 키 → 마지막으로 불러온/저장한 
 const pending = new Map(); // 'assets/uploads/…' → { base64, url } 아직 커밋 안 된 새 이미지
 let route = '';
 
-const dirtyKeys = () => Object.keys(FILES).filter((k) => data[k] && JSON.stringify(data[k]) !== snap[k]);
+// 관원 장부: 공개 레포라 암호문으로만 저장한다 (키는 auth.js — 비밀번호·복구 코드로 감싸 auth.json 에). 사이트에는 배포되지 않는다.
+// state: loading | none(아직 안 만듦) | locked(이 기기에 키 없음 — 비밀번호 필요) | ready | error
+const ledger = { state: 'loading', key: null, data: null, snap: '', auth: null, err: '' };
+
+const dirtyKeys = () => [
+  ...Object.keys(FILES).filter((k) => data[k] && JSON.stringify(data[k]) !== snap[k]),
+  ...(ledger.data && JSON.stringify(ledger.data) !== ledger.snap ? ['members'] : []),
+];
+const labelOf = (k, as) => (k === 'members' ? t('file.members', {}, as) : fileLabel(k, as));
 
 /* ================= 공통 UI ================= */
 let toastTimer = 0;
@@ -69,7 +77,7 @@ function toast(text, isErr = false) {
 function refreshSavebar() {
   const keys = dirtyKeys();
   $('#savebar').classList.toggle('is-on', keys.length > 0);
-  $('#saveText').textContent = keys.length ? `저장 안 한 변경: ${keys.map((k) => FILES[k].label).join(', ')}` : '';
+  $('#saveText').textContent = keys.length ? t('save.unsaved', { list: keys.map((k) => labelOf(k)).join(', ') }) : '';
 }
 function changed() { refreshSavebar(); renderSide(); }
 
@@ -99,9 +107,9 @@ function triInputs(path, placeholder = '') {
 /* ================= 이미지 처리 ================= */
 // 브라우저에서 줄이고(긴 변 max) webp 로 바꿔 레포 용량을 아낀다. square 면 가운데를 정사각형으로 자른다.
 async function processImage(file, { kind, max = 1600, square = false, type = 'image/webp', quality = 0.86 }) {
-  if (!file.type.startsWith('image/')) throw new Error('이미지 파일만 올릴 수 있습니다.');
+  if (!file.type.startsWith('image/')) throw new Error(t('img.onlyImage'));
   let bmp;
-  try { bmp = await createImageBitmap(file); } catch { throw new Error('읽을 수 없는 이미지입니다 (아이폰 HEIC 는 JPEG 로 바꿔 올려 주세요).'); }
+  try { bmp = await createImageBitmap(file); } catch { throw new Error(t('img.unreadable')); }
   let sx = 0, sy = 0, sw = bmp.width, sh = bmp.height;
   if (square) { const s = Math.min(sw, sh); sx = (sw - s) / 2; sy = (sh - s) / 2; sw = sh = s; }
   const scale = Math.min(1, max / Math.max(sw, sh));
@@ -120,9 +128,9 @@ async function processImage(file, { kind, max = 1600, square = false, type = 'im
 }
 
 // 이미지 칸: 미리보기 + 드롭존. data-img="data 경로" 또는 data-img-draft (다이얼로그 초안)
-function imageField({ path, value, kind, variant = '', title = '사진 바꾸기', help = '탭하거나 끌어다 놓기 · JPG/PNG/WebP', opts = {} }) {
+function imageField({ path, value, kind, variant = '', title = t('img.change'), help = t('img.help'), opts = {} }) {
   return `<div class="imgfield ${variant ? `imgfield--${variant}` : ''}">
-    <div class="imgfield__preview">${imgTag(value) || '<span class="hint">사진 없음</span>'}${pending.has(value) ? '<span class="badge pending">저장 전</span>' : ''}</div>
+    <div class="imgfield__preview">${imgTag(value) || `<span class="hint">${t('img.none')}</span>`}${pending.has(value) ? `<span class="badge pending">${t('img.pending')}</span>` : ''}</div>
     <label class="drop" data-drop>
       <input type="file" accept="image/*" data-img="${esc(path)}" data-kind="${kind}" data-opts='${esc(JSON.stringify(opts))}'>
       ${ICON.upload}<b>${title}</b><span>${help}</span>
@@ -148,21 +156,21 @@ async function handleImage(input, file) {
     const target = input.dataset.img;
     if (target.startsWith('draft:')) draftImageSink(target.slice(6), path);
     else { setPath(target, path); changed(); renderMain(); }
-    toast('사진을 바꿨습니다. [저장]을 눌러야 사이트에 반영됩니다.');
+    toast(t('img.changed'));
   } catch (e) { toast(e.message, true); }
 }
 
 /* ================= 다이얼로그 ================= */
 // 초안(draft)을 편집하다 [적용] 하면 onApply(draft). 입력은 data-d="경로" 로 초안에 묶는다.
-function openDialog({ title, draft, body, onApply, onDelete, applyLabel = '적용' }) {
+function openDialog({ title, draft, body, onApply, onDelete, applyLabel = t('dlg.apply'), deleteText = t('dlg.delConfirm') }) {
   const dlg = $('#dlg'), form = $('#dlgForm');
   const dget = (p) => p.split('.').reduce((o, k) => (o == null ? o : o[k]), draft);
   const dset = (p, v) => { const ks = p.split('.'); const last = ks.pop(); ks.reduce((o, k) => o[k], draft)[last] = v; };
   const paint = () => {
-    form.innerHTML = `<div class="dlg__head"><h2>${esc(title)}</h2><button class="iconbtn" type="button" data-close aria-label="닫기">${ICON.x}</button></div>
+    form.innerHTML = `<div class="dlg__head"><h2>${esc(title)}</h2><button class="iconbtn" type="button" data-close aria-label="${t('dlg.close')}">${ICON.x}</button></div>
       <div class="dlg__body">${body(draft, { dget })}</div>
-      <div class="dlg__foot">${onDelete ? '<button class="btn btn--danger" type="button" data-del>삭제</button>' : ''}
-        <button class="btn btn--ghost" type="button" data-close>취소</button><button class="btn btn--gold" type="submit">${esc(applyLabel)}</button></div>`;
+      <div class="dlg__foot">${onDelete ? `<button class="btn btn--danger" type="button" data-del>${t('dlg.delete')}</button>` : ''}
+        <button class="btn btn--ghost" type="button" data-close>${t('dlg.cancel')}</button><button class="btn btn--gold" type="submit">${esc(applyLabel)}</button></div>`;
     wireDrops(form);
   };
   draftImageSink = (p, path) => { dset(p, path); paint(); };
@@ -174,11 +182,11 @@ function openDialog({ title, draft, body, onApply, onDelete, applyLabel = '적�
   };
   form.onchange = form.oninput;
   form.onclick = (e) => {
-    const t = e.target.closest('button');
-    if (!t) return;
-    if (t.hasAttribute('data-close')) dlg.close();
-    else if (t.hasAttribute('data-del')) { if (confirm('삭제할까요? [저장]을 눌러야 사이트에서 사라집니다.')) { onDelete(); dlg.close(); changed(); renderMain(); } }
-    else if (t.dataset.act) dialogAct(t, draft, dget, dset, paint);
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.hasAttribute('data-close')) dlg.close();
+    else if (btn.hasAttribute('data-del')) { if (confirm(deleteText)) { onDelete(); dlg.close(); changed(); renderMain(); } }
+    else if (btn.dataset.act) dialogAct(btn, draft, dget, dset, paint);
   };
   form.onsubmit = (e) => {
     e.preventDefault();
@@ -202,29 +210,34 @@ const dInput = (draft, p, attrs = '') => `<input class="input" data-d="${p}" val
 const dTri = (draft, p) => `<div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${dInput(draft, `${p}.${k}`, `aria-label="${label}"`)}</label>`).join('')}</div>`;
 
 /* ================= 왼쪽 목록 ================= */
+// 지점 이름은 화면 언어 → 한국어 → 태국어 순으로 비어 있지 않은 것
+const branchName = (b) => pick(b.name) || t('side.newBranchName');
 function navItem(href, icon, title, meta, extra = '') {
   return `<li><a href="#${href}" class="${route === href ? 'is-active' : ''}"><span class="nav__icon">${icon}</span>
     <span class="nav__text"><span class="nav__title">${esc(title)} ${extra}</span><span class="nav__meta">${esc(meta)}</span></span></a></li>`;
 }
 function renderSide() {
   if (!data.branches) return;
-  const b = data.branches.branches, t = data.team;
+  const b = data.branches.branches;
   const photo = (list) => (list[0] && list[0].img ? imgTag(list[0].img) : ICON.people);
+  const tm = data.team;
   $('#side').innerHTML = `
-    <h3>지점 · 시간표</h3>
-    <ul class="nav">${b.map((x, i) => navItem(`b/${i}`, ICON.pin, x.name.ko || x.name.th || '새 지점', `수업 ${x.schedule.length}개`, x.main ? '<span class="badge">본관</span>' : '')).join('')}</ul>
-    <button class="btn btn--ghost btn--sm btn--block" type="button" id="addBranch">＋ 새 지점</button>
-    <h3>코치진 · 선수</h3>
+    <h3>${t('side.members')}</h3>
+    <ul class="nav">${navItem('members', ICON.wallet, t('mem.title'), ledgerMeta())}</ul>
+    <h3>${t('side.branches')}</h3>
+    <ul class="nav">${b.map((x, i) => navItem(`b/${i}`, ICON.pin, branchName(x), t('side.classes', { n: x.schedule.length }), x.main ? `<span class="badge">${t('side.main')}</span>` : '')).join('')}</ul>
+    <button class="btn btn--ghost btn--sm btn--block" type="button" id="addBranch">${t('side.addBranch')}</button>
+    <h3>${t('side.team')}</h3>
     <ul class="nav">
-      ${navItem('team/judges', photo(t.judges), TEAM.judges.title, `${t.judges.length}명`)}
-      ${navItem('team/staff', photo(t.staff), TEAM.staff.title, `${t.staff.length}명`)}
-      ${navItem('team/timeline', ICON.clock, '수석 코치 경력', `${t.coach.timeline.length}줄`)}
-      ${navItem('team/athletes', photo(t.athletes), TEAM.athletes.title, `${t.athletes.length}명`)}
+      ${navItem('team/judges', photo(tm.judges), team('judges', 'title'), t('side.people', { n: tm.judges.length }))}
+      ${navItem('team/staff', photo(tm.staff), team('staff', 'title'), t('side.people', { n: tm.staff.length }))}
+      ${navItem('team/timeline', ICON.clock, t('side.timeline'), t('side.lines', { n: tm.coach.timeline.length }))}
+      ${navItem('team/athletes', photo(tm.athletes), team('athletes', 'title'), t('side.people', { n: tm.athletes.length }))}
     </ul>
-    <h3>문의 · SNS</h3>
+    <h3>${t('side.contactSocial')}</h3>
     <ul class="nav">
-      ${navItem('contact', data.contact.line.qr ? imgTag(data.contact.line.qr) : ICON.chat, 'LINE · WhatsApp · Messenger', '채팅 링크와 QR 코드')}
-      ${navItem('social', ICON.insta, '인스타그램 · 페이스북 릴스', `게시물 ${data.social.instagram.length} · 릴스 ${data.social.reels.length}`)}
+      ${navItem('contact', data.contact.line.qr ? imgTag(data.contact.line.qr) : ICON.chat, 'LINE · WhatsApp · Messenger', t('side.contactMeta'))}
+      ${navItem('social', ICON.insta, t('side.social'), t('side.socialMeta', { ig: data.social.instagram.length, reels: data.social.reels.length }))}
     </ul>`;
   $('#addBranch').onclick = addBranch;
 }
@@ -232,75 +245,75 @@ function renderSide() {
 /* ================= 페이지: 지점 ================= */
 function pageBranch(i) {
   const b = data.branches.branches[i];
-  if (!b) return '<div class="empty">지점을 찾을 수 없습니다.</div>';
+  if (!b) return `<div class="empty">${t('br.notFound')}</div>`;
   const P = `branches.branches.${i}`;
   const rating = b.rating || {};
   const byDay = (d) => b.schedule.map((s, j) => ({ ...s, j })).filter((s) => s.d === d).sort((a, c) => toMin(a.s) - toMin(c.s) || toMin(a.e) - toMin(c.e));
   return `
-  <div class="page-head"><div><h1>${esc(b.name.ko || b.name.th || '새 지점')}</h1><p>지점 정보와 주간 시간표. 바꾼 뒤 아래 [저장]을 누르세요.</p></div></div>
+  <div class="page-head"><div><h1>${esc(branchName(b))}</h1><p>${t('br.lead')}</p></div></div>
 
   <section class="card">
-    <div class="card__head"><div><h2>주간 시간표</h2><p>수업을 누르면 수정, 요일 아래 ＋ 로 추가. 사이트에서는 시작 시각 순으로 보입니다.</p></div></div>
-    <div class="week">${DAYS.map(([d, label]) => `<div class="day"><div class="day__name">${label}</div>
-      ${byDay(d).map((s) => `<button class="slot" type="button" style="--c:${PROGRAMS[s.p] ? PROGRAMS[s.p].c : 'var(--ink)'}" data-slot="${s.j}">
-        <b>${esc(s.s)}–${esc(s.e)}</b>${esc(PROGRAMS[s.p] ? PROGRAMS[s.p].name : s.p)}${s.note ? `<br><small>${esc(s.note)}</small>` : ''}</button>`).join('')}
-      <button class="day__add" type="button" data-add-slot="${d}">＋ 수업</button></div>`).join('')}</div>
-    <div class="legend">${Object.values(PROGRAMS).map((p) => `<span><i style="--c:${p.c}"></i>${p.name}</span>`).join('')}</div>
+    <div class="card__head"><div><h2>${t('br.week')}</h2><p>${t('br.weekLead')}</p></div></div>
+    <div class="week">${DAYS.map((d) => `<div class="day"><div class="day__name">${t(`day.${d}`)}</div>
+      ${byDay(d).map((s) => `<button class="slot" type="button" style="--c:${PROGRAMS[s.p] || 'var(--ink)'}" data-slot="${s.j}">
+        <b>${esc(s.s)}–${esc(s.e)}</b>${esc(progName(s.p))}${s.note ? `<br><small>${esc(s.note)}</small>` : ''}</button>`).join('')}
+      <button class="day__add" type="button" data-add-slot="${d}">${t('br.addSlot')}</button></div>`).join('')}</div>
+    <div class="legend">${Object.entries(PROGRAMS).map(([k, c]) => `<span><i style="--c:${c}"></i>${progName(k)}</span>`).join('')}</div>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>시간표 포스터</h2><p>시간표 옆에 보이고 누르면 크게 열리는 세로 포스터</p></div></div>
-    ${imageField({ path: `${P}.poster`, value: b.poster, kind: `poster-${b.id}`, variant: 'poster', title: '포스터 바꾸기', opts: { max: 1600 } })}
+    <div class="card__head"><div><h2>${t('br.poster')}</h2><p>${t('br.posterLead')}</p></div></div>
+    ${imageField({ path: `${P}.poster`, value: b.poster, kind: `poster-${b.id}`, variant: 'poster', title: t('br.posterChange'), opts: { max: 1600 } })}
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>기본 정보</h2></div></div>
-    <div class="field"><span class="label">지점 이름</span>${triInputs(`${P}.name`)}</div>
-    <div class="field"><span class="label">지역</span>${triInputs(`${P}.area`)}</div>
-    <label class="check"><input type="checkbox" data-bind="${P}.main" ${b.main ? 'checked' : ''}> 본관(메인 지점) 표시</label>
+    <div class="card__head"><div><h2>${t('br.basic')}</h2></div></div>
+    <div class="field"><span class="label">${t('br.name')}</span>${triInputs(`${P}.name`)}</div>
+    <div class="field"><span class="label">${t('br.area')}</span>${triInputs(`${P}.area`)}</div>
+    <label class="check"><input type="checkbox" data-bind="${P}.main" ${b.main ? 'checked' : ''}> ${t('br.main')}</label>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>위치 · 구글맵</h2><p>구글맵 링크를 붙여 넣으면 좌표를 자동으로 채웁니다</p></div></div>
-    <div class="field"><span class="label">주소</span>${triInputs(`${P}.address`)}</div>
+    <div class="card__head"><div><h2>${t('br.location')}</h2><p>${t('br.locationLead')}</p></div></div>
+    <div class="field"><span class="label">${t('br.address')}</span>${triInputs(`${P}.address`)}</div>
     <div class="map">
       <div>
-        <div class="field"><span class="label">구글맵 링크 붙여넣기</span>
-          <div class="paste"><input class="input" id="mapsPaste" placeholder="https://www.google.com/maps/… 또는 7.88, 98.37"><button class="btn btn--ink" type="button" id="mapsApply">적용</button></div>
-          <p class="hint">구글맵에서 장소를 연 뒤 주소창의 긴 주소를 복사하세요. 장소를 우클릭해 나오는 좌표 숫자도 됩니다.</p></div>
+        <div class="field"><span class="label">${t('br.paste')}</span>
+          <div class="paste"><input class="input" id="mapsPaste" placeholder="${esc(t('br.pastePh'))}"><button class="btn btn--ink" type="button" id="mapsApply">${t('dlg.apply')}</button></div>
+          <p class="hint">${t('br.pasteHint')}</p></div>
         <div class="row">
-          <label class="field"><span>위도</span>${bindInput(`${P}.lat`, 'data-type="num" inputmode="decimal"')}</label>
-          <label class="field"><span>경도</span>${bindInput(`${P}.lng`, 'data-type="num" inputmode="decimal"')}</label>
+          <label class="field"><span>${t('br.lat')}</span>${bindInput(`${P}.lat`, 'data-type="num" inputmode="decimal"')}</label>
+          <label class="field"><span>${t('br.lng')}</span>${bindInput(`${P}.lng`, 'data-type="num" inputmode="decimal"')}</label>
         </div>
-        <label class="field"><span>'구글맵에서 열기' 링크 (선택)</span>${bindInput(`${P}.mapsUrl`, 'data-type="opt" placeholder="비우면 좌표로 엽니다"')}</label>
-        <label class="field"><span>구글 place_id (선택)</span>${bindInput(`${P}.placeId`, 'data-type="opt" placeholder="ChIJ…"')}</label>
+        <label class="field"><span>${esc(t('br.mapsUrl'))}</span>${bindInput(`${P}.mapsUrl`, `data-type="opt" placeholder="${esc(t('br.mapsUrlPh'))}"`)}</label>
+        <label class="field"><span>${t('br.placeId')}</span>${bindInput(`${P}.placeId`, 'data-type="opt" placeholder="ChIJ…"')}</label>
       </div>
-      <iframe id="mapPreview" title="지도 미리보기" loading="lazy" src="${mapEmbed(b)}"></iframe>
+      <iframe id="mapPreview" title="${t('br.mapPreview')}" loading="lazy" src="${mapEmbed(b)}"></iframe>
     </div>
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>전화번호</h2><p>첫 번째 번호가 지점 카드의 [전화] 버튼이 됩니다</p></div>
-      <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}.phones" data-tpl='{"number":"","label":{"th":"","en":"","ko":""}}'>＋ 번호 추가</button></div>
+    <div class="card__head"><div><h2>${t('br.phones')}</h2><p>${t('br.phonesLead')}</p></div>
+      <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}.phones" data-tpl='{"number":"","label":{"th":"","en":"","ko":""}}'>${t('br.addPhone')}</button></div>
     ${b.phones.map((ph, j) => `<div class="phone">
-      ${bindInput(`${P}.phones.${j}.number`, 'inputmode="tel" placeholder="0869515115" aria-label="번호"')}
-      <div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${bindInput(`${P}.phones.${j}.label.${k}`, `aria-label="이름 ${label}"`)}</label>`).join('')}</div>
-      <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}.phones" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-        <button class="iconbtn" type="button" data-list-del="${P}.phones" data-i="${j}" aria-label="삭제">${ICON.x}</button></div>
+      ${bindInput(`${P}.phones.${j}.number`, `inputmode="tel" placeholder="0869515115" aria-label="${t('br.number')}"`)}
+      <div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>${bindInput(`${P}.phones.${j}.label.${k}`, `aria-label="${t('br.phoneLabel', { lang: label })}"`)}</label>`).join('')}</div>
+      <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}.phones" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+        <button class="iconbtn" type="button" data-list-del="${P}.phones" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div>
     </div>`).join('')}
   </section>
 
   <section class="card">
-    <div class="card__head"><div><h2>구글 평점</h2><p>구글맵 리뷰가 없으면 비워 두세요 (사이트에서 숨김)</p></div></div>
+    <div class="card__head"><div><h2>${t('br.rating')}</h2><p>${t('br.ratingLead')}</p></div></div>
     <div class="row">
-      <label class="field"><span>평점 (0~5)</span><input class="input" data-rating="score" data-i="${i}" inputmode="decimal" value="${esc(rating.score ?? '')}"></label>
-      <label class="field"><span>리뷰 수</span><input class="input" data-rating="count" data-i="${i}" inputmode="numeric" value="${esc(rating.count ?? '')}"></label>
+      <label class="field"><span>${t('br.score')}</span><input class="input" data-rating="score" data-i="${i}" inputmode="decimal" value="${esc(rating.score ?? '')}"></label>
+      <label class="field"><span>${t('br.count')}</span><input class="input" data-rating="count" data-i="${i}" inputmode="numeric" value="${esc(rating.count ?? '')}"></label>
     </div>
   </section>
 
   <section class="card card--danger">
-    <div class="card__head"><div><h2>지점 삭제</h2><p>이 지점과 시간표가 사이트에서 사라집니다</p></div>
-      <button class="btn btn--danger btn--sm" type="button" id="delBranch">지점 삭제</button></div>
+    <div class="card__head"><div><h2>${t('br.delete')}</h2><p>${t('br.deleteLead')}</p></div>
+      <button class="btn btn--danger btn--sm" type="button" id="delBranch">${t('br.delete')}</button></div>
   </section>`;
 }
 const mapEmbed = (b) => `https://maps.google.com/maps?q=${encodeURIComponent(`${b.lat},${b.lng}`)}&z=16&output=embed`;
@@ -319,18 +332,17 @@ function wireBranch(i) {
   const b = data.branches.branches[i];
   $('#mapsApply').onclick = () => {
     const r = parseMaps($('#mapsPaste').value);
-    if (r.lat == null && !r.url) { toast('구글맵 링크나 "위도, 경도" 형식이 아닙니다.', true); return; }
+    if (r.lat == null && !r.url) { toast(t('br.badMaps'), true); return; }
     if (r.url) setPath(`${P}.mapsUrl`, r.url);
     if (r.lat != null) { setPath(`${P}.lat`, r.lat); setPath(`${P}.lng`, r.lng); }
     changed(); renderMain();
-    toast(r.lat != null ? '좌표와 링크를 채웠습니다. 지도 미리보기를 확인하세요.'
-      : '링크만 넣었습니다. 짧은 링크(maps.app.goo.gl)는 좌표가 없어, 링크를 브라우저에서 연 뒤 주소창의 긴 주소를 붙여 넣으세요.', r.lat == null);
+    toast(r.lat != null ? t('br.mapsFilled') : t('br.mapsLinkOnly'), r.lat == null);
   };
   $$('[data-slot]').forEach((el) => { el.onclick = () => editSlot(i, Number(el.dataset.slot)); });
   $$('[data-add-slot]').forEach((el) => { el.onclick = () => editSlot(i, -1, el.dataset.addSlot); });
   $('#delBranch').onclick = () => {
-    if (data.branches.branches.length <= 1) { toast('지점은 최소 1개가 있어야 합니다.', true); return; }
-    if (!confirm(`'${b.name.ko || b.name.th}' 지점을 삭제할까요? [저장]을 눌러야 사이트에서 사라집니다.`)) return;
+    if (data.branches.branches.length <= 1) { toast(t('br.minOne'), true); return; }
+    if (!confirm(t('br.delConfirm', { name: branchName(b) }))) return;
     data.branches.branches.splice(i, 1);
     changed(); go('b/0');
   };
@@ -341,17 +353,17 @@ function editSlot(bi, j, day) {
   const isNew = j < 0;
   const draft = isNew ? { d: day, s: '16:00', e: '17:00', p: 'basic', note: '' } : { note: '', ...clone(sched[j]) };
   openDialog({
-    title: isNew ? '수업 추가' : '수업 수정',
+    title: isNew ? t('slot.add') : t('slot.edit'),
     draft,
     body: (d) => `
-      <div class="field"><span class="label">요일</span><div class="seg">${DAYS.map(([k, l]) => `<label><input type="radio" name="d" data-d="d" value="${k}" ${d.d === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></div>
-      <div class="row"><label class="field"><span>시작</span>${dInput(d, 's', 'type="time" step="300" required')}</label>
-        <label class="field"><span>종료</span>${dInput(d, 'e', 'type="time" step="300" required')}</label></div>
-      <div class="field"><span class="label">프로그램</span><div class="seg seg--4">${Object.entries(PROGRAMS).map(([k, p]) => `<label><input type="radio" name="p" data-d="p" value="${k}" ${d.p === k ? 'checked' : ''}><span><i style="--c:${p.c}"></i>${p.name}</span></label>`).join('')}</div></div>
-      <label class="field"><span>메모 (선택)</span>${dInput(d, 'note', 'placeholder="예: 3–5 y, Lv 1–2 — 모든 언어에 그대로 표시"')}</label>`,
+      <div class="field"><span class="label">${t('slot.day')}</span><div class="seg">${DAYS.map((k) => `<label><input type="radio" name="d" data-d="d" value="${k}" ${d.d === k ? 'checked' : ''}><span>${t(`day.${k}`)}</span></label>`).join('')}</div></div>
+      <div class="row"><label class="field"><span>${t('slot.start')}</span>${dInput(d, 's', 'type="time" step="300" required')}</label>
+        <label class="field"><span>${t('slot.end')}</span>${dInput(d, 'e', 'type="time" step="300" required')}</label></div>
+      <div class="field"><span class="label">${t('slot.program')}</span><div class="seg seg--4">${Object.entries(PROGRAMS).map(([k, c]) => `<label><input type="radio" name="p" data-d="p" value="${k}" ${d.p === k ? 'checked' : ''}><span><i style="--c:${c}"></i>${progName(k)}</span></label>`).join('')}</div></div>
+      <label class="field"><span>${t('slot.note')}</span>${dInput(d, 'note', `placeholder="${esc(t('slot.notePh'))}"`)}</label>`,
     onApply: (d) => {
-      if (!TIME_RE.test(d.s) || !TIME_RE.test(d.e)) throw new Error('시각을 HH:MM 으로 입력하세요.');
-      if (toMin(d.e) <= toMin(d.s)) throw new Error('종료 시각이 시작보다 늦어야 합니다.');
+      if (!TIME_RE.test(d.s) || !TIME_RE.test(d.e)) throw new Error(t('slot.badTime'));
+      if (toMin(d.e) <= toMin(d.s)) throw new Error(t('slot.endAfter'));
       const slot = { d: d.d, s: d.s, e: d.e, p: d.p };
       if (d.note.trim()) slot.note = d.note.trim();
       if (isNew) sched.push(slot); else sched[j] = slot;
@@ -367,29 +379,29 @@ function addBranch() {
   const first = list[0];
   list.push({
     id: `branch${n}`,
-    name: { th: '', en: '', ko: '새 지점' }, area: { th: '', en: '', ko: '' }, address: { th: '', en: '', ko: '' },
+    name: { th: '', en: '', ko: t('side.newBranchName', {}, 'ko') }, area: { th: '', en: '', ko: '' }, address: { th: '', en: '', ko: '' },
     lat: first.lat, lng: first.lng, placeId: null,
     phones: [clone(first.phones[0])], rating: null, poster: first.poster, schedule: [],
   });
   changed(); go(`b/${list.length - 1}`);
-  toast('새 지점을 만들었습니다. 이름·주소·좌표·포스터를 채운 뒤 저장하세요.');
+  toast(t('br.created'));
 }
 
 /* ================= 페이지: 코치진·선수 ================= */
 function pagePeople(key) {
-  const meta = TEAM[key], list = data.team[key];
-  return `<div class="page-head"><div><h1>${meta.title}</h1><p>${meta.lead} 사진이나 [수정]을 누르면 편집합니다.</p></div></div>
+  const list = data.team[key];
+  return `<div class="page-head"><div><h1>${team(key, 'title')}</h1><p>${team(key, 'lead')} ${t('ppl.lead')}</p></div></div>
   <section class="card"><div class="people">
     ${list.map((p, i) => `<article class="person">
-      <button class="person__photo" type="button" data-edit="${i}" aria-label="${esc(p.name.ko)} 수정">${imgTag(p.img, p.name.ko)}</button>
-      <div class="person__body"><div class="person__name">${esc(p.name.ko || p.name.en)} ${p.gold ? '<span class="badge">금메달</span>' : ''}</div>
-        <div class="person__role">${esc(p.role ? p.role.ko : (p.items && p.items.ko ? p.items.ko[0] : '') || '')}</div></div>
+      <button class="person__photo" type="button" data-edit="${i}" aria-label="${esc(t('ppl.editAria', { name: pick(p.name) }))}">${imgTag(p.img, pick(p.name))}</button>
+      <div class="person__body"><div class="person__name">${esc(pick(p.name))} ${p.gold ? `<span class="badge">${t('ppl.gold')}</span>` : ''}</div>
+        <div class="person__role">${esc(p.role ? pick(p.role) : (p.items && p.items.ko ? (p.items[lang()] || [])[0] || p.items.ko[0] : '') || '')}</div></div>
       <div class="person__bar">
-        <button class="iconbtn" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="앞으로">${ICON.left}</button>
-        <button class="btn btn--ghost btn--sm" type="button" data-edit="${i}">수정</button>
-        <button class="iconbtn" type="button" data-move="${i}" data-dir="1" ${i === list.length - 1 ? 'disabled' : ''} aria-label="뒤로">${ICON.right}</button>
+        <button class="iconbtn" type="button" data-move="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="${t('ctl.prev')}">${ICON.left}</button>
+        <button class="btn btn--ghost btn--sm" type="button" data-edit="${i}">${t('ctl.edit')}</button>
+        <button class="iconbtn" type="button" data-move="${i}" data-dir="1" ${i === list.length - 1 ? 'disabled' : ''} aria-label="${t('ctl.next')}">${ICON.right}</button>
       </div></article>`).join('')}
-    <button class="add-tile" type="button" id="addPerson">＋ ${meta.one} 추가</button>
+    <button class="add-tile" type="button" id="addPerson">${t('ppl.add', { one: team(key, 'one') })}</button>
   </div></section>`;
 }
 function wirePeople(key) {
@@ -414,25 +426,25 @@ function editPerson(key, i) {
   const draft = isNew ? tpl : { ...clone(tpl), ...clone(list[i]) };
   const lineTpl = JSON.stringify(emptyTri());
   openDialog({
-    title: `${TEAM[key].one} ${isNew ? '추가' : '수정'}`,
+    title: t(isNew ? 'ppl.dlgAdd' : 'ppl.dlgEdit', { one: team(key, 'one') }),
     draft,
     body: (d) => `
-      <div class="field"><span class="label">사진 (가운데를 정사각형으로 자릅니다)</span>
+      <div class="field"><span class="label">${t('ppl.photo')}</span>
         ${imageField({ path: 'draft:img', value: d.img, kind: key, opts: { square: true, max: 600 } })}</div>
-      <div class="field"><span class="label">이름</span>${dTri(d, 'name')}</div>
-      ${d.role ? `<div class="field"><span class="label">직함</span>${dTri(d, 'role')}</div>` : ''}
-      ${d.note ? `<div class="field"><span class="label">한 줄 소개</span>${dTri(d, 'note')}</div>` : ''}
-      ${key === 'staff' ? `<label class="field"><span>사진 위 배지 (선택)</span>${dInput(d, 'tag', 'placeholder="예: 7th DAN"')}</label>
-        <div class="field"><span class="label">경력</span><div class="lines">${d.items.map((_, j) => `<div class="line">${dTri(d, `items.${j}`)}
-          <div class="line__ctl"><button class="iconbtn" type="button" data-act="up" data-list="items" data-i="${j}" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-          <button class="iconbtn" type="button" data-act="del" data-list="items" data-i="${j}" aria-label="삭제">${ICON.x}</button></div></div>`).join('')}</div>
-          <button class="btn btn--ghost btn--sm" type="button" data-act="add" data-list="items" data-tpl='${lineTpl}' style="margin-top:10px">＋ 경력 추가</button></div>` : ''}
-      ${key === 'athletes' ? `<label class="check"><input type="checkbox" data-d="gold" ${d.gold ? 'checked' : ''}> 금메달 강조 (금색 테두리)</label>
-        <div class="field"><span class="label">경력 — 한 줄에 하나씩</span><div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>
-          <textarea class="input" data-d-lines="items.${k}" aria-label="경력 ${label}">${esc(d.items[k].join('\n'))}</textarea></label>`).join('')}</div></div>` : ''}`,
+      <div class="field"><span class="label">${t('ppl.name')}</span>${dTri(d, 'name')}</div>
+      ${d.role ? `<div class="field"><span class="label">${t('ppl.role')}</span>${dTri(d, 'role')}</div>` : ''}
+      ${d.note ? `<div class="field"><span class="label">${t('ppl.note')}</span>${dTri(d, 'note')}</div>` : ''}
+      ${key === 'staff' ? `<label class="field"><span>${t('ppl.tag')}</span>${dInput(d, 'tag', `placeholder="${esc(t('ppl.tagPh'))}"`)}</label>
+        <div class="field"><span class="label">${t('ppl.career')}</span><div class="lines">${d.items.map((_, j) => `<div class="line">${dTri(d, `items.${j}`)}
+          <div class="line__ctl"><button class="iconbtn" type="button" data-act="up" data-list="items" data-i="${j}" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+          <button class="iconbtn" type="button" data-act="del" data-list="items" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div></div>`).join('')}</div>
+          <button class="btn btn--ghost btn--sm" type="button" data-act="add" data-list="items" data-tpl='${lineTpl}' style="margin-top:10px">${t('ppl.addCareer')}</button></div>` : ''}
+      ${key === 'athletes' ? `<label class="check"><input type="checkbox" data-d="gold" ${d.gold ? 'checked' : ''}> ${t('ppl.goldCheck')}</label>
+        <div class="field"><span class="label">${t('ppl.careerLines')}</span><div class="tri">${LANGS.map(([k, label]) => `<label><span class="lang">${label}</span>
+          <textarea class="input" data-d-lines="items.${k}" aria-label="${t('ppl.careerAria', { lang: label })}">${esc(d.items[k].join('\n'))}</textarea></label>`).join('')}</div></div>` : ''}`,
     onApply: (d) => {
-      if (!d.img) throw new Error('사진을 올려 주세요.');
-      if (!d.name.ko.trim() && !d.name.th.trim()) throw new Error('이름(한국어 또는 태국어)을 입력하세요.');
+      if (!d.img) throw new Error(t('ppl.needPhoto'));
+      if (!d.name.ko.trim() && !d.name.th.trim()) throw new Error(t('ppl.needName'));
       if (key === 'staff') d.items = d.items.filter((x) => x.th || x.en || x.ko);
       if (isNew) list.push(d); else list[i] = d;
     },
@@ -443,15 +455,15 @@ function editPerson(key, i) {
 function pageTimeline() {
   const P = 'team.coach.timeline';
   const list = data.team.coach.timeline;
-  return `<div class="page-head"><div><h1>수석 코치 경력</h1><p>사이트 코치진 섹션 왼쪽의 연도별 타임라인. 위에서 아래 순서로 표시됩니다.</p></div>
-    <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}" data-tpl='{"y":"","th":"","en":"","ko":""}'>＋ 경력 추가</button></div>
+  return `<div class="page-head"><div><h1>${t('tl.title')}</h1><p>${t('tl.lead')}</p></div>
+    <button class="btn btn--ghost btn--sm" type="button" data-list-add="${P}" data-tpl='{"y":"","th":"","en":"","ko":""}'>${t('tl.add')}</button></div>
   <section class="card"><div class="lines">${list.map((r, j) => `<div class="line line--year">
-    <div>${bindInput(`${P}.${j}.y`, 'placeholder="2019 / 2011–" aria-label="연도"')}
-      <label class="check"><input type="checkbox" data-bind="${P}.${j}.now" ${r.now ? 'checked' : ''}> 현재</label></div>
+    <div>${bindInput(`${P}.${j}.y`, `placeholder="2019 / 2011–" aria-label="${t('tl.year')}"`)}
+      <label class="check"><input type="checkbox" data-bind="${P}.${j}.now" ${r.now ? 'checked' : ''}> ${t('tl.now')}</label></div>
     ${triInputs(`${P}.${j}`)}
-    <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="위로">${ICON.up}</button>
-      <button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="1" ${j === list.length - 1 ? 'disabled' : ''} aria-label="아래로">${ICON.down}</button>
-      <button class="iconbtn" type="button" data-list-del="${P}" data-i="${j}" aria-label="삭제">${ICON.x}</button></div>
+    <div class="line__ctl"><button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="-1" ${j === 0 ? 'disabled' : ''} aria-label="${t('ctl.up')}">${ICON.up}</button>
+      <button class="iconbtn" type="button" data-list-move="${P}" data-i="${j}" data-dir="1" ${j === list.length - 1 ? 'disabled' : ''} aria-label="${t('ctl.down')}">${ICON.down}</button>
+      <button class="iconbtn" type="button" data-list-del="${P}" data-i="${j}" aria-label="${t('ctl.del')}">${ICON.x}</button></div>
   </div>`).join('')}</div></section>`;
 }
 
@@ -459,28 +471,351 @@ function pageTimeline() {
 function pageContact() {
   const c = data.contact;
   const channel = (key, name, urlHint) => `<section class="card">
-    <div class="card__head"><div><h2>${name}</h2><p>링크와 QR 은 같은 계정이어야 합니다 — 하나를 바꾸면 다른 하나도 바꾸세요</p></div>
-      <a class="btn btn--ghost btn--sm" href="${esc(c[key].url)}" target="_blank" rel="noopener">링크 열어보기</a></div>
-    <label class="field"><span>${name} 링크</span>${bindInput(`contact.${key}.url`, `placeholder="${urlHint}"`)}</label>
-    <div class="field"><span class="label">QR 코드</span>${imageField({ path: `contact.${key}.qr`, value: c[key].qr, kind: `${key}-qr`, variant: 'qr', title: 'QR 바꾸기', help: 'QR 이 선명하게 보이는 정사각형 이미지', opts: { max: 800, type: 'image/png' } })}</div>
+    <div class="card__head"><div><h2>${name}</h2><p>${t('ct.pairLead')}</p></div>
+      <a class="btn btn--ghost btn--sm" href="${esc(c[key].url)}" target="_blank" rel="noopener">${t('ct.open')}</a></div>
+    <label class="field"><span>${t('ct.link', { name })}</span>${bindInput(`contact.${key}.url`, `placeholder="${urlHint}"`)}</label>
+    <div class="field"><span class="label">${t('ct.qr')}</span>${imageField({ path: `contact.${key}.qr`, value: c[key].qr, kind: `${key}-qr`, variant: 'qr', title: t('ct.qrChange'), help: t('ct.qrHelp'), opts: { max: 800, type: 'image/png' } })}</div>
   </section>`;
-  return `<div class="page-head"><div><h1>LINE · WhatsApp · Messenger</h1><p>체험 문의 섹션의 채팅 버튼·QR, 하단 링크, 화면 오른쪽 아래 떠 있는 버튼에 함께 반영됩니다.</p></div></div>
+  return `<div class="page-head"><div><h1>LINE · WhatsApp · Messenger</h1><p>${t('ct.lead')}</p></div></div>
     ${channel('line', 'LINE', 'https://line.me/ti/p/…')}
     ${channel('whatsapp', 'WhatsApp', 'https://wa.me/66…')}
     <section class="card"><div class="card__head"><div><h2>Facebook Messenger</h2></div>
-      <a class="btn btn--ghost btn--sm" href="${esc(c.messenger.url)}" target="_blank" rel="noopener">링크 열어보기</a></div>
-      <label class="field"><span>Messenger 링크</span>${bindInput('contact.messenger.url', 'placeholder="https://m.me/…"')}</label></section>`;
+      <a class="btn btn--ghost btn--sm" href="${esc(c.messenger.url)}" target="_blank" rel="noopener">${t('ct.open')}</a></div>
+      <label class="field"><span>${t('ct.link', { name: 'Messenger' })}</span>${bindInput('contact.messenger.url', 'placeholder="https://m.me/…"')}</label></section>`;
 }
 
 /* ================= 페이지: SNS ================= */
 function pageSocial() {
   const s = data.social;
-  return `<div class="page-head"><div><h1>인스타그램 · 페이스북 릴스</h1></div></div>
-  <section class="card"><div class="card__head"><div><h2>인스타그램 게시물</h2><p>최신이 위. 앞 3개가 사이트에 보입니다.</p></div></div>
-    <label class="field"><span>게시물 주소 또는 코드 — 한 줄에 하나</span><textarea class="input" data-lines="social.instagram" data-ig>${esc(s.instagram.join('\n'))}</textarea></label>
-    <p class="hint">instagram.com/p/<b>코드</b>/ 주소를 통째로 붙여 넣어도 코드만 저장됩니다.</p></section>
-  <section class="card"><div class="card__head"><div><h2>페이스북 릴스 ID (예비)</h2><p>페이스북 자동 수집이 실패했을 때만 쓰이는 목록입니다.</p></div></div>
-    <label class="field"><span>릴스 주소 또는 숫자 ID — 한 줄에 하나</span><textarea class="input" data-lines="social.reels" data-reel>${esc(s.reels.join('\n'))}</textarea></label></section>`;
+  return `<div class="page-head"><div><h1>${t('sn.title')}</h1></div></div>
+  <section class="card"><div class="card__head"><div><h2>${t('sn.ig')}</h2><p>${t('sn.igLead')}</p></div></div>
+    <label class="field"><span>${t('sn.igField')}</span><textarea class="input" data-lines="social.instagram" data-ig>${esc(s.instagram.join('\n'))}</textarea></label>
+    <p class="hint">${t('sn.igHint')}</p></section>
+  <section class="card"><div class="card__head"><div><h2>${t('sn.reels')}</h2><p>${t('sn.reelsLead')}</p></div></div>
+    <label class="field"><span>${t('sn.reelsField')}</span><textarea class="input" data-lines="social.reels" data-reel>${esc(s.reels.join('\n'))}</textarea></label></section>`;
+}
+
+/* ================= 페이지: 관원 · 회비 ================= */
+// 장부 = { v, members: [{ id, name, branch, phone, parent, fee, start: 'YYYY-MM', end: 'YYYY-MM'|null, memo }],
+//          pay: { 'YYYY-MM': { 관원id: { amt, date: 'YYYY-MM-DD', how: 'cash'|'transfer'|'other', memo? } | { skip: true, memo? } } } }
+// 기록이 없는 달은 미납(지난달·이번 달) 또는 아직(다음 달 이후). 등록월 전·퇴원월 뒤는 회비 대상이 아니다.
+const YM_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+const DATE_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const pad2 = (n) => String(n).padStart(2, '0');
+const thisMonth = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; };
+const today = () => `${thisMonth()}-${pad2(new Date().getDate())}`;
+const yearMonths = (y) => Array.from({ length: 12 }, (_, i) => `${y}-${pad2(i + 1)}`);
+const baht = (n) => `฿${Number(n || 0).toLocaleString('en-US')}`;
+const LOCALE = { ko: 'ko-KR', en: 'en-US', th: 'th-TH-u-ca-gregory' }; // 태국어도 서기 연도로 (연도 버튼과 맞춘다)
+const monthName = (k, style) => new Date(Number(k.slice(0, 4)), Number(k.slice(5)) - 1, 1)
+  .toLocaleDateString(LOCALE[lang()], style === 'short' ? { month: 'short' } : { year: 'numeric', month: 'long' });
+const emptyLedger = () => ({ v: 1, members: [], pay: {} });
+const view = { year: new Date().getFullYear(), month: thisMonth(), branch: 'all', q: '', unpaid: false, left: false };
+
+async function loadLedger() {
+  try { ledger.auth = await repo.readJson(AUTH_PATH); } catch (e) { if (e.status !== 404) throw e; ledger.auth = null; }
+  if (!ledger.auth || !ledger.auth.ledger) { ledger.state = 'none'; return; }
+  const key = auth.session.getKey();
+  if (!key) { ledger.state = 'locked'; return; }
+  try { await openLedger(key); } catch (e) { if (e.status) throw e; ledger.state = 'locked'; } // 재설정으로 키가 바뀌었으면 다시 묻는다
+}
+async function openLedger(key) {
+  let box = null;
+  try { box = await repo.readJson(LEDGER_PATH); } catch (e) { if (e.status !== 404) throw e; }
+  ledger.data = { ...emptyLedger(), ...(box ? await auth.decryptLedger(key, box) : {}) };
+  ledger.snap = JSON.stringify(ledger.data);
+  ledger.key = key;
+  ledger.state = 'ready';
+}
+
+const memberById = (id) => ledger.data.members.find((m) => m.id === id);
+const inMonth = (m, k) => m.start <= k && (!m.end || m.end >= k);
+const payOf = (m, k) => (ledger.data.pay[k] || {})[m.id];
+function cellState(m, k) {
+  if (!inMonth(m, k)) return 'out';
+  const p = payOf(m, k);
+  if (p) return p.skip ? 'skip' : 'paid';
+  return k > thisMonth() ? 'future' : 'due';
+}
+const branchOk = (m, b) => b === 'all' || m.branch === b;
+const branchLabel = (id) => { const b = data.branches.branches.find((x) => x.id === id); return b ? branchName(b) : t('mem.noBranch'); };
+const branchOrder = (id) => { const i = data.branches.branches.findIndex((x) => x.id === id); return i < 0 ? 99 : i; };
+function monthStats(k, b) {
+  const s = { active: 0, paid: 0, skip: 0, due: 0, sum: 0, dueList: [] };
+  for (const m of ledger.data.members) {
+    if (!branchOk(m, b) || !inMonth(m, k)) continue;
+    s.active++;
+    const st = cellState(m, k);
+    if (st === 'paid') { s.paid++; s.sum += Number(payOf(m, k).amt) || 0; }
+    else if (st === 'skip') s.skip++;
+    else if (st === 'due') { s.due++; s.dueList.push(m); }
+  }
+  return s;
+}
+function ledgerMeta() {
+  if (ledger.state !== 'ready') return t(`mem.state.${ledger.state}`);
+  const s = monthStats(thisMonth(), 'all');
+  return !s.active ? t('mem.metaNone') : s.due ? t('mem.metaDue', { n: s.due }) : t('mem.metaOk', { n: s.active });
+}
+// 지난 기록에서 빈 달 객체를 치운다 (변경 감지가 헛돌지 않게)
+function prunePay() { Object.keys(ledger.data.pay).forEach((k) => { if (!Object.keys(ledger.data.pay[k]).length) delete ledger.data.pay[k]; }); }
+
+function pageMembers() {
+  const head = (lead) => `<div class="page-head"><div><h1>${t('mem.title')}</h1><p>${lead}</p></div></div>`;
+  if (ledger.state === 'loading') return `${head(t('mem.lead'))}<div class="loading">${t('loading')}</div>`;
+  if (ledger.state === 'error') return `${head(t('mem.lead'))}<div class="empty">${esc(t('mem.loadFail', { msg: ledger.err }))}</div>`;
+  if (ledger.state === 'none' || ledger.state === 'locked') {
+    const isNew = ledger.state === 'none';
+    return `${head(t('mem.lead'))}
+    <section class="card lockcard"><div class="card__head"><div><h2>${t(isNew ? 'mem.createTitle' : 'mem.lockedTitle')}</h2><p>${t(isNew ? 'mem.createLead' : 'mem.lockedLead')}</p></div></div>
+      ${isNew ? `<p class="note">${t('mem.privacy')}</p>` : ''}
+      <form id="ledgerPw" class="lockcard__form"><label class="field"><span>${t('gate.pw')}</span><input class="input" type="password" id="ledgerPwInput" autocomplete="current-password" required></label>
+        <button class="btn btn--ink" type="submit">${t(isNew ? 'mem.create' : 'mem.unlock')}</button></form></section>`;
+  }
+  const chips = [['all', t('mem.allBranches')], ...data.branches.branches.map((b) => [b.id, branchName(b)])];
+  return `<div id="ledgerPage">
+    <div class="page-head"><div><h1>${t('mem.title')}</h1><p>${t('mem.leadReady')}</p></div>
+      <div class="head-actions"><button class="btn btn--ghost btn--sm" type="button" data-ledger="csv">${t('mem.csv')}</button>
+        <button class="btn btn--gold btn--sm" type="button" data-ledger="add">${t('mem.add')}</button></div></div>
+    <div class="ledger-bar">
+      <div class="yearnav"><button class="iconbtn" type="button" data-ledger="prev" aria-label="${t('mem.prevYear')}">${ICON.left}</button>
+        <b>${view.year}</b><button class="iconbtn" type="button" data-ledger="next" aria-label="${t('mem.nextYear')}">${ICON.right}</button></div>
+      <div class="chips">${chips.map(([id, label]) => `<button type="button" class="chip ${view.branch === id ? 'is-on' : ''}" data-branch="${esc(id)}">${esc(label)}</button>`).join('')}</div>
+      <input class="input ledger-search" type="search" id="ledgerQ" value="${esc(view.q)}" placeholder="${t('mem.search')}" aria-label="${t('mem.search')}">
+      <label class="check"><input type="checkbox" id="ledgerUnpaid" ${view.unpaid ? 'checked' : ''}> ${t('mem.onlyUnpaid')}</label>
+      <label class="check"><input type="checkbox" id="ledgerLeft" ${view.left ? 'checked' : ''}> ${t('mem.showLeft')}</label>
+    </div>
+    <div id="ledgerView">${ledgerView()}</div>
+    <p class="hint ledger-foot"><button class="linkbtn" type="button" data-ledger="code">${t('mem.newCode')}</button></p>
+  </div>`;
+}
+
+function ledgerView() {
+  const k = view.month, s = monthStats(k, view.branch), now = thisMonth();
+  const months = yearMonths(view.year);
+  const q = view.q.trim().toLowerCase();
+  const rows = ledger.data.members.filter((m) => branchOk(m, view.branch)
+    && months.some((mk) => inMonth(m, mk))
+    && (view.left || !m.end || m.end >= now)
+    && (!q || [m.name, m.phone, m.parent, m.memo].some((x) => String(x || '').toLowerCase().includes(q)))
+    && (!view.unpaid || cellState(m, k) === 'due'))
+    .sort((a, b) => branchOrder(a.branch) - branchOrder(b.branch) || a.name.localeCompare(b.name));
+  const cellText = { paid: '✓', skip: t('mem.skipShort'), due: t('mem.dueShort'), future: '' };
+  const tip = (m, mk, st) => {
+    const p = payOf(m, mk);
+    return `${m.name} · ${monthName(mk)} · ${st === 'paid' ? `${baht(p.amt)} ${p.date}` : st === 'skip' ? t('mem.stSkip') : t('mem.stDue')}`;
+  };
+  return `
+    <div class="stats" aria-live="polite">
+      <div class="stat stat--month"><span>${t('mem.statMonth')}</span><b>${esc(monthName(k))}</b></div>
+      <div class="stat"><span>${t('mem.statActive')}</span><b>${s.active}</b></div>
+      <div class="stat stat--ok"><span>${t('mem.statPaid')}</span><b>${s.paid}</b></div>
+      <div class="stat stat--due"><span>${t('mem.statDue')}</span><b>${s.due}</b></div>
+      <div class="stat"><span>${t('mem.statSkip')}</span><b>${s.skip}</b></div>
+      <div class="stat"><span>${t('mem.statSum')}</span><b>${baht(s.sum)}</b></div>
+    </div>
+    ${s.due ? `<section class="card duecard"><div class="card__head"><div><h2>${esc(t('mem.dueTitle', { m: monthName(k), n: s.due }))}</h2><p>${t('mem.dueLead')}</p></div></div>
+      <div class="chips">${s.dueList.map((m) => `<button type="button" class="chip chip--due" data-pay="${esc(m.id)}|${k}">${esc(m.name)}${m.phone ? ` <small>${esc(m.phone)}</small>` : ''}</button>`).join('')}</div></section>` : ''}
+    <section class="card card--flush">
+      ${rows.length ? `<div class="ledger"><table>
+        <thead><tr><th class="ledger__name" scope="col">${t('mem.name')}</th>${months.map((mk) => `<th scope="col" class="${mk === k ? 'is-sel' : ''}"><button type="button" class="mhead ${mk === now ? 'is-now' : ''}" data-month="${mk}" aria-pressed="${mk === k}">${esc(monthName(mk, 'short'))}</button></th>`).join('')}</tr></thead>
+        <tbody>${rows.map((m) => `<tr><th class="ledger__name" scope="row"><button type="button" data-member="${esc(m.id)}"><b>${esc(m.name)}</b><small>${esc(branchLabel(m.branch))} · ${baht(m.fee)}</small></button></th>
+          ${months.map((mk) => {
+            const st = cellState(m, mk);
+            if (st === 'out') return `<td class="c-out ${mk === k ? 'is-sel' : ''}"></td>`;
+            return `<td class="${mk === k ? 'is-sel' : ''}"><button type="button" class="cell cell--${st}" data-pay="${esc(m.id)}|${mk}" title="${esc(tip(m, mk, st))}" aria-label="${esc(tip(m, mk, st))}">${cellText[st]}</button></td>`;
+          }).join('')}</tr>`).join('')}</tbody></table></div>`
+        : `<div class="empty">${t(ledger.data.members.length ? 'mem.noMatch' : 'mem.empty')}</div>`}
+      <div class="ledger-legend"><span><b class="cell cell--paid">✓</b>${t('mem.stPaid')}</span><span><b class="cell cell--due">${t('mem.dueShort')}</b>${t('mem.stDue')}</span>
+        <span><b class="cell cell--skip">${t('mem.skipShort')}</b>${t('mem.stSkip')}</span><span><b class="cell c-out"></b>${t('mem.legendOut')}</span></div>
+    </section>`;
+}
+
+function wireMembers() {
+  const form = $('#ledgerPw');
+  if (form) form.onsubmit = (e) => { e.preventDefault(); ledgerPassword($('#ledgerPwInput').value, form); };
+  const page = $('#ledgerPage');
+  if (!page) return;
+  // 좁은 화면에서 표가 옆으로 길면 고른 달이 보이게 굴린다
+  const showMonth = () => {
+    const box = $('.ledger'), th = $('.ledger thead th.is-sel'), name = $('.ledger thead .ledger__name');
+    if (box && th && box.scrollWidth > box.clientWidth) box.scrollLeft = Math.max(0, th.offsetLeft - name.offsetWidth - th.offsetWidth * 2);
+  };
+  const repaint = () => { const x = ($('.ledger') || {}).scrollLeft; $('#ledgerView').innerHTML = ledgerView(); if ($('.ledger')) $('.ledger').scrollLeft = x || 0; };
+  showMonth();
+  page.onclick = (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.pay) { const [id, k] = b.dataset.pay.split('|'); editPay(id, k); }
+    else if (b.dataset.member) editMember(b.dataset.member);
+    else if (b.dataset.month) { view.month = b.dataset.month; repaint(); }
+    else if (b.dataset.branch) { view.branch = b.dataset.branch; renderMain(); }
+    else if (b.dataset.ledger === 'add') editMember(null);
+    else if (b.dataset.ledger === 'csv') exportCsv();
+    else if (b.dataset.ledger === 'code') newRecoveryCode();
+    else if (b.dataset.ledger === 'prev' || b.dataset.ledger === 'next') {
+      view.year += b.dataset.ledger === 'prev' ? -1 : 1;
+      view.month = `${view.year}-${view.month.slice(5)}`;
+      renderMain();
+    }
+  };
+  $('#ledgerQ').oninput = (e) => { view.q = e.target.value; repaint(); };
+  $('#ledgerUnpaid').onchange = (e) => { view.unpaid = e.target.checked; repaint(); };
+  $('#ledgerLeft').onchange = (e) => { view.left = e.target.checked; repaint(); };
+}
+
+// 잠긴 장부 열기 / 처음 만들기. 만들 때는 auth.json(키 감싼 것)과 빈 장부를 커밋 하나로 올린다.
+async function ledgerPassword(pw, form) {
+  const btn = $('button[type=submit]', form);
+  btn.disabled = true;
+  try {
+    if (ledger.state === 'locked') {
+      const key = await auth.openLedgerKey(ledger.auth.ledger, pw);
+      auth.session.setKey(key);
+      await openLedger(key);
+    } else {
+      await auth.decryptToken(ledger.auth, pw); // 관리자 비밀번호가 맞는지 (틀리면 여기서 멈춘다)
+      const { raw, code, wrap } = await auth.createLedgerKey(pw);
+      const nextAuth = { ...ledger.auth, ledger: wrap };
+      const empty = emptyLedger();
+      await repo.commitFiles([
+        { path: AUTH_PATH, text: `${JSON.stringify(nextAuth, null, 2)}\n` },
+        { path: LEDGER_PATH, text: `${JSON.stringify(await auth.encryptLedger(raw, empty))}\n` },
+      ], 'chore(admin): 관원 장부 만들기 (암호화)');
+      ledger.auth = nextAuth;
+      auth.session.setKey(raw);
+      Object.assign(ledger, { data: empty, snap: JSON.stringify(empty), key: raw, state: 'ready' });
+      toast(t('mem.created'));
+      showRecoveryCode(code);
+    }
+    renderSide(); renderMain();
+  } catch (e) {
+    toast(e.status === 403 ? t('save.403') : e.status ? t('save.fail', { msg: e.message }) : e.message, true);
+    btn.disabled = false;
+  }
+}
+function showRecoveryCode(code) {
+  openDialog({
+    title: t('mem.codeTitle'),
+    draft: {},
+    body: () => `<p>${t('mem.codeLead')}</p><div class="rcode">${esc(code)}</div>
+      <button class="btn btn--ghost btn--sm" type="button" data-copy>${t('mem.copy')}</button><p class="hint">${t('mem.codeHint')}</p>`,
+    onApply: () => {},
+    applyLabel: t('mem.codeDone'),
+  });
+  $('#dlgForm [data-copy]').onclick = () => navigator.clipboard.writeText(code).then(() => toast(t('mem.copied')), () => {});
+}
+async function newRecoveryCode() {
+  if (!confirm(t('mem.newCodeConfirm'))) return;
+  try {
+    const { code, rc } = await auth.newRecoveryCode(ledger.key);
+    const latest = await repo.readJson(AUTH_PATH);
+    const nextAuth = { ...latest, ledger: { ...latest.ledger, rc } };
+    await repo.commitFiles([{ path: AUTH_PATH, text: `${JSON.stringify(nextAuth, null, 2)}\n` }], 'chore(admin): 관원 장부 복구 코드 새로 만들기');
+    ledger.auth = nextAuth;
+    showRecoveryCode(code);
+  } catch (e) { toast(e.status === 403 ? t('save.403') : t('save.fail', { msg: e.message }), true); }
+}
+
+const segRadios = (d, name, opts) => `<div class="seg seg--${opts.length}">${opts.map(([v, label]) => `<label><input type="radio" name="${name}" value="${v}" data-d="${name}" ${d[name] === v ? 'checked' : ''}><span>${label}</span></label>`).join('')}</div>`;
+const toAmount = (v) => { const s = String(v).replace(/[,\s฿]/g, ''); const n = Number(s); return s === '' || !Number.isFinite(n) || n < 0 ? null : n; };
+
+function editMember(id) {
+  const list = ledger.data.members;
+  const cur = id ? memberById(id) : null;
+  const last = list[list.length - 1];
+  const draft = cur ? { ...cur, fee: String(cur.fee), end: cur.end || '', phone: cur.phone || '', parent: cur.parent || '', memo: cur.memo || '' }
+    : { name: '', branch: view.branch !== 'all' ? view.branch : (data.branches.branches[0] || {}).id || '', phone: '', parent: '',
+      fee: last ? String(last.fee) : '', start: thisMonth(), end: '', memo: '' };
+  openDialog({
+    title: t(cur ? 'mem.editTitle' : 'mem.addTitle'),
+    draft,
+    body: (d) => `
+      <label class="field"><span>${t('mem.name')}</span>${dInput(d, 'name', 'autocomplete="off"')}</label>
+      <div class="row">
+        <label class="field"><span>${t('mem.branch')}</span><select class="input" data-d="branch"><option value="">${t('mem.noBranch')}</option>
+          ${data.branches.branches.map((b) => `<option value="${esc(b.id)}" ${d.branch === b.id ? 'selected' : ''}>${esc(branchName(b))}</option>`).join('')}</select></label>
+        <label class="field"><span>${t('mem.fee')}</span>${dInput(d, 'fee', 'inputmode="numeric" placeholder="2500"')}</label>
+      </div>
+      <div class="row">
+        <label class="field"><span>${t('mem.phone')}</span>${dInput(d, 'phone', 'inputmode="tel"')}</label>
+        <label class="field"><span>${t('mem.parent')}</span>${dInput(d, 'parent')}</label>
+      </div>
+      <div class="row">
+        <label class="field"><span>${t('mem.start')}</span>${dInput(d, 'start', 'type="month" placeholder="YYYY-MM"')}</label>
+        <label class="field"><span>${t('mem.end')}</span>${dInput(d, 'end', 'type="month" placeholder="YYYY-MM"')}</label>
+      </div>
+      <p class="hint" style="margin:-6px 0 14px">${t('mem.endHint')}</p>
+      <label class="field"><span>${t('mem.memo')}</span><textarea class="input" data-d="memo">${esc(d.memo)}</textarea></label>`,
+    onApply: (d) => {
+      const name = d.name.trim(), fee = toAmount(d.fee);
+      if (!name) throw new Error(t('mem.errName'));
+      if (fee == null) throw new Error(t('mem.errFee'));
+      if (!YM_RE.test(d.start)) throw new Error(t('mem.errStart'));
+      if (d.end && (!YM_RE.test(d.end) || d.end < d.start)) throw new Error(t('mem.errEnd'));
+      const m = { id: cur ? cur.id : `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name, branch: d.branch,
+        phone: d.phone.trim(), parent: d.parent.trim(), fee, start: d.start, end: d.end || null, memo: d.memo.trim() };
+      if (cur) list[list.indexOf(cur)] = m; else list.push(m);
+    },
+    onDelete: cur ? () => {
+      list.splice(list.indexOf(cur), 1);
+      Object.values(ledger.data.pay).forEach((mo) => { delete mo[cur.id]; });
+      prunePay();
+    } : null,
+    deleteText: t('mem.delConfirm'),
+  });
+}
+
+function editPay(id, k) {
+  const m = memberById(id);
+  if (!m) return;
+  const p = payOf(m, k);
+  const draft = { st: p ? (p.skip ? 'skip' : 'paid') : 'paid', amt: String(p && !p.skip ? p.amt : m.fee),
+    date: (p && p.date) || today(), how: (p && p.how) || 'cash', memo: (p && p.memo) || '' };
+  openDialog({
+    title: `${m.name} · ${monthName(k)}`,
+    draft,
+    body: (d) => `
+      <div class="field"><span class="label">${t('mem.status')}</span>${segRadios(d, 'st', [['paid', t('mem.stPaid')], ['skip', t('mem.stSkip')], ['due', t('mem.stDue')]])}</div>
+      <div class="row">
+        <label class="field"><span>${t('mem.amount')}</span>${dInput(d, 'amt', 'inputmode="numeric"')}</label>
+        <label class="field"><span>${t('mem.date')}</span>${dInput(d, 'date', 'type="date"')}</label>
+      </div>
+      <div class="field"><span class="label">${t('mem.how')}</span>${segRadios(d, 'how', [['cash', t('mem.cash')], ['transfer', t('mem.transfer')], ['other', t('mem.other')]])}</div>
+      <label class="field"><span>${t('mem.memo')}</span>${dInput(d, 'memo')}</label>
+      <p class="hint">${t('mem.payHint')}</p>`,
+    onApply: (d) => {
+      const memo = d.memo.trim() ? { memo: d.memo.trim() } : {};
+      let entry = null;
+      if (d.st === 'skip') entry = { skip: true, ...memo };
+      else if (d.st === 'paid') {
+        const amt = toAmount(d.amt);
+        if (amt == null) throw new Error(t('mem.errFee'));
+        if (!DATE_RE.test(d.date)) throw new Error(t('mem.errDate'));
+        entry = { amt, date: d.date, how: d.how, ...memo };
+      }
+      const month = ledger.data.pay[k] || (ledger.data.pay[k] = {});
+      if (entry) month[id] = entry; else delete month[id];
+      prunePay();
+    },
+  });
+}
+
+// 엑셀 백업 (선택한 해). 엑셀이 한글을 깨지 않게 BOM, 수식으로 읽히지 않게 = + - @ 앞에 '
+function exportCsv() {
+  const months = yearMonths(view.year);
+  const head = [t('mem.name'), t('mem.branch'), t('mem.phone'), t('mem.parent'), t('mem.fee'), t('mem.start'), t('mem.end'), t('mem.memo'), ...months];
+  const rows = ledger.data.members.filter((m) => months.some((k) => inMonth(m, k))).map((m) => [
+    m.name, branchLabel(m.branch), m.phone, m.parent, m.fee, m.start, m.end || '', m.memo,
+    ...months.map((k) => { const st = cellState(m, k); return st === 'paid' ? payOf(m, k).amt : st === 'skip' ? t('mem.stSkip') : st === 'due' ? t('mem.stDue') : ''; }),
+  ]);
+  const cell = (c) => { const v = String(c ?? ''); return `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`; };
+  const csv = `﻿${[head, ...rows].map((r) => r.map(cell).join(',')).join('\r\n')}`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `dragon-gym-members-${view.year}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /* ================= 라우팅·렌더 ================= */
@@ -489,11 +824,12 @@ function renderMain() {
   const [kind, arg] = route.split('/');
   let html = '', wire = () => {};
   if (kind === 'b') { html = pageBranch(Number(arg)); wire = () => wireBranch(Number(arg)); }
-  else if (kind === 'team' && TEAM[arg]) { html = pagePeople(arg); wire = () => wirePeople(arg); }
+  else if (kind === 'team' && TEAM.includes(arg)) { html = pagePeople(arg); wire = () => wirePeople(arg); }
   else if (kind === 'team' && arg === 'timeline') html = pageTimeline();
   else if (kind === 'contact') html = pageContact();
   else if (kind === 'social') html = pageSocial();
-  else html = '<div class="empty">왼쪽에서 편집할 항목을 고르세요.</div>';
+  else if (kind === 'members') { html = pageMembers(); wire = wireMembers; }
+  else html = `<div class="empty">${t('main.pick')}</div>`;
   const y = window.scrollY;
   main.innerHTML = html;
   wireDrops(main);
@@ -504,7 +840,7 @@ function go(r) { if (location.hash.slice(1) === r) onRoute(); else location.hash
 function onRoute() {
   const h = location.hash.slice(1);
   const mobile = matchMedia('(max-width: 820px)').matches;
-  route = h || (mobile ? '' : 'b/0');
+  route = h || (mobile ? '' : 'members');
   $('#app').classList.toggle('is-editing', Boolean(h));
   document.body.classList.toggle('is-editing', Boolean(h)); // 모바일 상단바의 ← 뒤로 버튼
   renderSide(); renderMain();
@@ -528,7 +864,7 @@ function onMainInput(e) {
       clearTimeout(mapTimer);
       mapTimer = setTimeout(() => { const b = data.branches.branches[Number(route.split('/')[1])]; if ($('#mapPreview') && b) $('#mapPreview').src = mapEmbed(b); }, 600);
     }
-    if (/\.name\.(ko|th)$/.test(el.dataset.bind) && route.startsWith('b/')) $('.page-head h1').textContent = getPath(el.dataset.bind.replace(/\.(ko|th)$/, '.ko')) || '새 지점';
+    if (/\.name\.(ko|th|en)$/.test(el.dataset.bind) && route.startsWith('b/')) $('.page-head h1').textContent = branchName(data.branches.branches[Number(route.split('/')[1])]);
     changed();
   } else if (el.dataset.rating) {
     const b = data.branches.branches[Number(el.dataset.i)];
@@ -554,7 +890,7 @@ function onMainClick(e) {
   if (btn.dataset.listAdd) { getPath(btn.dataset.listAdd).push(JSON.parse(btn.dataset.tpl)); changed(); renderMain(); }
   else if (btn.dataset.listDel) {
     const list = getPath(btn.dataset.listDel);
-    if (btn.dataset.listDel.endsWith('.phones') && list.length <= 1) { toast('전화번호는 최소 1개가 있어야 합니다.', true); return; }
+    if (btn.dataset.listDel.endsWith('.phones') && list.length <= 1) { toast(t('br.phoneMin'), true); return; }
     list.splice(Number(btn.dataset.i), 1); changed(); renderMain();
   } else if (btn.dataset.listMove) {
     const list = getPath(btn.dataset.listMove), i = Number(btn.dataset.i), k = i + Number(btn.dataset.dir);
@@ -567,15 +903,15 @@ function onMainClick(e) {
 function validate() {
   const ids = new Set();
   for (const b of data.branches.branches) {
-    const nm = b.name.ko || b.name.th || b.id;
-    if (!b.name.th.trim() && !b.name.ko.trim()) return `지점 이름을 입력하세요 (${b.id}).`;
-    if (ids.has(b.id)) return `지점 ID 가 겹칩니다: ${b.id}`;
+    const nm = b.name[lang()] || b.name.ko || b.name.th || b.id;
+    if (!b.name.th.trim() && !b.name.ko.trim()) return t('v.branchName', { id: b.id });
+    if (ids.has(b.id)) return t('v.dupId', { id: b.id });
     ids.add(b.id);
-    if (!Number.isFinite(b.lat) || !Number.isFinite(b.lng)) return `${nm}: 위도·경도를 확인하세요.`;
-    if (!b.phones.length || b.phones.some((p) => !/^0\d{8,9}$/.test(p.number))) return `${nm}: 전화번호는 0 으로 시작하는 9~10자리 숫자로 입력하세요.`;
-    if (!b.poster) return `${nm}: 시간표 포스터를 올려 주세요.`;
+    if (!Number.isFinite(b.lat) || !Number.isFinite(b.lng)) return t('v.latlng', { name: nm });
+    if (!b.phones.length || b.phones.some((p) => !/^0\d{8,9}$/.test(p.number))) return t('v.phone', { name: nm });
+    if (!b.poster) return t('v.poster', { name: nm });
   }
-  for (const k of ['line', 'whatsapp', 'messenger']) if (!/^https:\/\//.test(data.contact[k].url)) return `${k} 링크는 https:// 로 시작해야 합니다.`;
+  for (const k of ['line', 'whatsapp', 'messenger']) if (!/^https:\/\//.test(data.contact[k].url)) return t('v.https', { k });
   return '';
 }
 // data 안에서 쓰이는 새 이미지만 올린다 (바꿨다 되돌린 이미지는 버린다)
@@ -586,32 +922,36 @@ function usedPending() {
 async function save() {
   const keys = dirtyKeys();
   if (!keys.length) return;
+  const contentKeys = keys.filter((k) => k !== 'members');
   const bad = validate();
   if (bad) { toast(bad, true); return; }
   const btn = $('#saveBtn');
-  btn.disabled = true; btn.textContent = '저장 중…';
+  btn.disabled = true; btn.textContent = t('save.saving');
   try {
     const imgs = usedPending();
+    const ledgerText = keys.includes('members') ? JSON.stringify(ledger.data) : null;
     const files = [
-      ...keys.map((k) => ({ path: FILES[k].path, text: `${JSON.stringify(data[k], null, 2)}\n` })),
+      ...contentKeys.map((k) => ({ path: FILES[k].path, text: `${JSON.stringify(data[k], null, 2)}\n` })),
       ...imgs.map((p) => ({ path: SITE_DIR + p, base64: pending.get(p).base64 })),
+      ...(ledgerText ? [{ path: LEDGER_PATH, text: `${JSON.stringify(await auth.encryptLedger(ledger.key, JSON.parse(ledgerText)))}\n` }] : []),
     ];
-    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => FILES[k].label).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
-    keys.forEach((k) => { snap[k] = JSON.stringify(data[k]); });
+    // 커밋 메시지에 관원 이름 등은 넣지 않는다 (공개 레포)
+    await repo.commitFiles(files, `content: 관리자 페이지에서 ${keys.map((k) => labelOf(k, 'ko')).join('·')} 수정${imgs.length ? ` (이미지 ${imgs.length}장)` : ''}`);
+    contentKeys.forEach((k) => { snap[k] = JSON.stringify(data[k]); });
+    if (ledgerText) ledger.snap = ledgerText;
     // 올린 이미지는 이제 레포에 있다 — 배포 전엔 사이트 경로가 404 라 imgTag 의 레포 원본 대체가 보여 준다
     imgs.forEach((p) => pending.delete(p));
-    toast('저장했습니다. 1~2분 뒤 사이트에 반영됩니다.');
+    toast(t(contentKeys.length ? 'save.done' : 'save.doneLedger'));
     changed(); renderMain();
   } catch (e) {
     console.error(e);
-    toast(e.status === 403 ? '토큰에 쓰기 권한이 없습니다. GitHub 토큰의 Contents 권한을 "Read and write" 로 바꿔 주세요.'
-      : e.status === 401 ? '토큰이 만료되었습니다. 로그아웃 후 "비밀번호를 잊었어요"에서 새 토큰으로 재설정하세요.'
-        : `저장하지 못했습니다: ${e.message}`, true);
-  } finally { btn.disabled = false; btn.textContent = '저장'; }
+    toast(e.status === 403 ? t('save.403') : e.status === 401 ? t('save.401') : t('save.fail', { msg: e.message }), true);
+  } finally { btn.disabled = false; btn.textContent = t('save.save'); }
 }
 function discard() {
-  if (!confirm('저장하지 않은 변경을 모두 되돌릴까요?')) return;
+  if (!confirm(t('save.discardConfirm'))) return;
   Object.keys(FILES).forEach((k) => { data[k] = JSON.parse(snap[k]); });
+  if (ledger.data) ledger.data = JSON.parse(ledger.snap);
   pending.clear();
   changed(); renderMain();
 }
@@ -625,7 +965,7 @@ async function startApp(token) {
     await Promise.all(Object.entries(FILES).map(async ([k, f]) => { data[k] = await repo.readJson(f.path); snap[k] = JSON.stringify(data[k]); }));
   } catch (e) {
     if (e.status === 401) { auth.session.clear(); location.reload(); return; }
-    $('#main').innerHTML = `<div class="empty">데이터를 불러오지 못했습니다: ${esc(e.message)}</div>`;
+    $('#main').innerHTML = `<div class="empty">${esc(t('load.fail', { msg: e.message }))}</div>`;
     return;
   }
   $('#main').addEventListener('input', onMainInput);
@@ -635,32 +975,42 @@ async function startApp(token) {
   $('#discardBtn').onclick = discard;
   $('#backBtn').onclick = () => { history.replaceState(null, '', location.pathname); onRoute(); };
   $('#logoutBtn').onclick = () => {
-    if (dirtyKeys().length && !confirm('저장하지 않은 변경이 있습니다. 로그아웃할까요?')) return;
+    if (dirtyKeys().length && !confirm(t('save.logoutConfirm'))) return;
     auth.session.clear(); location.hash = ''; location.reload();
   };
   window.addEventListener('beforeunload', (e) => { if (dirtyKeys().length) { e.preventDefault(); e.returnValue = ''; } });
   window.addEventListener('hashchange', onRoute);
   onRoute();
+  // 관원 장부는 화면을 막지 않고 따로 불러온다
+  loadLedger().catch((e) => { console.error(e); ledger.state = 'error'; ledger.err = e.message; })
+    .finally(() => { renderSide(); if (route === 'members') renderMain(); });
 }
 
 /* ---------- 로그인 화면 ---------- */
 let authFile = null;
 function gateSay(text, kind = 'err') { const m = $('#gateMsg'); m.textContent = text; m.className = `msg ${kind}`; }
+let gateView = 'unlock';
+// 제목·안내문만 (언어 전환 때 입력값·메시지는 그대로 두고 이것만 다시 쓴다)
+function gateLabels() {
+  const first = !authFile;
+  const [title, lead] = gateView === 'setup' || first ? [first ? 'gate.setup' : 'gate.reset', first ? 'gate.setupLead' : 'gate.resetLead']
+    : gateView === 'change' ? ['gate.change', null] : ['gate.login', null];
+  $('#gateTitle').textContent = t(title);
+  $('#gateLead').textContent = lead ? t(lead) : gateView === 'unlock' && !first ? 'Dragon Gym Taekwondo Phuket' : '';
+}
 function gateShow(view) {
   ['formUnlock', 'formSetup', 'formChange'].forEach((id) => { $(`#${id}`).hidden = true; });
   gateSay('', '');
   const first = !authFile;
-  if (view === 'setup' || first) {
-    $('#gateTitle').textContent = first ? '관리자 초기 설정' : '비밀번호 재설정';
-    $('#gateLead').textContent = first ? 'GitHub 토큰을 한 번 입력하고 관리자 비밀번호를 정하세요. 토큰은 비밀번호로 암호화되어 레포에 저장됩니다.'
-      : '레포 쓰기 권한이 있는 GitHub 토큰으로 새 비밀번호를 정합니다.';
+  gateView = first ? 'setup' : view;
+  gateLabels();
+  if (gateView === 'setup') {
     $('#setupNav').hidden = first;
+    $('#rcodeField').hidden = !(authFile && authFile.ledger);
     $('#formSetup').hidden = false; $('#tok').focus();
-  } else if (view === 'change') {
-    $('#gateTitle').textContent = '비밀번호 변경'; $('#gateLead').textContent = '';
+  } else if (gateView === 'change') {
     $('#formChange').hidden = false; $('#opw').focus();
   } else {
-    $('#gateTitle').textContent = '관리자 로그인'; $('#gateLead').textContent = 'Dragon Gym Taekwondo Phuket';
     $('#formUnlock').hidden = false; $('#pw').focus();
   }
 }
@@ -668,40 +1018,63 @@ const gateRoute = () => gateShow({ '#change': 'change', '#reset': 'setup' }[loca
 const busy = (form, on) => { $('button[type=submit]', form).disabled = on; };
 
 $('#formUnlock').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checking'), 'ok');
   try {
     const token = await auth.decryptToken(authFile, $('#pw').value);
     auth.session.set(token, $('#remember').checked);
+    if (authFile.ledger) { try { auth.session.setKey(await auth.openLedgerKey(authFile.ledger, $('#pw').value)); } catch { /* 관원 화면에서 다시 묻는다 */ } }
     window.removeEventListener('hashchange', gateRoute);
     history.replaceState(null, '', location.pathname);
     startApp(token);
   } catch (err) { gateSay(err.message); busy(e.target, false); }
 });
 $('#formSetup').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('토큰 확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checkingToken'), 'ok');
   try {
     const token = $('#tok').value.trim();
     const pw = auth.checkNewPassword($('#npw1').value, $('#npw2').value);
     await auth.checkToken(token);
-    gateSay('암호화해서 레포에 저장 중…', 'ok');
-    await auth.saveAuthFile(token, await auth.encryptToken(token, pw), authFile ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
+    const latest = await auth.loadAuthLatest(token); // 배포본은 늦을 수 있다 — 장부 키를 잃지 않게 레포 최신본 기준
+    const next = await auth.encryptToken(token, pw);
+    let ledgerKey = null;
+    if (latest && latest.ledger) {
+      const code = $('#rcode').value.trim();
+      if (code) {
+        ledgerKey = await auth.recoverLedgerKey(latest.ledger, code);
+        next.ledger = await auth.rewrapLedgerKey(ledgerKey, pw, latest.ledger);
+      } else if (!confirm(t('gate.rcodeConfirm'))) {
+        $('#rcodeField').hidden = false; gateSay(t('gate.rcodeNeed')); busy(e.target, false); return;
+      }
+    }
+    gateSay(t('gate.encrypting'), 'ok');
+    await auth.saveAuthFile(token, next, latest ? 'chore(admin): 관리자 비밀번호 재설정' : 'chore(admin): 관리자 비밀번호 초기 설정');
     auth.session.set(token, false);
+    if (ledgerKey) auth.session.setKey(ledgerKey);
     window.removeEventListener('hashchange', gateRoute);
     history.replaceState(null, '', location.pathname);
     startApp(token);
   } catch (err) { gateSay(err.message); busy(e.target, false); }
 });
 $('#formChange').addEventListener('submit', async (e) => {
-  e.preventDefault(); busy(e.target, true); gateSay('확인 중…', 'ok');
+  e.preventDefault(); busy(e.target, true); gateSay(t('gate.checking'), 'ok');
   try {
     const token = await auth.decryptToken(authFile, $('#opw').value);
     const pw = auth.checkNewPassword($('#cpw1').value, $('#cpw2').value);
+    const latest = await auth.loadAuthLatest(token);
     const next = await auth.encryptToken(token, pw);
+    if (latest && latest.ledger) next.ledger = await auth.rewrapLedgerKey(await auth.openLedgerKey(latest.ledger, $('#opw').value), pw, latest.ledger);
     await auth.saveAuthFile(token, next, 'chore(admin): 관리자 비밀번호 변경');
     authFile = next; // 배포 반영 전에도 새 비밀번호로 열리게
-    location.hash = ''; gateShow('unlock');
-    gateSay('비밀번호를 바꿨습니다. 새 비밀번호로 로그인하세요.', 'ok');
+    history.replaceState(null, '', location.pathname); gateShow('unlock'); // hashchange 로 안내 문구가 지워지지 않게
+    gateSay(t('gate.changed'), 'ok');
   } catch (err) { gateSay(err.message); } finally { busy(e.target, false); }
+});
+
+// 언어 전환: 정적 문구는 i18n.applyStatic 이, 그려 놓은 화면은 여기서 다시 그린다 (편집 중인 data 는 그대로)
+applyStatic();
+onLangChange(() => {
+  if (!$('#gate').hidden) gateLabels();
+  if (data.branches) { refreshSavebar(); renderSide(); renderMain(); }
 });
 
 (async () => {
