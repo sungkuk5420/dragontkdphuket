@@ -1,9 +1,9 @@
 /* Dragon Gym 관리자 화면. 레이아웃은 tkd.reizwings.jp 관리자와 같은 "왼쪽 목록 + 오른쪽 카드 편집".
  * 편집은 메모리의 data 에만 반영하고, 아래 저장 바의 [저장] 한 번에 바뀐 JSON·새 이미지를 커밋 하나로 올린다.
  * 입력칸은 data-bind="파일.경로" 로 data 에 바로 묶는다 (예: branches.branches.0.name.ko). */
-import { createRepo, REPO, BRANCH, SITE_DIR, AUTH_PATH, LEDGER_PATH } from './repo.js?v=3';
-import * as auth from './auth.js?v=3';
-import { t, lang, applyStatic, onLangChange } from './i18n.js?v=3';
+import { createRepo, REPO, BRANCH, SITE_DIR, AUTH_PATH, LEDGER_PATH } from './repo.js?v=4';
+import * as auth from './auth.js?v=4';
+import { t, lang, applyStatic, onLangChange } from './i18n.js?v=4';
 
 // 화면 이름표는 t(key) 로 그때그때 (언어 전환), 커밋 메시지는 한국어로 고정
 const FILES = {
@@ -575,7 +575,7 @@ function pageMembers() {
   const chips = [['all', t('mem.allBranches')], ...data.branches.branches.map((b) => [b.id, branchName(b)])];
   return `<div id="ledgerPage">
     <div class="page-head"><div><h1>${t('mem.title')}</h1><p>${t('mem.leadReady')}</p></div>
-      <div class="head-actions"><button class="btn btn--ghost btn--sm" type="button" data-ledger="csv">${t('mem.csv')}</button>
+      <div class="head-actions">${xlsxButtons()}<button class="btn btn--ghost btn--sm" type="button" data-ledger="csv">${t('mem.csv')}</button>
         <button class="btn btn--gold btn--sm" type="button" data-ledger="add">${t('mem.add')}</button></div></div>
     <div class="ledger-bar">
       <div class="yearnav"><button class="iconbtn" type="button" data-ledger="prev" aria-label="${t('mem.prevYear')}">${ICON.left}</button>
@@ -625,12 +625,15 @@ function ledgerView() {
             if (st === 'out') return `<td class="c-out ${mk === k ? 'is-sel' : ''}"></td>`;
             return `<td class="${mk === k ? 'is-sel' : ''}"><button type="button" class="cell cell--${st}" data-pay="${esc(m.id)}|${mk}" title="${esc(tip(m, mk, st))}" aria-label="${esc(tip(m, mk, st))}">${cellText[st]}</button></td>`;
           }).join('')}</tr>`).join('')}</tbody></table></div>`
-        : `<div class="empty">${t(ledger.data.members.length ? 'mem.noMatch' : 'mem.empty')}</div>`}
+        : ledger.data.members.length ? `<div class="empty">${t('mem.noMatch')}</div>`
+          : `<div class="empty">${t('mem.empty')}<p class="hint">${t('mem.emptyXlsx')}</p><div class="empty__actions">${xlsxButtons()}</div></div>`}
       <div class="ledger-legend"><span><b class="cell cell--paid">✓</b>${t('mem.stPaid')}</span><span><b class="cell cell--due">${t('mem.dueShort')}</b>${t('mem.stDue')}</span>
         <span><b class="cell cell--skip">${t('mem.skipShort')}</b>${t('mem.stSkip')}</span><span><b class="cell c-out"></b>${t('mem.legendOut')}</span></div>
     </section>`;
 }
 
+const xlsxButtons = () => `<button class="btn btn--ghost btn--sm" type="button" data-ledger="tpl">${t('mem.tpl')}</button>
+  <label class="btn btn--ghost btn--sm"><input type="file" accept=".xlsx,.xls,.csv" data-import hidden>${t('mem.import')}</label>`;
 function wireMembers() {
   const form = $('#ledgerPw');
   if (form) form.onsubmit = (e) => { e.preventDefault(); ledgerPassword($('#ledgerPwInput').value, form); };
@@ -651,13 +654,21 @@ function wireMembers() {
     else if (b.dataset.month) { view.month = b.dataset.month; repaint(); }
     else if (b.dataset.branch) { view.branch = b.dataset.branch; renderMain(); }
     else if (b.dataset.ledger === 'add') editMember(null);
-    else if (b.dataset.ledger === 'csv') exportCsv();
+    else if (b.dataset.ledger === 'csv') exportXlsx();
+    else if (b.dataset.ledger === 'tpl') downloadTemplate();
     else if (b.dataset.ledger === 'code') newRecoveryCode();
     else if (b.dataset.ledger === 'prev' || b.dataset.ledger === 'next') {
       view.year += b.dataset.ledger === 'prev' ? -1 : 1;
       view.month = `${view.year}-${view.month.slice(5)}`;
       renderMain();
     }
+  };
+  // 엑셀 업로드 칸은 머리와 빈 화면 두 곳에 있고, 빈 화면 쪽은 다시 그려지므로 위임으로 받는다
+  page.onchange = (e) => {
+    if (!e.target.matches('[data-import]')) return;
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (f) importMembers(f);
   };
   $('#ledgerQ').oninput = (e) => { view.q = e.target.value; repaint(); };
   $('#ledgerUnpaid').onchange = (e) => { view.unpaid = e.target.checked; repaint(); };
@@ -801,21 +812,160 @@ function editPay(id, k) {
   });
 }
 
-// 엑셀 백업 (선택한 해). 엑셀이 한글을 깨지 않게 BOM, 수식으로 읽히지 않게 = + - @ 앞에 '
-function exportCsv() {
-  const months = yearMonths(view.year);
-  const head = [t('mem.name'), t('mem.branch'), t('mem.phone'), t('mem.parent'), t('mem.fee'), t('mem.start'), t('mem.end'), t('mem.memo'), ...months];
-  const rows = ledger.data.members.filter((m) => months.some((k) => inMonth(m, k))).map((m) => [
-    m.name, branchLabel(m.branch), m.phone, m.parent, m.fee, m.start, m.end || '', m.memo,
-    ...months.map((k) => { const st = cellState(m, k); return st === 'paid' ? payOf(m, k).amt : st === 'skip' ? t('mem.stSkip') : st === 'due' ? t('mem.stDue') : ''; }),
-  ]);
-  const cell = (c) => { const v = String(c ?? ''); return `"${(/^[=+\-@]/.test(v) ? `'${v}` : v).replace(/"/g, '""')}"`; };
-  const csv = `﻿${[head, ...rows].map((r) => r.map(cell).join(',')).join('\r\n')}`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `dragon-gym-members-${view.year}.csv`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+/* ---------- 엑셀: 양식 받기 · 업로드로 관원 등록 · 내려받기 ----------
+ * SheetJS(mini, Apache-2.0)를 vendor/ 에 두고 쓸 때만 불러온다 — 외부 CDN 에 기대지 않는다.
+ * 양식·내려받기·업로드 모두 같은 열(MEMBER_COLS)을 쓴다. 업로드는 머리글을 3개 언어 이름 어느 것으로든 알아본다. */
+let xlsxLib = null;
+function loadXlsx() {
+  if (!xlsxLib) {
+    xlsxLib = new Promise((ok, fail) => {
+      const s = document.createElement('script');
+      s.src = 'vendor/xlsx.mini.min.js?v=0.20.3';
+      s.onload = () => ok(window.XLSX);
+      s.onerror = () => { xlsxLib = null; fail(new Error(t('mem.xlsxLoadFail'))); };
+      document.head.appendChild(s);
+    });
+  }
+  return xlsxLib;
+}
+// [필드, 양식 머리글 키, 화면 라벨 키, 열 너비]
+const MEMBER_COLS = [
+  ['name', 'mem.colName', 'mem.name', 18], ['branch', 'mem.colBranch', 'mem.branch', 20], ['phone', 'mem.colPhone', 'mem.phone', 15],
+  ['parent', 'mem.colParent', 'mem.parent', 15], ['fee', 'mem.colFee', 'mem.fee', 16], ['start', 'mem.colStart', 'mem.start', 16],
+  ['end', 'mem.colEnd', 'mem.end', 16], ['memo', 'mem.colMemo', 'mem.memo', 30],
+];
+const normHead = (s) => String(s).toLowerCase().replace(/\(.*?\)|yyyy-mm|฿|\*/g, '').replace(/[\s·.:_\-/]/g, '');
+const HEAD_NAMES = Object.fromEntries(MEMBER_COLS.map(([f, ck, lk]) => [f, new Set(['ko', 'en', 'th'].flatMap((L) => [normHead(t(ck, {}, L)), normHead(t(lk, {}, L))]))]));
+function headerMap(row) {
+  const map = {};
+  row.forEach((c, i) => { const n = normHead(c); if (!n) return; const f = MEMBER_COLS.find(([k]) => HEAD_NAMES[k].has(n)); if (f && map[f[0]] == null) map[f[0]] = i; });
+  return map;
+}
+const xlsxName = (kind) => `dragon-gym-${kind}${kind === 'members' ? `-${view.year}` : ''}.xlsx`;
+
+async function downloadTemplate() {
+  try {
+    const X = await loadXlsx();
+    const ws = X.utils.aoa_to_sheet([MEMBER_COLS.map(([, ck]) => t(ck))]);
+    ws['!cols'] = MEMBER_COLS.map(([, , , w]) => ({ wch: w }));
+    const guide = X.utils.aoa_to_sheet([
+      [t('mem.tplGuide')], [],
+      ...['mem.tplH1', 'mem.tplH2', 'mem.tplH3', 'mem.tplH4', 'mem.tplH5', 'mem.tplH6'].map((k, i) => [`${i + 1}. ${t(k)}`]), [],
+      [t('mem.tplBranches')], ...data.branches.branches.map((b) => [branchName(b)]),
+    ]);
+    guide['!cols'] = [{ wch: 90 }];
+    const wb = X.utils.book_new();
+    X.utils.book_append_sheet(wb, ws, t('mem.tplSheet'));
+    X.utils.book_append_sheet(wb, guide, t('mem.tplGuide'));
+    X.writeFile(wb, xlsxName('member-form'));
+  } catch (e) { toast(e.message, true); }
+}
+
+// 엑셀 백업 (선택한 해) — 앞쪽 열은 양식과 같아서 그대로 다시 올릴 수도 있다
+async function exportXlsx() {
+  try {
+    const X = await loadXlsx();
+    const months = yearMonths(view.year);
+    const rows = ledger.data.members.filter((m) => months.some((k) => inMonth(m, k))).map((m) => [
+      m.name, branchLabel(m.branch), m.phone, m.parent, m.fee, m.start, m.end || '', m.memo,
+      ...months.map((k) => { const st = cellState(m, k); return st === 'paid' ? payOf(m, k).amt : st === 'skip' ? t('mem.stSkip') : st === 'due' ? t('mem.stDue') : ''; }),
+    ]);
+    const ws = X.utils.aoa_to_sheet([[...MEMBER_COLS.map(([, , lk]) => t(lk)), ...months.map((k) => monthName(k))], ...rows]);
+    ws['!cols'] = [...MEMBER_COLS.map(([, , , w]) => ({ wch: w })), ...months.map(() => ({ wch: 11 }))];
+    const wb = X.utils.book_new();
+    X.utils.book_append_sheet(wb, ws, String(view.year));
+    X.writeFile(wb, xlsxName('members'));
+  } catch (e) { toast(e.message, true); }
+}
+
+/* 엑셀 칸 값 → 장부 값. 엑셀이 0812… 를 숫자로, 2026-03 을 날짜로 바꿔 버리는 경우까지 되돌린다. */
+const cellText = (v) => (v instanceof Date ? '' : String(v ?? '').trim());
+function cellPhone(v) {
+  if (typeof v === 'number') { const s = String(Math.round(v)); return /^\d{8,9}$/.test(s) ? `0${s}` : s; }
+  return cellText(v);
+}
+function cellMonth(v) {
+  if (v instanceof Date) { const d = new Date(v.getTime() + 12 * 3600e3); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; } // 시간대 경계 보정
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  let m = s.match(/^(\d{4})\s*[-./년]\s*(\d{1,2})/) || s.match(/^(\d{1,2})\s*[-./]\s*(\d{4})$/);
+  if (!m) return null;
+  const [y, mo] = m[1].length === 4 ? [m[1], m[2]] : [m[2], m[1]];
+  return Number(mo) >= 1 && Number(mo) <= 12 ? `${y}-${pad2(mo)}` : null;
+}
+// 지점: id·3개 언어 이름 어느 것이든, 괄호 부분('(본관)')은 빼고 비교. 비우면 지점 없음, 못 찾으면 null(오류)
+function cellBranch(v) {
+  const n = (s) => String(s ?? '').toLowerCase().replace(/\(.*?\)/g, '').replace(/\s/g, '');
+  const want = n(v);
+  if (!want) return '';
+  const names = (b) => [b.id, b.name.ko, b.name.en, b.name.th].map(n).filter(Boolean);
+  const hit = data.branches.branches.find((b) => names(b).includes(want))
+    || (want.length >= 2 && data.branches.branches.find((b) => names(b).some((x) => x.includes(want) || want.includes(x))));
+  return hit ? hit.id : null;
+}
+
+function parseMemberRows(rows) {
+  const hi = rows.slice(0, 10).findIndex((r) => Object.keys(headerMap(r)).length >= 2);
+  if (hi < 0) return { error: t('mem.impNoHeader') };
+  const map = headerMap(rows[hi]);
+  if (map.name == null || map.fee == null) return { error: t('mem.impNoHeader') };
+  const get = (r, f) => (map[f] == null ? '' : r[map[f]]);
+  const seen = new Set(ledger.data.members.map((m) => `${m.name.toLowerCase()}|${m.branch}`));
+  const items = [];
+  rows.slice(hi + 1).forEach((r, i) => {
+    if (!r.some((c) => cellText(c) || c instanceof Date || typeof c === 'number')) return; // 빈 줄
+    const errs = [];
+    const name = cellText(get(r, 'name'));
+    const feeRaw = get(r, 'fee');
+    const fee = typeof feeRaw === 'number' ? (feeRaw >= 0 ? feeRaw : null) : toAmount(feeRaw);
+    const branchRaw = cellText(get(r, 'branch'));
+    const branch = cellBranch(branchRaw);
+    let start = cellMonth(get(r, 'start'));
+    const end = cellMonth(get(r, 'end'));
+    if (!name) errs.push(t('mem.errName'));
+    if (fee == null) errs.push(t('mem.errFee'));
+    if (branch == null) errs.push(t('mem.impBadBranch', { v: branchRaw }));
+    if (start === '') start = thisMonth();
+    if (start == null) errs.push(t('mem.errStart'));
+    if (end == null || (end && start && end < start)) errs.push(t('mem.errEnd'));
+    const m = { name, branch: branch || '', phone: cellPhone(get(r, 'phone')), parent: cellText(get(r, 'parent')),
+      fee, start, end: end || null, memo: cellText(get(r, 'memo')) };
+    const key = `${name.toLowerCase()}|${m.branch}`;
+    const dup = !errs.length && seen.has(key);
+    if (!errs.length) seen.add(key);
+    items.push({ line: hi + i + 2, m, err: errs.join(' '), dup });
+  });
+  return { items };
+}
+
+async function importMembers(file) {
+  let rows;
+  try {
+    const X = await loadXlsx();
+    const wb = X.read(await file.arrayBuffer(), { cellDates: true });
+    rows = X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: '' });
+  } catch (e) { toast(e.message === t('mem.xlsxLoadFail') ? e.message : t('mem.impReadFail'), true); return; }
+  const res = parseMemberRows(rows);
+  if (res.error) { toast(res.error, true); return; }
+  if (!res.items.length) { toast(t('mem.impEmpty'), true); return; }
+  const ok = res.items.filter((x) => !x.err && !x.dup);
+  const nDup = res.items.filter((x) => x.dup).length, nErr = res.items.filter((x) => x.err).length;
+  const status = (x) => (x.err ? `<span class="imp imp--err">${esc(x.err)}</span>` : x.dup ? `<span class="imp imp--dup">${t('mem.impDup')}</span>` : `<span class="imp imp--ok">${t('mem.impAdd')}</span>`);
+  openDialog({
+    title: t('mem.impTitle'),
+    draft: {},
+    body: () => `<p class="imp-sum"><b>${esc(t('mem.impSummary', { add: ok.length, dup: nDup, err: nErr }))}</b></p>
+      ${nErr ? `<p class="note">${t('mem.impErrNote')}</p>` : ''}
+      <div class="imp-table"><table><thead><tr><th>${t('mem.impLine')}</th><th>${t('mem.name')}</th><th>${t('mem.branch')}</th><th>${t('mem.fee')}</th><th>${t('mem.start')}</th><th>${t('mem.impStatus')}</th></tr></thead>
+      <tbody>${res.items.map((x) => `<tr class="${x.err ? 'is-err' : x.dup ? 'is-dup' : ''}"><td>${x.line}</td><td>${esc(x.m.name)}</td><td>${esc(x.m.branch ? branchLabel(x.m.branch) : '')}</td>
+        <td>${x.m.fee == null ? '' : baht(x.m.fee)}</td><td>${esc(x.m.start || '')}</td><td>${status(x)}</td></tr>`).join('')}</tbody></table></div>`,
+    applyLabel: t('mem.impApply', { n: ok.length }),
+    onApply: () => {
+      if (!ok.length) throw new Error(t('mem.impNone'));
+      ok.forEach((x, i) => ledger.data.members.push({ id: `m${Date.now().toString(36)}${i.toString(36)}${Math.random().toString(36).slice(2, 5)}`, ...x.m }));
+      toast(t('mem.impDone', { n: ok.length }));
+    },
+  });
 }
 
 /* ================= 라우팅·렌더 ================= */

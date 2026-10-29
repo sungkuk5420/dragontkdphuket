@@ -1,8 +1,8 @@
 /* 관리자 비밀번호 잠금. GitHub 토큰을 비밀번호로 암호화(PBKDF2-SHA256 60만 회 → AES-GCM)해 auth.json 으로 레포에 둔다.
  * 레포는 공개라 암호문도 공개다 — 비밀번호가 곧 보안이므로 10자 이상을 강제한다.
  * 풀린 토큰은 이 탭(sessionStorage) 또는 '로그인 유지' 시 이 기기(localStorage)에만 둔다. */
-import { REPO, BRANCH, AUTH_PATH } from './repo.js?v=3';
-import { t } from './i18n.js?v=3';
+import { REPO, BRANCH, AUTH_PATH } from './repo.js?v=4';
+import { t } from './i18n.js?v=4';
 
 const ITER = 600000;
 const TOKEN_KEY = 'dgt-admin.token';
